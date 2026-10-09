@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Building2, UserCircle, Shield, LogOut, Briefcase } from 'lucide-react';
+import { Building2, UserCircle, Shield, LogOut, Briefcase, Users, FileText } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout, isCandidate, isCompanyMember, isSuperAdmin } = useAuth();
@@ -17,25 +17,47 @@ export const Navbar: React.FC = () => {
         </Link>
 
         <nav className="navbar-nav">
+          {/* Universal Job Marketplace link */}
+          <Link to="/jobs" className="nav-link">
+            <Briefcase size={17} />
+            <span>Explore Jobs</span>
+          </Link>
+
           {isAuthenticated ? (
             <>
               {isCandidate && (
-                <Link to="/candidate/profile" className="nav-link">
-                  <UserCircle size={18} />
-                  <span>Candidate Profile</span>
-                </Link>
+                <>
+                  <Link to="/candidate/applications" className="nav-link">
+                    <FileText size={17} />
+                    <span>My Applications</span>
+                  </Link>
+                  <Link to="/candidate/profile" className="nav-link">
+                    <UserCircle size={17} />
+                    <span>Profile</span>
+                  </Link>
+                </>
               )}
 
               {isCompanyMember && (
-                <Link to="/company/dashboard" className="nav-link">
-                  <Building2 size={18} />
-                  <span>Company Workspace</span>
-                </Link>
+                <>
+                  <Link to="/company/jobs" className="nav-link">
+                    <Briefcase size={17} />
+                    <span>Manage Vacancies</span>
+                  </Link>
+                  <Link to="/company/applications" className="nav-link">
+                    <Users size={17} />
+                    <span>Applicants</span>
+                  </Link>
+                  <Link to="/company/dashboard" className="nav-link">
+                    <Building2 size={17} />
+                    <span>Workspace</span>
+                  </Link>
+                </>
               )}
 
               {isSuperAdmin && (
                 <Link to="/admin/companies" className="nav-link nav-link-admin">
-                  <Shield size={18} />
+                  <Shield size={17} />
                   <span>Admin Governance</span>
                 </Link>
               )}

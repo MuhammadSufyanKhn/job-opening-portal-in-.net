@@ -13,6 +13,9 @@ public class CandidateProfile
     public string? GitHubUrl { get; set; }
     public string? PortfolioUrl { get; set; }
     public DateTimeOffset? UpdatedAtUtc { get; set; }
+
+    public ICollection<CandidateDocument> Documents { get; set; } = new List<CandidateDocument>();
+    public ICollection<JobApplication> Applications { get; set; } = new List<JobApplication>();
 }
 
 public class AuditLog

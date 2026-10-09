@@ -71,3 +71,39 @@ export const adminApi = {
   suspendCompany: (id: string, reason: string) => api.post(`/admin/companies/${id}/suspend`, { reason }).then(r => r.data),
   restoreCompany: (id: string) => api.post(`/admin/companies/${id}/restore`).then(r => r.data),
 };
+
+// Public Marketplace API
+export const jobsApi = {
+  searchJobs: (params?: any) => api.get<import('../types/recruitment').PagedResult<import('../types/recruitment').PublicJobPostingSummary>>('/jobs', { params }).then(r => r.data),
+  getJobDetail: (id: string) => api.get<import('../types/recruitment').PublicJobPostingDetail>(`/jobs/${id}`).then(r => r.data),
+  getCategories: () => api.get<import('../types/recruitment').JobCategory[]>('/jobs/categories').then(r => r.data),
+};
+
+// Company Job Management API
+export const companyJobsApi = {
+  getJobs: (companyId: string, params?: any) => api.get<import('../types/recruitment').PagedResult<import('../types/recruitment').JobPostingSummary>>(`/companies/${companyId}/jobs`, { params }).then(r => r.data),
+  getJob: (companyId: string, jobId: string) => api.get<import('../types/recruitment').JobPostingDetail>(`/companies/${companyId}/jobs/${jobId}`).then(r => r.data),
+  createJob: (companyId: string, data: any) => api.post<import('../types/recruitment').JobPostingDetail>(`/companies/${companyId}/jobs`, data).then(r => r.data),
+  updateJob: (companyId: string, jobId: string, data: any) => api.put<import('../types/recruitment').JobPostingDetail>(`/companies/${companyId}/jobs/${jobId}`, data).then(r => r.data),
+  publishJob: (companyId: string, jobId: string) => api.post<import('../types/recruitment').JobPostingDetail>(`/companies/${companyId}/jobs/${jobId}/publish`).then(r => r.data),
+  pauseJob: (companyId: string, jobId: string) => api.post<import('../types/recruitment').JobPostingDetail>(`/companies/${companyId}/jobs/${jobId}/pause`).then(r => r.data),
+  reopenJob: (companyId: string, jobId: string) => api.post<import('../types/recruitment').JobPostingDetail>(`/companies/${companyId}/jobs/${jobId}/reopen`).then(r => r.data),
+  closeJob: (companyId: string, jobId: string) => api.post<import('../types/recruitment').JobPostingDetail>(`/companies/${companyId}/jobs/${jobId}/close`).then(r => r.data),
+  archiveJob: (companyId: string, jobId: string) => api.post<import('../types/recruitment').JobPostingDetail>(`/companies/${companyId}/jobs/${jobId}/archive`).then(r => r.data),
+};
+
+// Candidate Applications API
+export const candidateApplicationsApi = {
+  apply: (jobId: string, data: { candidateDocumentId?: string; coverNote?: string }) => api.post<import('../types/recruitment').CandidateApplicationDetail>(`/jobs/${jobId}/apply`, data).then(r => r.data),
+  getMyApplications: () => api.get<import('../types/recruitment').CandidateApplicationSummary[]>('/candidate/applications').then(r => r.data),
+  getApplication: (id: string) => api.get<import('../types/recruitment').CandidateApplicationDetail>(`/candidate/applications/${id}`).then(r => r.data),
+  withdrawApplication: (id: string) => api.post<import('../types/recruitment').CandidateApplicationDetail>(`/candidate/applications/${id}/withdraw`).then(r => r.data),
+};
+
+// Company Applications Review API
+export const companyApplicationsApi = {
+  getApplications: (companyId: string, params?: any) => api.get<import('../types/recruitment').PagedResult<import('../types/recruitment').CompanyApplicationSummary>>(`/companies/${companyId}/applications`, { params }).then(r => r.data),
+  getApplication: (companyId: string, id: string) => api.get<import('../types/recruitment').CompanyApplicationDetail>(`/companies/${companyId}/applications/${id}`).then(r => r.data),
+  updateStage: (companyId: string, id: string, data: { newStage: any; reasonNote?: string }) => api.post<import('../types/recruitment').CompanyApplicationDetail>(`/companies/${companyId}/applications/${id}/stage`, data).then(r => r.data),
+};
+

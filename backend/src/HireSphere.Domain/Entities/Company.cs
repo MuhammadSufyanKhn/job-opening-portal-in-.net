@@ -27,4 +27,6 @@ public class Company
     // Navigations
     public ICollection<CompanyMember> Members { get; set; } = new List<CompanyMember>();
     public ICollection<CompanyInvitation> Invitations { get; set; } = new List<CompanyInvitation>();
+    public ICollection<JobPosting> JobPostings { get; set; } = new List<JobPosting>();
+    public ICollection<JobApplication> JobApplications { get; set; } = new List<JobApplication>();
 }

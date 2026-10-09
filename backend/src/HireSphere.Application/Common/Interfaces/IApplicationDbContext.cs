@@ -15,5 +15,14 @@ public interface IApplicationDbContext
     DbSet<CandidateProfile> CandidateProfiles { get; }
     DbSet<AuditLog> AuditLogs { get; }
 
+    DbSet<JobCategory> JobCategories { get; }
+    DbSet<JobPosting> JobPostings { get; }
+    DbSet<JobRequirement> JobRequirements { get; }
+    DbSet<JobDescriptionVersion> JobDescriptionVersions { get; }
+    DbSet<CandidateDocument> CandidateDocuments { get; }
+    DbSet<JobApplication> JobApplications { get; }
+    DbSet<ApplicationStatusHistory> ApplicationStatusHistories { get; }
+    DbSet<CandidateNote> CandidateNotes { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

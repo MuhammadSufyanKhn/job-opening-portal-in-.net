@@ -118,3 +118,60 @@ public class InviteMemberRequestValidator : AbstractValidator<InviteMemberReques
             .WithMessage("Company role must be either 'Recruiter' or 'HiringManager'.");
     }
 }
+
+public class CreateJobPostingRequestValidator : AbstractValidator<DTOs.Job.CreateJobPostingRequest>
+{
+    public CreateJobPostingRequestValidator()
+    {
+        RuleFor(x => x.Title).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.Summary).NotEmpty().MaximumLength(500);
+        RuleFor(x => x.Description).NotEmpty();
+        RuleFor(x => x.Responsibilities).NotEmpty();
+        RuleFor(x => x.Location).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.JobCategoryId).GreaterThan(0).WithMessage("A valid job category must be selected.");
+        RuleFor(x => x.SalaryMin).GreaterThanOrEqualTo(0).When(x => x.SalaryMin.HasValue);
+        RuleFor(x => x.SalaryMax).GreaterThanOrEqualTo(0).When(x => x.SalaryMax.HasValue);
+        RuleFor(x => x)
+            .Must(x => !x.SalaryMin.HasValue || !x.SalaryMax.HasValue || x.SalaryMin <= x.SalaryMax)
+            .WithMessage("Minimum salary cannot be greater than maximum salary.");
+    }
+}
+
+public class UpdateJobPostingRequestValidator : AbstractValidator<DTOs.Job.UpdateJobPostingRequest>
+{
+    public UpdateJobPostingRequestValidator()
+    {
+        RuleFor(x => x.Title).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.Summary).NotEmpty().MaximumLength(500);
+        RuleFor(x => x.Description).NotEmpty();
+        RuleFor(x => x.Responsibilities).NotEmpty();
+        RuleFor(x => x.Location).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.JobCategoryId).GreaterThan(0).WithMessage("A valid job category must be selected.");
+        RuleFor(x => x.SalaryMin).GreaterThanOrEqualTo(0).When(x => x.SalaryMin.HasValue);
+        RuleFor(x => x.SalaryMax).GreaterThanOrEqualTo(0).When(x => x.SalaryMax.HasValue);
+        RuleFor(x => x)
+            .Must(x => !x.SalaryMin.HasValue || !x.SalaryMax.HasValue || x.SalaryMin <= x.SalaryMax)
+            .WithMessage("Minimum salary cannot be greater than maximum salary.");
+    }
+}
+
+public class SubmitApplicationRequestValidator : AbstractValidator<DTOs.Application.SubmitApplicationRequest>
+{
+    public SubmitApplicationRequestValidator()
+    {
+        RuleFor(x => x.CoverNote)
+            .MaximumLength(2000)
+            .When(x => !string.IsNullOrEmpty(x.CoverNote));
+    }
+}
+
+public class UpdateApplicationStageRequestValidator : AbstractValidator<DTOs.Application.UpdateApplicationStageRequest>
+{
+    public UpdateApplicationStageRequestValidator()
+    {
+        RuleFor(x => x.ReasonNote)
+            .MaximumLength(1000)
+            .When(x => !string.IsNullOrEmpty(x.ReasonNote));
+    }
+}
+

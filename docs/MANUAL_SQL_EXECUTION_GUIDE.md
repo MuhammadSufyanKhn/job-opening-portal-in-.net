@@ -131,18 +131,47 @@ GO
   ```
 * **EF Core Mapping Alignment:** Matches `HireSphere.Infrastructure.Persistence.Configurations.Operations.*`.
 
-### Script 6 (Seed): `database/seeds/001_SeedInitialRolesAndAdmin.sql`
+### Script 6: `006_MakeCandidateDocumentOptionalInApplications.sql`
+* **Purpose:** Alters `dbo.JobApplications.CandidateDocumentId` to `NULLable`, enabling candidates to submit job applications based on their verified profile and cover note prior to the document extraction/CV upload phase.
+* **Objects Modified:** Column `CandidateDocumentId` on table `JobApplications`.
+* **Prerequisites:** Script `002_CreateRecruitmentAndApplicationsSchema.sql` executed.
+* **Expected Order:** Execution Step 6.
+* **Rerun Safety (Idempotency):** Safe to rerun. Guarded by `IF EXISTS (SELECT 1 FROM sys.columns ... AND is_nullable = 0)` check.
+* **Data Impact:** In-place column nullability alteration. Zero data loss.
+* **SSMS Verification Query:**
+  ```sql
+  SELECT COLUMN_NAME, IS_NULLABLE 
+  FROM INFORMATION_SCHEMA.COLUMNS 
+  WHERE TABLE_NAME = 'JobApplications' AND COLUMN_NAME = 'CandidateDocumentId';
+  ```
+
+---
+
+### Seed Script 1: `database/seeds/001_SeedInitialRolesAndAdmin.sql`
 * **Purpose:** Seeds foundational platform roles (`Candidate`, `CompanyMember`, `SuperAdmin`) into the `Roles` table with idempotent checks. Includes an optional, commented bootstrap block for a local development SuperAdmin (`admin@hiresphere.local`).
 * **Objects Modified:** Inserts into `Roles` (and conditionally `Users`, `UserRoles`).
 * **Prerequisites:** Schema Script `001_CreateCoreIdentityAndTenantSchema.sql` executed.
-* **Expected Order:** Execution Step 6 (Seed phase).
-* **Rerun Safety (Idempotency):** Safe to rerun. Guarded by `IF NOT EXISTS (SELECT * FROM dbo.Roles WHERE NormalizedName = ...)` checks.
+* **Expected Order:** Seed Step 1.
+* **Rerun Safety (Idempotency):** Safe to rerun. Guarded by `IF NOT EXISTS` checks.
 * **Data Impact:** Inserts 3 core role records if missing. Zero destructive alterations.
 * **SSMS Verification Query:**
   ```sql
   SELECT Id, Name, NormalizedName, Description FROM dbo.Roles;
   ```
-* **Development Admin Note:** To provision a local development platform administrator, uncomment lines 44-64 in SSMS before executing. Do not run default admin credentials in production environments.
+
+---
+
+### Seed Script 2: `database/seeds/002_SeedJobCategories.sql`
+* **Purpose:** Seeds standard job categories (`Software Engineering`, `Product Management`, `Data & AI`, `DevOps & Cloud`, `Design & Creative`, `Sales & Marketing`, `Customer Support`, `Human Resources`) in `dbo.JobCategories`.
+* **Objects Modified:** Inserts into `JobCategories`.
+* **Prerequisites:** Schema Script `002_CreateRecruitmentAndApplicationsSchema.sql` executed.
+* **Expected Order:** Seed Step 2.
+* **Rerun Safety (Idempotency):** Safe to rerun. Guarded by `IF NOT EXISTS` slug checks.
+* **Data Impact:** Purely additive reference data insertion.
+* **SSMS Verification Query:**
+  ```sql
+  SELECT Id, Name, Slug, DisplayOrder FROM dbo.JobCategories ORDER BY DisplayOrder;
+  ```
 
 ---
 

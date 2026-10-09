@@ -150,7 +150,7 @@ BEGIN TRY
             JobPostingId UNIQUEIDENTIFIER NOT NULL,
             JobDescriptionVersionId UNIQUEIDENTIFIER NOT NULL,
             CandidateProfileId UNIQUEIDENTIFIER NOT NULL,
-            CandidateDocumentId UNIQUEIDENTIFIER NOT NULL,
+            CandidateDocumentId UNIQUEIDENTIFIER NULL,
             CurrentStage INT NOT NULL CONSTRAINT DF_JobApplications_CurrentStage DEFAULT 0, -- 0: Submitted, 1: UnderReview, 2: Shortlisted, 3: AssessmentPending, 4: AssessmentCompleted, 5: InterviewScheduled, 6: Offered, 7: Hired, 8: Rejected, 9: Withdrawn
             SubmittedAtUtc DATETIMEOFFSET NOT NULL CONSTRAINT DF_JobApplications_SubmittedAtUtc DEFAULT SYSDATETIMEOFFSET(),
             StageUpdatedAtUtc DATETIMEOFFSET NULL,

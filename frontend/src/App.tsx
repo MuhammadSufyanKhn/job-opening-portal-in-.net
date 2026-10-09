@@ -9,6 +9,12 @@ import { RegisterCompany } from './pages/RegisterCompany';
 import { CandidateProfile } from './pages/CandidateProfile';
 import { CompanyDashboard } from './pages/CompanyDashboard';
 import { AdminCompanies } from './pages/AdminCompanies';
+import { Jobs } from './pages/Jobs';
+import { JobDetail } from './pages/JobDetail';
+import { CandidateApplications } from './pages/CandidateApplications';
+import { CompanyJobs } from './pages/CompanyJobs';
+import { CreateEditJob } from './pages/CreateEditJob';
+import { CompanyApplications } from './pages/CompanyApplications';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; requiredRole?: string }> = ({
   children,
@@ -46,11 +52,15 @@ export const App: React.FC = () => {
           <Navbar />
           <main className="main-content">
             <Routes>
+              {/* Public Routes */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register-candidate" element={<RegisterCandidate />} />
               <Route path="/register-company" element={<RegisterCompany />} />
+              <Route path="/jobs" element={<Jobs />} />
+              <Route path="/jobs/:id" element={<JobDetail />} />
 
+              {/* Candidate Protected Routes */}
               <Route
                 path="/candidate/profile"
                 element={
@@ -59,7 +69,16 @@ export const App: React.FC = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/candidate/applications"
+                element={
+                  <ProtectedRoute requiredRole="Candidate">
+                    <CandidateApplications />
+                  </ProtectedRoute>
+                }
+              />
 
+              {/* Company Protected Routes */}
               <Route
                 path="/company/dashboard"
                 element={
@@ -68,7 +87,40 @@ export const App: React.FC = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/company/jobs"
+                element={
+                  <ProtectedRoute requiredRole="CompanyMember">
+                    <CompanyJobs />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/company/jobs/new"
+                element={
+                  <ProtectedRoute requiredRole="CompanyMember">
+                    <CreateEditJob />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/company/jobs/:id/edit"
+                element={
+                  <ProtectedRoute requiredRole="CompanyMember">
+                    <CreateEditJob />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/company/applications"
+                element={
+                  <ProtectedRoute requiredRole="CompanyMember">
+                    <CompanyApplications />
+                  </ProtectedRoute>
+                }
+              />
 
+              {/* Super Admin Protected Routes */}
               <Route
                 path="/admin/companies"
                 element={
@@ -78,6 +130,7 @@ export const App: React.FC = () => {
                 }
               />
 
+              {/* Fallback 404 */}
               <Route
                 path="*"
                 element={
