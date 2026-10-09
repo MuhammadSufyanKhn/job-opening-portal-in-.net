@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HireSphere.Api/HireSphere.Api.csproj" />
+    <Project Path="src/HireSphere.Application/HireSphere.Application.csproj" />
+    <Project Path="src/HireSphere.Domain/HireSphere.Domain.csproj" />
+    <Project Path="src/HireSphere.Infrastructure/HireSphere.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HireSphere.Tests.Integration/HireSphere.Tests.Integration.csproj" />
+    <Project Path="tests/HireSphere.Tests.Unit/HireSphere.Tests.Unit.csproj" />
+  </Folder>
+</Solution>

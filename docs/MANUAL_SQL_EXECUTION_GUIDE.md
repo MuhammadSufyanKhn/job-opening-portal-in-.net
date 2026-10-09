@@ -131,6 +131,19 @@ GO
   ```
 * **EF Core Mapping Alignment:** Matches `HireSphere.Infrastructure.Persistence.Configurations.Operations.*`.
 
+### Script 6 (Seed): `database/seeds/001_SeedInitialRolesAndAdmin.sql`
+* **Purpose:** Seeds foundational platform roles (`Candidate`, `CompanyMember`, `SuperAdmin`) into the `Roles` table with idempotent checks. Includes an optional, commented bootstrap block for a local development SuperAdmin (`admin@hiresphere.local`).
+* **Objects Modified:** Inserts into `Roles` (and conditionally `Users`, `UserRoles`).
+* **Prerequisites:** Schema Script `001_CreateCoreIdentityAndTenantSchema.sql` executed.
+* **Expected Order:** Execution Step 6 (Seed phase).
+* **Rerun Safety (Idempotency):** Safe to rerun. Guarded by `IF NOT EXISTS (SELECT * FROM dbo.Roles WHERE NormalizedName = ...)` checks.
+* **Data Impact:** Inserts 3 core role records if missing. Zero destructive alterations.
+* **SSMS Verification Query:**
+  ```sql
+  SELECT Id, Name, NormalizedName, Description FROM dbo.Roles;
+  ```
+* **Development Admin Note:** To provision a local development platform administrator, uncomment lines 44-64 in SSMS before executing. Do not run default admin credentials in production environments.
+
 ---
 
 ## 4. How the EF Core Model Stays Strictly Aligned
@@ -139,3 +152,4 @@ To guarantee that the C# Entity Framework Core model never drifts from the SQL s
 1. **Explicit Fluent API Configurations:** Every entity class in `HireSphere.Domain` maps to a dedicated `IEntityTypeConfiguration<T>` class in `HireSphere.Infrastructure`.
 2. **Zero Automated Migration Execution:** The application startup code in `Program.cs` registers the `DbContext` with `options.UseSqlServer(connectionString)` but contains **no calls to `Database.Migrate()` or `Database.EnsureCreated()`**.
 3. **Database Drift Integration Test:** In Phase 10, an automated xUnit integration test will compare the EF Core model metadata against the SQL Server schema views (`INFORMATION_SCHEMA.COLUMNS`, `sys.indexes`) to programmatically verify zero drift.
+
