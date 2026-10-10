@@ -77,4 +77,6 @@ public record CompanyApplicationDetailDto(
     DateTimeOffset SubmittedAtUtc,
     DateTimeOffset? StageUpdatedAtUtc,
     string? CandidateCoverNote,
-    IReadOnlyList<ApplicationStatusHistoryDto> StatusTimeline);
+    IReadOnlyList<ApplicationStatusHistoryDto> StatusTimeline,
+    Guid? CandidateDocumentId = null,
+    string? CandidateDocumentFileName = null);

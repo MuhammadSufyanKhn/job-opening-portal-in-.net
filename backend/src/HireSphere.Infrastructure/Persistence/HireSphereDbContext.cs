@@ -29,6 +29,18 @@ public class HireSphereDbContext : DbContext, IApplicationDbContext
     public DbSet<JobApplication> JobApplications => Set<JobApplication>();
     public DbSet<ApplicationStatusHistory> ApplicationStatusHistories => Set<ApplicationStatusHistory>();
     public DbSet<CandidateNote> CandidateNotes => Set<CandidateNote>();
+    public DbSet<DocumentExtractionJob> DocumentExtractionJobs => Set<DocumentExtractionJob>();
+    public DbSet<CvMatchReport> CvMatchReports => Set<CvMatchReport>();
+    public DbSet<CvRequirementEvaluation> CvRequirementEvaluations => Set<CvRequirementEvaluation>();
+
+    public DbSet<SimulationScenario> SimulationScenarios => Set<SimulationScenario>();
+    public DbSet<ScenarioVersion> ScenarioVersions => Set<ScenarioVersion>();
+    public DbSet<JobAssessmentConfiguration> JobAssessmentConfigurations => Set<JobAssessmentConfiguration>();
+    public DbSet<AssessmentAssignment> AssessmentAssignments => Set<AssessmentAssignment>();
+    public DbSet<SimulationSession> SimulationSessions => Set<SimulationSession>();
+    public DbSet<SimulationActionLog> SimulationActionLogs => Set<SimulationActionLog>();
+    public DbSet<AssessmentResult> AssessmentResults => Set<AssessmentResult>();
+    public DbSet<CriterionScore> CriterionScores => Set<CriterionScore>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -38,6 +50,7 @@ public class HireSphereDbContext : DbContext, IApplicationDbContext
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
         {
             modelBuilder.Entity<JobPosting>().Property(p => p.RowVersion).IsConcurrencyToken(false);
+            modelBuilder.Entity<SimulationSession>().Property(p => p.RowVersion).IsConcurrencyToken(false);
         }
     }
 }

@@ -15,14 +15,23 @@ public class CandidateDocumentConfiguration : IEntityTypeConfiguration<Candidate
         builder.Property(d => d.StorageKey).HasMaxLength(255).IsRequired();
         builder.Property(d => d.FileExtension).HasMaxLength(10).IsRequired();
         builder.Property(d => d.MimeType).HasMaxLength(100).IsRequired();
+        builder.Property(d => d.VersionNumber).HasDefaultValue(1);
+        builder.Property(d => d.ContentHash).HasMaxLength(64);
 
         builder.HasOne(d => d.CandidateProfile)
             .WithMany(p => p.Documents)
             .HasForeignKey(d => d.CandidateProfileId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(d => d.RootDocument)
+            .WithMany(d => d.Versions)
+            .HasForeignKey(d => d.RootDocumentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasIndex(d => d.StorageKey).IsUnique();
         builder.HasIndex(d => new { d.CandidateProfileId, d.IsDefault });
+        builder.HasIndex(d => d.RootDocumentId);
+        builder.HasIndex(d => d.ContentHash);
     }
 }
 

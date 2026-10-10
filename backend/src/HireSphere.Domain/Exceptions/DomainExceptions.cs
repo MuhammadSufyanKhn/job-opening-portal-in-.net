@@ -7,8 +7,16 @@ public abstract class DomainException : Exception
 
 public class NotFoundException : DomainException
 {
+    public NotFoundException(string message)
+        : base(message) { }
+
     public NotFoundException(string resourceName, object key)
         : base($"{resourceName} with identifier '{key}' was not found.") { }
+}
+
+public class ValidationException : DomainException
+{
+    public ValidationException(string message) : base(message) { }
 }
 
 public class ConflictException : DomainException

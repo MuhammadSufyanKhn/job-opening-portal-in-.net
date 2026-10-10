@@ -15,9 +15,10 @@ import {
   Star,
   Sparkles
 } from 'lucide-react';
-import { jobsApi, candidateApplicationsApi } from '../services/api';
+import { jobsApi, candidateApplicationsApi, candidateDocumentsApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import type { PublicJobPostingDetail, JobRequirement } from '../types/recruitment';
+import type { CandidateDocumentSummary } from '../types/document';
 
 export const JobDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +32,9 @@ export const JobDetail: React.FC = () => {
   // Apply modal state
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [coverNote, setCoverNote] = useState('');
+  const [candidateDocs, setCandidateDocs] = useState<CandidateDocumentSummary[]>([]);
+  const [selectedDocId, setSelectedDocId] = useState<string>('');
+  const [loadingDocs, setLoadingDocs] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [applySuccess, setApplySuccess] = useState(false);
   const [applyError, setApplyError] = useState<string | null>(null);
@@ -54,6 +58,27 @@ export const JobDetail: React.FC = () => {
     }
   };
 
+  const handleOpenApplyModal = async () => {
+    setShowApplyModal(true);
+    setApplySuccess(false);
+    setApplyError(null);
+    if (isCandidate) {
+      setLoadingDocs(true);
+      try {
+        const docs = await candidateDocumentsApi.getMyDocuments();
+        setCandidateDocs(docs);
+        const defaultDoc = docs.find((d) => d.isDefault) || docs[0];
+        if (defaultDoc) {
+          setSelectedDocId(defaultDoc.id);
+        }
+      } catch (err) {
+        console.error('Failed to load candidate documents', err);
+      } finally {
+        setLoadingDocs(false);
+      }
+    }
+  };
+
   const handleApplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!job) return;
@@ -63,6 +88,7 @@ export const JobDetail: React.FC = () => {
 
     try {
       await candidateApplicationsApi.apply(job.id, {
+        candidateDocumentId: selectedDocId || undefined,
         coverNote: coverNote.trim() || undefined,
       });
       setApplySuccess(true);
@@ -204,7 +230,7 @@ export const JobDetail: React.FC = () => {
               </button>
             ) : isCandidate ? (
               <button 
-                onClick={() => { setShowApplyModal(true); setApplySuccess(false); setApplyError(null); }} 
+                onClick={handleOpenApplyModal} 
                 className="btn btn-primary btn-lg"
                 style={{ boxShadow: '0 4px 14px rgba(99, 102, 241, 0.4)' }}
               >
@@ -409,6 +435,42 @@ export const JobDetail: React.FC = () => {
                       Your verified candidate profile, skills, and contact information will be transmitted with this application. An immutable snapshot of the vacancy description (v{1}) will be locked to this submission.
                     </p>
                   </div>
+                </div>
+
+                {/* CV Document Selection */}
+                <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+                  <label htmlFor="cvSelect" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                    <span style={{ fontWeight: 600 }}>Attached CV Document</span>
+                    <Link to="/candidate/documents" target="_blank" style={{ fontSize: '0.75rem', color: 'var(--primary-color)', textDecoration: 'none' }}>
+                      Manage CV Library ↗
+                    </Link>
+                  </label>
+                  {loadingDocs ? (
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Loading your uploaded CVs...</div>
+                  ) : candidateDocs.length > 0 ? (
+                    <select
+                      id="cvSelect"
+                      className="input-standard"
+                      value={selectedDocId}
+                      onChange={(e) => setSelectedDocId(e.target.value)}
+                    >
+                      {candidateDocs.map((doc) => (
+                        <option key={doc.id} value={doc.id}>
+                          {doc.originalFileName} (v{doc.versionNumber}){doc.isDefault ? ' — Primary CV' : ''}
+                        </option>
+                      ))}
+                      <option value="">No CV (Apply with Profile Only)</option>
+                    </select>
+                  ) : (
+                    <div style={{ padding: '0.75rem', background: 'var(--surface-color)', border: '1px dashed var(--border-color)', borderRadius: '8px', fontSize: '0.825rem' }}>
+                      <p style={{ margin: '0 0 0.5rem 0', color: 'var(--text-secondary)' }}>
+                        You haven't uploaded a CV yet. Attaching a CV allows employers to perform automated, explainable qualification matching.
+                      </p>
+                      <Link to="/candidate/documents" className="btn btn-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.65rem' }}>
+                        Upload a CV in Library
+                      </Link>
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-group" style={{ marginBottom: '1.5rem' }}>

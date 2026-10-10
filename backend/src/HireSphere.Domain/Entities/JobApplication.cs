@@ -13,9 +13,16 @@ public class CandidateDocument
     public string MimeType { get; set; } = string.Empty;
     public long FileSizeBytes { get; set; }
     public bool IsDefault { get; set; }
+    public int VersionNumber { get; set; } = 1;
+    public Guid? RootDocumentId { get; set; }
+    public CandidateDocument? RootDocument { get; set; }
+    public ICollection<CandidateDocument> Versions { get; set; } = new List<CandidateDocument>();
+    public string? ContentHash { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
     public bool IsDeleted { get; set; }
     public DateTimeOffset? DeletedAtUtc { get; set; }
+
+    public ICollection<DocumentExtractionJob> ExtractionJobs { get; set; } = new List<DocumentExtractionJob>();
 }
 
 public class JobApplication
@@ -38,6 +45,8 @@ public class JobApplication
 
     public ICollection<ApplicationStatusHistory> StatusHistories { get; set; } = new List<ApplicationStatusHistory>();
     public ICollection<CandidateNote> CandidateNotes { get; set; } = new List<CandidateNote>();
+    public CvMatchReport? CvMatchReport { get; set; }
+    public ICollection<AssessmentAssignment> AssessmentAssignments { get; set; } = new List<AssessmentAssignment>();
 }
 
 public class ApplicationStatusHistory

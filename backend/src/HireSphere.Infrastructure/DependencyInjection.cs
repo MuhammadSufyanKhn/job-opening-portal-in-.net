@@ -33,12 +33,15 @@ public static class DependencyInjection
         services.Configure<JwtOptions>(jwtSection);
         var jwtOptions = jwtSection.Get<JwtOptions>() ?? new JwtOptions();
 
-        // Core security services
+        // Core security & storage services
         services.AddHttpContextAccessor();
         services.AddSingleton<IPasswordHasherService, PasswordHasherService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IAuditService, AuditService>();
+        services.AddSingleton<ICvStorageService, LocalCvStorageService>();
+        services.AddSingleton<IMalwareScanner, NullMalwareScanner>();
+        services.AddSingleton<IDocumentParsingService, DocumentParsingService>();
 
         // JWT Authentication registration
         services.AddAuthentication(options =>

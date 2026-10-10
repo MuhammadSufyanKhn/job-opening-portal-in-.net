@@ -71,13 +71,30 @@ public class ApplicationService : IApplicationService
         if (activeVersion == null)
             throw new ConflictException("Job description version is missing for this vacancy.");
 
+        // Resolve candidate document
+        Guid? resolvedDocumentId = null;
+        if (request.CandidateDocumentId.HasValue)
+        {
+            var validDoc = await _context.CandidateDocuments
+                .FirstOrDefaultAsync(d => d.Id == request.CandidateDocumentId.Value && d.CandidateProfileId == candidateProfile.Id && !d.IsDeleted, ct)
+                ?? throw new ValidationException("Selected CV document was not found or does not belong to your profile.");
+
+            resolvedDocumentId = validDoc.Id;
+        }
+        else
+        {
+            var defaultDoc = await _context.CandidateDocuments
+                .FirstOrDefaultAsync(d => d.CandidateProfileId == candidateProfile.Id && d.IsDefault && !d.IsDeleted, ct);
+            resolvedDocumentId = defaultDoc?.Id;
+        }
+
         var application = new JobApplication
         {
             CompanyId = job.CompanyId,
             JobPostingId = job.Id,
             JobDescriptionVersionId = activeVersion.Id,
             CandidateProfileId = candidateProfile.Id,
-            CandidateDocumentId = request.CandidateDocumentId,
+            CandidateDocumentId = resolvedDocumentId,
             CurrentStage = ApplicationStage.Submitted,
             SubmittedAtUtc = DateTimeOffset.UtcNow,
             StageUpdatedAtUtc = DateTimeOffset.UtcNow,
@@ -98,6 +115,26 @@ public class ApplicationService : IApplicationService
 
         _context.JobApplications.Add(application);
         await _context.SaveChangesAsync(ct);
+
+        // Auto-assign WorkSim simulation if job has an assessment configured
+        var assessmentConfig = await _context.JobAssessmentConfigurations
+            .FirstOrDefaultAsync(c => c.JobPostingId == job.Id, ct);
+
+        if (assessmentConfig != null)
+        {
+            var assignment = new AssessmentAssignment
+            {
+                CompanyId = job.CompanyId,
+                JobApplicationId = application.Id,
+                JobAssessmentConfigurationId = assessmentConfig.Id,
+                CandidateProfileId = candidateProfile.Id,
+                DeadlineUtc = DateTimeOffset.UtcNow.AddDays(assessmentConfig.DeadlineDaysAfterAssignment),
+                Status = AssessmentAssignmentStatus.Assigned,
+                AssignedAtUtc = DateTimeOffset.UtcNow
+            };
+            _context.AssessmentAssignments.Add(assignment);
+            await _context.SaveChangesAsync(ct);
+        }
 
         await _auditService.LogAsync(
             action: "ApplicationSubmitted",
@@ -331,6 +368,7 @@ public class ApplicationService : IApplicationService
             .Include(a => a.JobPosting)
             .Include(a => a.CandidateProfile)
                 .ThenInclude(cp => cp.User)
+            .Include(a => a.CandidateDocument)
             .Include(a => a.StatusHistories)
                 .ThenInclude(h => h.ChangedByUser)
             .FirstOrDefaultAsync(a => a.Id == applicationId && a.CompanyId == companyId, ct);
@@ -369,7 +407,9 @@ public class ApplicationService : IApplicationService
             application.SubmittedAtUtc,
             application.StageUpdatedAtUtc,
             application.CandidateCoverNote,
-            timeline);
+            timeline,
+            application.CandidateDocumentId,
+            application.CandidateDocument?.OriginalFileName);
     }
 
     public async Task<CompanyApplicationDetailDto> UpdateApplicationStageAsync(Guid companyId, Guid applicationId, Guid userId, UpdateApplicationStageRequest request, CancellationToken ct = default)

@@ -15,6 +15,10 @@ import { CandidateApplications } from './pages/CandidateApplications';
 import { CompanyJobs } from './pages/CompanyJobs';
 import { CreateEditJob } from './pages/CreateEditJob';
 import { CompanyApplications } from './pages/CompanyApplications';
+import { CandidateDocuments } from './pages/CandidateDocuments';
+import { CandidateSimulations } from './pages/CandidateSimulations';
+import { SimulationWorkspace } from './pages/SimulationWorkspace';
+import { SimulationResult } from './pages/SimulationResult';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; requiredRole?: string }> = ({
   children,
@@ -74,6 +78,38 @@ export const App: React.FC = () => {
                 element={
                   <ProtectedRoute requiredRole="Candidate">
                     <CandidateApplications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/candidate/documents"
+                element={
+                  <ProtectedRoute requiredRole="Candidate">
+                    <CandidateDocuments />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/candidate/simulations"
+                element={
+                  <ProtectedRoute requiredRole="Candidate">
+                    <CandidateSimulations />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/candidate/simulations/session/:sessionId"
+                element={
+                  <ProtectedRoute requiredRole="Candidate">
+                    <SimulationWorkspace />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/candidate/simulations/session/:sessionId/results"
+                element={
+                  <ProtectedRoute requiredRole="Candidate">
+                    <SimulationResult />
                   </ProtectedRoute>
                 }
               />

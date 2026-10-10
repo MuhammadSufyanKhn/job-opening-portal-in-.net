@@ -17,6 +17,7 @@ BEGIN TRY
     BEGIN
         CREATE TABLE dbo.SimulationScenarios (
             Id UNIQUEIDENTIFIER NOT NULL CONSTRAINT DF_SimulationScenarios_Id DEFAULT NEWSEQUENTIALID(),
+            OwnerCompanyId UNIQUEIDENTIFIER NULL,
             Title NVARCHAR(200) NOT NULL,
             Category NVARCHAR(100) NOT NULL,
             Description NVARCHAR(MAX) NOT NULL,
@@ -24,10 +25,21 @@ BEGIN TRY
             IsActive BIT NOT NULL CONSTRAINT DF_SimulationScenarios_IsActive DEFAULT 1,
             CreatedAtUtc DATETIMEOFFSET NOT NULL CONSTRAINT DF_SimulationScenarios_CreatedAtUtc DEFAULT SYSDATETIMEOFFSET(),
             UpdatedAtUtc DATETIMEOFFSET NULL,
-            CONSTRAINT PK_SimulationScenarios PRIMARY KEY CLUSTERED (Id)
+            CONSTRAINT PK_SimulationScenarios PRIMARY KEY CLUSTERED (Id),
+            CONSTRAINT FK_SimulationScenarios_Companies_OwnerCompanyId FOREIGN KEY (OwnerCompanyId) REFERENCES dbo.Companies (Id) ON DELETE SET NULL
         );
 
         CREATE NONCLUSTERED INDEX IX_SimulationScenarios_Category_IsActive ON dbo.SimulationScenarios (Category, IsActive);
+        CREATE NONCLUSTERED INDEX IX_SimulationScenarios_OwnerCompanyId ON dbo.SimulationScenarios (OwnerCompanyId);
+    END
+    ELSE
+    BEGIN
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.SimulationScenarios') AND name = N'OwnerCompanyId')
+        BEGIN
+            ALTER TABLE dbo.SimulationScenarios ADD OwnerCompanyId UNIQUEIDENTIFIER NULL;
+            ALTER TABLE dbo.SimulationScenarios ADD CONSTRAINT FK_SimulationScenarios_Companies_OwnerCompanyId FOREIGN KEY (OwnerCompanyId) REFERENCES dbo.Companies (Id) ON DELETE SET NULL;
+            CREATE NONCLUSTERED INDEX IX_SimulationScenarios_OwnerCompanyId ON dbo.SimulationScenarios (OwnerCompanyId);
+        END;
     END;
 
     -- 2. ScenarioVersions Table
@@ -164,11 +176,19 @@ BEGIN TRY
             Score DECIMAL(5, 2) NOT NULL,
             MaxScore DECIMAL(5, 2) NOT NULL,
             SupportingEvidenceJson NVARCHAR(MAX) NOT NULL,
+            Feedback NVARCHAR(MAX) NULL,
             CONSTRAINT PK_CriterionScores PRIMARY KEY CLUSTERED (Id),
             CONSTRAINT FK_CriterionScores_AssessmentResults_AssessmentResultId FOREIGN KEY (AssessmentResultId) REFERENCES dbo.AssessmentResults (Id) ON DELETE CASCADE
         );
 
         CREATE NONCLUSTERED INDEX IX_CriterionScores_AssessmentResultId ON dbo.CriterionScores (AssessmentResultId);
+    END
+    ELSE
+    BEGIN
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.CriterionScores') AND name = N'Feedback')
+        BEGIN
+            ALTER TABLE dbo.CriterionScores ADD Feedback NVARCHAR(MAX) NULL;
+        END;
     END;
 
     COMMIT TRANSACTION;

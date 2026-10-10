@@ -20,6 +20,7 @@ BEGIN TRY
             CandidateDocumentId UNIQUEIDENTIFIER NOT NULL,
             Status INT NOT NULL CONSTRAINT DF_DocumentExtractionJobs_Status DEFAULT 0, -- 0: Pending, 1: Processing, 2: Success, 3: Failed, 4: ScannedPdfDetected
             ExtractedText NVARCHAR(MAX) NULL,
+            StructuredDataJson NVARCHAR(MAX) NULL,
             ParserVersion NVARCHAR(50) NOT NULL CONSTRAINT DF_DocumentExtractionJobs_ParserVersion DEFAULT N'1.0',
             ErrorMessage NVARCHAR(2000) NULL,
             AttemptCount INT NOT NULL CONSTRAINT DF_DocumentExtractionJobs_AttemptCount DEFAULT 0,

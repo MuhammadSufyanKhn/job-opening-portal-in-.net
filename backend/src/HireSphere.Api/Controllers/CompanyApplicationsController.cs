@@ -98,4 +98,57 @@ public class CompanyApplicationsController : ControllerBase
 
         return Ok(updated);
     }
+
+    [HttpGet("{id:guid}/cv")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DownloadApplicationCv(
+        Guid companyId,
+        Guid id,
+        [FromServices] ICandidateDocumentService documentService,
+        CancellationToken ct)
+    {
+        if (!_currentUserService.UserId.HasValue) return Unauthorized();
+
+        var (stream, fileName, contentType) = await documentService.GetDocumentFileForCompanyAsync(companyId, id, ct);
+        return File(stream, contentType, fileName);
+    }
+
+    [HttpGet("{id:guid}/match-report")]
+    [ProducesResponseType(typeof(HireSphere.Application.DTOs.Document.CvMatchReportDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetMatchReport(
+        Guid companyId,
+        Guid id,
+        [FromServices] ICvMatchingService matchingService,
+        CancellationToken ct)
+    {
+        if (!_currentUserService.UserId.HasValue) return Unauthorized();
+
+        var report = await matchingService.GetMatchReportForApplicationAsync(companyId, id, ct);
+        return Ok(report);
+    }
+
+    [HttpPost("{id:guid}/match-report/recalculate")]
+    [ProducesResponseType(typeof(HireSphere.Application.DTOs.Document.CvMatchReportDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RecalculateMatchReport(
+        Guid companyId,
+        Guid id,
+        [FromServices] ICvMatchingService matchingService,
+        CancellationToken ct)
+    {
+        if (!_currentUserService.UserId.HasValue) return Unauthorized();
+
+        var report = await matchingService.RecalculateMatchReportAsync(companyId, id, ct);
+        return Ok(report);
+    }
 }

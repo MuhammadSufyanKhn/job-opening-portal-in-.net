@@ -147,6 +147,68 @@ GO
 
 ---
 
+### Script 7: `007_EnhanceCandidateDocumentsWithVersioning.sql`
+* **Purpose:** Adds document versioning (`VersionNumber`), document family tracking (`RootDocumentId` with self-referencing foreign key), and SHA-256 digital integrity hash (`ContentHash`) to `dbo.CandidateDocuments`.
+* **Objects Modified:** Table `dbo.CandidateDocuments` (adds `VersionNumber`, `RootDocumentId`, `ContentHash`, foreign key, and indexes).
+* **Prerequisites:** Script `002_CreateRecruitmentAndApplicationsSchema.sql` executed.
+* **Expected Order:** Execution Step 7 (Prompt 4 CV Management & Versioning).
+* **Rerun Safety (Idempotency):** Safe to rerun. Guarded by `IF NOT EXISTS (SELECT * FROM sys.columns ...)` checks.
+* **Data Impact:** Purely additive column and index additions with defaults. Zero data loss. Existing documents default to `VersionNumber = 1`.
+* **SSMS Verification Query:**
+  ```sql
+  SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE 
+  FROM INFORMATION_SCHEMA.COLUMNS 
+  WHERE TABLE_NAME = 'CandidateDocuments' 
+    AND COLUMN_NAME IN ('VersionNumber', 'RootDocumentId', 'ContentHash');
+  ```
+* **EF Core Mapping Alignment:** Matches `HireSphere.Infrastructure.Persistence.Configurations.ApplicationConfigurations.CandidateDocumentConfiguration`.
+
+---
+
+### Script 4: `004_CreateWorkSimAssessmentSchema.sql`
+* **Purpose:** Creates the 8 core tables for HireSphere's reusable WorkSim interactive simulation engine: `SimulationScenarios`, `ScenarioVersions`, `JobAssessmentConfigurations`, `AssessmentAssignments`, `SimulationSessions`, `SimulationActionLogs`, `AssessmentResults`, and `CriterionScores`.
+* **Objects Created / Modified:** 
+  - `dbo.SimulationScenarios` (with `OwnerCompanyId` column and tenant index)
+  - `dbo.ScenarioVersions` (stores immutable JSON scenario definitions and scoring rubrics)
+  - `dbo.JobAssessmentConfigurations` (links jobs to scenario versions)
+  - `dbo.AssessmentAssignments` (assigns simulations to candidate applications)
+  - `dbo.SimulationSessions` (authoritative runtime state vector, concurrency rowversion)
+  - `dbo.SimulationActionLogs` (tamper-evident audit trail of candidate decisions)
+  - `dbo.AssessmentResults` (deterministic total score and summary)
+  - `dbo.CriterionScores` (criterion-level points, evidence, and feedback)
+* **Prerequisites:** Script `001_CreateCoreIdentityAndTenantSchema.sql` and `002_CreateRecruitmentAndApplicationsSchema.sql` executed.
+* **Expected Order:** Execution Step 8.
+* **Rerun Safety (Idempotency):** Fully guarded with `IF NOT EXISTS (SELECT * FROM sys.tables ...)` and `ALTER TABLE ... ADD` column checks.
+* **SSMS Verification Query:**
+  ```sql
+  SELECT TABLE_NAME 
+  FROM INFORMATION_SCHEMA.TABLES 
+  WHERE TABLE_NAME IN (
+    'SimulationScenarios', 'ScenarioVersions', 'JobAssessmentConfigurations', 
+    'AssessmentAssignments', 'SimulationSessions', 'SimulationActionLogs', 
+    'AssessmentResults', 'CriterionScores'
+  );
+  ```
+
+---
+
+### Script 8: `008_SeedWorkSimIncidentScenario.sql`
+* **Purpose:** Seeds the initial platform-wide **Software Engineering Incident Response** simulation scenario ("Payment Gateway Latency Spike & 504 Timeouts") and its immutable Version 1 definition and rubric.
+* **Objects Modified:** Inserts into `dbo.SimulationScenarios` (Scenario ID: `11111111-1111-1111-1111-111111111111`) and `dbo.ScenarioVersions` (Version ID: `22222222-2222-2222-2222-222222222222`).
+* **Prerequisites:** Script `004_CreateWorkSimAssessmentSchema.sql` executed.
+* **Expected Order:** Execution Step 9.
+* **Rerun Safety (Idempotency):** Safe to rerun. Guarded with `IF NOT EXISTS` checks on primary keys.
+* **Data Impact:** Inserts the initial scenario and rubric definitions without altering existing candidate records.
+* **SSMS Verification Query:**
+  ```sql
+  SELECT s.Title, s.Category, v.VersionNumber, LEN(v.DefinitionJson) AS DefLength, LEN(v.RubricJson) AS RubricLength
+  FROM dbo.SimulationScenarios s
+  JOIN dbo.ScenarioVersions v ON v.SimulationScenarioId = s.Id
+  WHERE s.Id = '11111111-1111-1111-1111-111111111111';
+  ```
+
+---
+
 ### Seed Script 1: `database/seeds/001_SeedInitialRolesAndAdmin.sql`
 * **Purpose:** Seeds foundational platform roles (`Candidate`, `CompanyMember`, `SuperAdmin`) into the `Roles` table with idempotent checks. Includes an optional, commented bootstrap block for a local development SuperAdmin (`admin@hiresphere.local`).
 * **Objects Modified:** Inserts into `Roles` (and conditionally `Users`, `UserRoles`).

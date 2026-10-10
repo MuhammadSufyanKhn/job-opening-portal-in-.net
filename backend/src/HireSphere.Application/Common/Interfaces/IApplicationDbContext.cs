@@ -23,6 +23,18 @@ public interface IApplicationDbContext
     DbSet<JobApplication> JobApplications { get; }
     DbSet<ApplicationStatusHistory> ApplicationStatusHistories { get; }
     DbSet<CandidateNote> CandidateNotes { get; }
+    DbSet<DocumentExtractionJob> DocumentExtractionJobs { get; }
+    DbSet<CvMatchReport> CvMatchReports { get; }
+    DbSet<CvRequirementEvaluation> CvRequirementEvaluations { get; }
+
+    DbSet<SimulationScenario> SimulationScenarios { get; }
+    DbSet<ScenarioVersion> ScenarioVersions { get; }
+    DbSet<JobAssessmentConfiguration> JobAssessmentConfigurations { get; }
+    DbSet<AssessmentAssignment> AssessmentAssignments { get; }
+    DbSet<SimulationSession> SimulationSessions { get; }
+    DbSet<SimulationActionLog> SimulationActionLogs { get; }
+    DbSet<AssessmentResult> AssessmentResults { get; }
+    DbSet<CriterionScore> CriterionScores { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Building2, UserCircle, Shield, LogOut, Briefcase, Users, FileText } from 'lucide-react';
+import { Building2, UserCircle, Shield, LogOut, Briefcase, Users, FileText, Terminal } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout, isCandidate, isCompanyMember, isSuperAdmin } = useAuth();
@@ -30,6 +30,14 @@ export const Navbar: React.FC = () => {
                   <Link to="/candidate/applications" className="nav-link">
                     <FileText size={17} />
                     <span>My Applications</span>
+                  </Link>
+                  <Link to="/candidate/simulations" className="nav-link">
+                    <Terminal size={17} />
+                    <span>WorkSim</span>
+                  </Link>
+                  <Link to="/candidate/documents" className="nav-link">
+                    <FileText size={17} />
+                    <span>CV Library</span>
                   </Link>
                   <Link to="/candidate/profile" className="nav-link">
                     <UserCircle size={17} />

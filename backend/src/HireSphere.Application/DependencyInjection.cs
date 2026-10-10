@@ -17,6 +17,11 @@ public static class DependencyInjection
         services.AddScoped<IJobService, JobService>();
         services.AddScoped<IJobMarketplaceService, JobMarketplaceService>();
         services.AddScoped<IApplicationService, ApplicationService>();
+        services.AddScoped<ICandidateDocumentService, CandidateDocumentService>();
+        services.AddScoped<ICvMatchingService, CvMatchingService>();
+        services.AddScoped<IWorkSimScoringService, WorkSimScoringService>();
+        services.AddScoped<IWorkSimRuntimeService, WorkSimRuntimeService>();
+        services.AddScoped<IWorkSimManagementService, WorkSimManagementService>();
 
         return services;
     }

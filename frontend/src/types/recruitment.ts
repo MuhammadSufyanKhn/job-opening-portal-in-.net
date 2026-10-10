@@ -157,5 +157,7 @@ export interface CompanyApplicationDetail extends CompanyApplicationSummary {
   gitHubUrl?: string;
   portfolioUrl?: string;
   candidateCoverNote?: string;
+  candidateDocumentId?: string | null;
+  candidateDocumentFileName?: string | null;
   statusTimeline: ApplicationStatusHistory[];
 }

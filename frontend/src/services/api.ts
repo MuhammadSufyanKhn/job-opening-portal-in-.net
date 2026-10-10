@@ -107,3 +107,83 @@ export const companyApplicationsApi = {
   updateStage: (companyId: string, id: string, data: { newStage: any; reasonNote?: string }) => api.post<import('../types/recruitment').CompanyApplicationDetail>(`/companies/${companyId}/applications/${id}/stage`, data).then(r => r.data),
 };
 
+// Candidate Documents API
+export const candidateDocumentsApi = {
+  getMyDocuments: () => api.get<import('../types/document').CandidateDocumentSummary[]>('/candidate/documents').then(r => r.data),
+  getDocument: (id: string) => api.get<import('../types/document').CandidateDocumentDetail>(`/candidate/documents/${id}`).then(r => r.data),
+  uploadCv: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post<import('../types/document').CandidateDocumentDetail>('/candidate/documents', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then(r => r.data);
+  },
+  uploadNewVersion: (rootDocumentId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post<import('../types/document').CandidateDocumentDetail>(`/candidate/documents/${rootDocumentId}/versions`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then(r => r.data);
+  },
+  setDefaultCv: (id: string) => api.post(`/candidate/documents/${id}/set-default`).then(r => r.data),
+  deleteDocument: (id: string) => api.delete(`/candidate/documents/${id}`).then(r => r.data),
+  downloadCv: async (id: string, fileName: string) => {
+    const res = await api.get(`/candidate/documents/${id}/download`, { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
+};
+
+// CV Matching & Recruiter Review API
+export const cvMatchingApi = {
+  getMatchReport: (companyId: string, applicationId: string) =>
+    api.get<import('../types/document').CvMatchReport>(`/companies/${companyId}/applications/${applicationId}/match-report`).then(r => r.data),
+  recalculateMatchReport: (companyId: string, applicationId: string) =>
+    api.post<import('../types/document').CvMatchReport>(`/companies/${companyId}/applications/${applicationId}/match-report/recalculate`).then(r => r.data),
+  downloadApplicationCv: async (companyId: string, applicationId: string, fileName: string) => {
+    const res = await api.get(`/companies/${companyId}/applications/${applicationId}/cv`, { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
+};
+
+// WorkSim Job Simulation Engine API
+export const workSimApi = {
+  getCatalog: () =>
+    api.get<import('../types/worksim').SimulationScenario[]>('/simulations/catalog').then(r => r.data),
+  getMyAssignments: () =>
+    api.get<import('../types/worksim').AssessmentAssignment[]>('/candidate/simulations').then(r => r.data),
+  startSession: (assignmentId: string) =>
+    api.post<import('../types/worksim').CandidateSimulationRuntimeState>(`/candidate/simulations/assignments/${assignmentId}/start`).then(r => r.data),
+  getSessionState: (sessionId: string) =>
+    api.get<import('../types/worksim').CandidateSimulationRuntimeState>(`/candidate/simulations/sessions/${sessionId}`).then(r => r.data),
+  submitAction: (sessionId: string, request: import('../types/worksim').SubmitSimulationActionRequest) =>
+    api.post<import('../types/worksim').SubmitSimulationActionResult>(`/candidate/simulations/sessions/${sessionId}/actions`, request).then(r => r.data),
+  getSessionResult: (sessionId: string) =>
+    api.get<import('../types/worksim').AssessmentResult>(`/candidate/simulations/sessions/${sessionId}/results`).then(r => r.data),
+  getCompanyScenarios: (companyId: string) =>
+    api.get<import('../types/worksim').SimulationScenario[]>(`/companies/${companyId}/assessments/scenarios`).then(r => r.data),
+  getJobAssessmentConfig: (companyId: string, jobId: string) =>
+    api.get<import('../types/worksim').JobAssessmentConfiguration>(`/companies/${companyId}/jobs/${jobId}/assessments`).then(r => r.data),
+  assignJobAssessment: (companyId: string, jobId: string, request: import('../types/worksim').AssignJobSimulationRequest) =>
+    api.post<import('../types/worksim').JobAssessmentConfiguration>(`/companies/${companyId}/jobs/${jobId}/assessments`, request).then(r => r.data),
+  removeJobAssessment: (companyId: string, jobId: string) =>
+    api.delete(`/companies/${companyId}/jobs/${jobId}/assessments`),
+  getApplicationAssessmentResult: (companyId: string, applicationId: string) =>
+    api.get<import('../types/worksim').AssessmentResult>(`/companies/${companyId}/applications/${applicationId}/assessment-result`).then(r => r.data),
+};
+
+
+
