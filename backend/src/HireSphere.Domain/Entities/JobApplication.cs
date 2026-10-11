@@ -45,6 +45,7 @@ public class JobApplication
 
     public ICollection<ApplicationStatusHistory> StatusHistories { get; set; } = new List<ApplicationStatusHistory>();
     public ICollection<CandidateNote> CandidateNotes { get; set; } = new List<CandidateNote>();
+    public ICollection<InterviewSchedule> InterviewSchedules { get; set; } = new List<InterviewSchedule>();
     public CvMatchReport? CvMatchReport { get; set; }
     public ICollection<AssessmentAssignment> AssessmentAssignments { get; set; } = new List<AssessmentAssignment>();
 }

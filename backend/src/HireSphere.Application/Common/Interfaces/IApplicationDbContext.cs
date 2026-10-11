@@ -24,6 +24,7 @@ public interface IApplicationDbContext
     DbSet<JobApplication> JobApplications { get; }
     DbSet<ApplicationStatusHistory> ApplicationStatusHistories { get; }
     DbSet<CandidateNote> CandidateNotes { get; }
+    DbSet<InterviewSchedule> InterviewSchedules { get; }
     DbSet<DocumentExtractionJob> DocumentExtractionJobs { get; }
     DbSet<CvMatchReport> CvMatchReports { get; }
     DbSet<CvRequirementEvaluation> CvRequirementEvaluations { get; }

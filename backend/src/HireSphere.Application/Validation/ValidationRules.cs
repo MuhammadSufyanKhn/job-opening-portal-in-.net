@@ -180,3 +180,48 @@ public class UpdateApplicationStageRequestValidator : AbstractValidator<DTOs.App
     }
 }
 
+public class CreateCandidateNoteRequestValidator : AbstractValidator<DTOs.Application.CreateCandidateNoteRequest>
+{
+    public CreateCandidateNoteRequestValidator()
+    {
+        RuleFor(x => x.NoteText)
+            .NotEmpty().WithMessage("Note text cannot be empty.")
+            .MaximumLength(4000).WithMessage("Note text cannot exceed 4000 characters.");
+    }
+}
+
+public class ScheduleInterviewRequestValidator : AbstractValidator<DTOs.Application.ScheduleInterviewRequest>
+{
+    public ScheduleInterviewRequestValidator()
+    {
+        RuleFor(x => x.ScheduledStartUtc)
+            .NotEmpty().WithMessage("Interview start time is required.");
+
+        RuleFor(x => x.ScheduledEndUtc)
+            .NotEmpty().WithMessage("Interview end time is required.")
+            .GreaterThan(x => x.ScheduledStartUtc).WithMessage("Interview end time must be after the start time.");
+
+        RuleFor(x => x.MeetingLocation)
+            .MaximumLength(500).WithMessage("Meeting location/link cannot exceed 500 characters.")
+            .When(x => !string.IsNullOrEmpty(x.MeetingLocation));
+    }
+}
+
+public class UpdateInterviewRequestValidator : AbstractValidator<DTOs.Application.UpdateInterviewRequest>
+{
+    public UpdateInterviewRequestValidator()
+    {
+        RuleFor(x => x.ScheduledStartUtc)
+            .NotEmpty().WithMessage("Interview start time is required.");
+
+        RuleFor(x => x.ScheduledEndUtc)
+            .NotEmpty().WithMessage("Interview end time is required.")
+            .GreaterThan(x => x.ScheduledStartUtc).WithMessage("Interview end time must be after the start time.");
+
+        RuleFor(x => x.MeetingLocation)
+            .MaximumLength(500).WithMessage("Meeting location/link cannot exceed 500 characters.")
+            .When(x => !string.IsNullOrEmpty(x.MeetingLocation));
+    }
+}
+
+

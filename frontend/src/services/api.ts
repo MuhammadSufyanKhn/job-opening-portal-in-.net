@@ -72,6 +72,10 @@ export const companyApi = {
   getMembers: (companyId: string) => api.get<CompanyMember[]>(`/companies/${companyId}/members`).then(r => r.data),
   inviteMember: (companyId: string, data: any) => api.post<CompanyMember>(`/companies/${companyId}/members/invite`, data).then(r => r.data),
   removeMember: (companyId: string, memberId: string) => api.delete(`/companies/${companyId}/members/${memberId}`).then(r => r.data),
+  getWorkspaceDashboard: (companyId: string) =>
+    api.get<import('../types/recruitment').CompanyWorkspaceDashboard>(`/companies/${companyId}/workspace-dashboard`).then(r => r.data),
+  getInterviews: (companyId: string, upcomingOnly = true) =>
+    api.get<import('../types/recruitment').InterviewSchedule[]>(`/companies/${companyId}/interviews`, { params: { upcomingOnly } }).then(r => r.data),
 };
 
 // Admin endpoints
@@ -138,9 +142,28 @@ export const candidateApplicationsApi = {
 
 // Company Applications Review API
 export const companyApplicationsApi = {
-  getApplications: (companyId: string, params?: any) => api.get<import('../types/recruitment').PagedResult<import('../types/recruitment').CompanyApplicationSummary>>(`/companies/${companyId}/applications`, { params }).then(r => r.data),
-  getApplication: (companyId: string, id: string) => api.get<import('../types/recruitment').CompanyApplicationDetail>(`/companies/${companyId}/applications/${id}`).then(r => r.data),
-  updateStage: (companyId: string, id: string, data: { newStage: any; reasonNote?: string }) => api.post<import('../types/recruitment').CompanyApplicationDetail>(`/companies/${companyId}/applications/${id}/stage`, data).then(r => r.data),
+  getApplications: (companyId: string, params?: { jobPostingId?: string; stage?: number; search?: string; sortBy?: string; sortDescending?: boolean; page?: number; pageSize?: number }) =>
+    api.get<import('../types/recruitment').PagedResult<import('../types/recruitment').CompanyApplicationSummary>>(`/companies/${companyId}/applications`, { params }).then(r => r.data),
+  getApplication: (companyId: string, id: string) =>
+    api.get<import('../types/recruitment').CompanyApplicationDetail>(`/companies/${companyId}/applications/${id}`).then(r => r.data),
+  updateStage: (companyId: string, id: string, data: { newStage: any; reasonNote?: string }) =>
+    api.post<import('../types/recruitment').CompanyApplicationDetail>(`/companies/${companyId}/applications/${id}/stage`, data).then(r => r.data),
+  getPipelineBoard: (companyId: string, jobPostingId?: string) =>
+    api.get<import('../types/recruitment').PipelineBoard>(`/companies/${companyId}/applications/board`, { params: { jobPostingId: jobPostingId || undefined } }).then(r => r.data),
+  getNotes: (companyId: string, applicationId: string) =>
+    api.get<import('../types/recruitment').CandidateNote[]>(`/companies/${companyId}/applications/${applicationId}/notes`).then(r => r.data),
+  addNote: (companyId: string, applicationId: string, data: import('../types/recruitment').CreateCandidateNoteRequest) =>
+    api.post<import('../types/recruitment').CandidateNote>(`/companies/${companyId}/applications/${applicationId}/notes`, data).then(r => r.data),
+  deleteNote: (companyId: string, applicationId: string, noteId: string) =>
+    api.delete(`/companies/${companyId}/applications/${applicationId}/notes/${noteId}`).then(r => r.data),
+  getInterviews: (companyId: string, applicationId: string) =>
+    api.get<import('../types/recruitment').InterviewSchedule[]>(`/companies/${companyId}/applications/${applicationId}/interviews`).then(r => r.data),
+  scheduleInterview: (companyId: string, applicationId: string, data: import('../types/recruitment').ScheduleInterviewRequest) =>
+    api.post<import('../types/recruitment').InterviewSchedule>(`/companies/${companyId}/applications/${applicationId}/interviews`, data).then(r => r.data),
+  updateInterview: (companyId: string, applicationId: string, interviewId: string, data: import('../types/recruitment').UpdateInterviewRequest) =>
+    api.put<import('../types/recruitment').InterviewSchedule>(`/companies/${companyId}/applications/${applicationId}/interviews/${interviewId}`, data).then(r => r.data),
+  cancelInterview: (companyId: string, applicationId: string, interviewId: string, reason?: string) =>
+    api.post<import('../types/recruitment').InterviewSchedule>(`/companies/${companyId}/applications/${applicationId}/interviews/${interviewId}/cancel`, { reason }).then(r => r.data),
 };
 
 // Candidate Documents API

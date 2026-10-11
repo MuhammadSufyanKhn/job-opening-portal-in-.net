@@ -11,6 +11,7 @@ namespace HireSphere.Application.Services;
 public interface IWorkSimManagementService
 {
     Task<IReadOnlyList<SimulationScenarioDto>> GetAvailableScenariosAsync(Guid? companyId = null, CancellationToken ct = default);
+    Task<IReadOnlyList<SimulationScenarioDto>> GetCompanyAvailableScenariosAsync(Guid companyId, Guid userId, CancellationToken ct = default);
     Task<JobAssessmentConfigurationDto> AssignScenarioToJobAsync(Guid companyId, Guid jobId, Guid userId, AssignJobSimulationRequest request, CancellationToken ct = default);
     Task<JobAssessmentConfigurationDto?> GetJobAssessmentConfigurationAsync(Guid companyId, Guid jobId, Guid userId, CancellationToken ct = default);
     Task<bool> RemoveJobAssessmentConfigurationAsync(Guid companyId, Guid jobId, Guid userId, CancellationToken ct = default);
@@ -27,6 +28,19 @@ public class WorkSimManagementService : IWorkSimManagementService
     {
         _context = context;
         _auditService = auditService;
+    }
+
+    public async Task<IReadOnlyList<SimulationScenarioDto>> GetCompanyAvailableScenariosAsync(Guid companyId, Guid userId, CancellationToken ct = default)
+    {
+        var isMember = await _context.CompanyMembers
+            .AnyAsync(cm => cm.CompanyId == companyId && cm.UserId == userId && cm.MembershipStatus == CompanyMembershipStatus.Active, ct);
+
+        if (!isMember)
+        {
+            throw new ForbiddenAccessException("You are not an active member of this company.");
+        }
+
+        return await GetAvailableScenariosAsync(companyId, ct);
     }
 
     public async Task<IReadOnlyList<SimulationScenarioDto>> GetAvailableScenariosAsync(Guid? companyId = null, CancellationToken ct = default)

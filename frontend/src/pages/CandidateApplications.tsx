@@ -6,7 +6,6 @@ import {
   Calendar, 
   ChevronRight, 
   AlertCircle, 
-  X, 
   Eye, 
   ShieldAlert,
   ArrowRight
@@ -17,6 +16,7 @@ import type {
   CandidateApplicationDetail, 
   ApplicationStage 
 } from '../types/recruitment';
+import { StageBadge, Modal, LoadingState } from '../components/common';
 
 export const CandidateApplications: React.FC = () => {
   const [applications, setApplications] = useState<CandidateApplicationSummary[]>([]);
@@ -82,33 +82,6 @@ export const CandidateApplications: React.FC = () => {
     }
   };
 
-  const getStageBadge = (stage: ApplicationStage) => {
-    const stageStr = String(stage);
-    const map: Record<string, { label: string; className: string }> = {
-      '0': { label: 'Submitted', className: 'badge-outline' },
-      '1': { label: 'Under Review', className: 'badge-purple' },
-      '2': { label: 'Shortlisted', className: 'badge-cyan' },
-      '3': { label: 'Assessment Pending', className: 'badge-amber' },
-      '4': { label: 'Assessment Completed', className: 'badge-cyan' },
-      '5': { label: 'Interview Scheduled', className: 'badge-purple' },
-      '6': { label: 'Offer Extended', className: 'badge-emerald' },
-      '7': { label: 'Hired', className: 'badge-emerald' },
-      '8': { label: 'Rejected', className: 'badge-danger' },
-      '9': { label: 'Withdrawn', className: 'badge-muted' },
-      'Submitted': { label: 'Submitted', className: 'badge-outline' },
-      'UnderReview': { label: 'Under Review', className: 'badge-purple' },
-      'Shortlisted': { label: 'Shortlisted', className: 'badge-cyan' },
-      'AssessmentPending': { label: 'Assessment Pending', className: 'badge-amber' },
-      'AssessmentCompleted': { label: 'Assessment Completed', className: 'badge-cyan' },
-      'InterviewScheduled': { label: 'Interview Scheduled', className: 'badge-purple' },
-      'Offered': { label: 'Offer Extended', className: 'badge-emerald' },
-      'Hired': { label: 'Hired', className: 'badge-emerald' },
-      'Rejected': { label: 'Not Selected', className: 'badge-danger' },
-      'Withdrawn': { label: 'Withdrawn', className: 'badge-muted' },
-    };
-    const item = map[stageStr] || { label: stageStr, className: 'badge-outline' };
-    return <span className={`status-badge ${item.className}`}>{item.label}</span>;
-  };
 
   const canWithdraw = (stage: ApplicationStage) => {
     const stageStr = String(stage);
@@ -136,10 +109,7 @@ export const CandidateApplications: React.FC = () => {
 
       {/* Main Content */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '5rem 1.5rem' }}>
-          <div className="spinner" style={{ width: '40px', height: '40px', margin: '0 auto 1.25rem' }} />
-          <p style={{ color: 'var(--text-secondary)' }}>Loading your applications...</p>
-        </div>
+        <LoadingState message="Loading your applications..." />
       ) : error ? (
         <div className="alert alert-error">
           <AlertCircle size={20} />
@@ -198,7 +168,7 @@ export const CandidateApplications: React.FC = () => {
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
                 <div>
-                  {getStageBadge(app.currentStage)}
+                  <StageBadge stage={app.currentStage} />
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -227,185 +197,168 @@ export const CandidateApplications: React.FC = () => {
       )}
 
       {/* Application Detail Modal with Status Timeline */}
-      {selectedAppId && (
-        <div className="modal-backdrop">
-          <div className="modal-dialog" style={{ maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+      <Modal 
+        isOpen={!!selectedAppId} 
+        onClose={() => { setSelectedAppId(null); setSelectedAppDetail(null); }}
+        title={selectedAppDetail?.jobTitle || 'Application Details'}
+        size="lg"
+      >
+        {loadingDetail || !selectedAppDetail ? (
+          <LoadingState message="Loading recruitment history..." />
+        ) : (
+          <div>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
+              {selectedAppDetail.companyName} • Applied {new Date(selectedAppDetail.submittedAtUtc).toLocaleDateString(undefined, { dateStyle: 'medium' })}
+            </p>
+
+            {/* Current Stage Highlight */}
+            <div style={{ 
+              backgroundColor: 'var(--bg-surface-elevated)', 
+              padding: '1.25rem', 
+              borderRadius: 'var(--radius-md)', 
+              marginBottom: '1.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              border: '1px solid var(--border-subtle)'
+            }}>
               <div>
-                <h3 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.25rem' }}>
-                  {selectedAppDetail?.jobTitle || 'Application Details'}
-                </h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                  {selectedAppDetail?.companyName} • Applied {selectedAppDetail && new Date(selectedAppDetail.submittedAtUtc).toLocaleDateString(undefined, { dateStyle: 'medium' })}
-                </p>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '0.25rem' }}>
+                  Current Recruitment Stage
+                </span>
+                <div><StageBadge stage={selectedAppDetail.currentStage} /></div>
               </div>
+
+              <Link 
+                to={`/jobs/${selectedAppDetail.jobPostingId}`}
+                className="link-subtle" 
+                style={{ fontSize: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+              >
+                View Original Vacancy <ChevronRight size={14} />
+              </Link>
+            </div>
+
+            {/* Candidate Cover Note */}
+            {selectedAppDetail.candidateCoverNote && (
+              <div style={{ marginBottom: '1.75rem' }}>
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
+                  Submitted Cover Note
+                </h4>
+                <div style={{ 
+                  backgroundColor: 'var(--bg-input)', 
+                  padding: '1rem', 
+                  borderRadius: 'var(--radius-sm)', 
+                  fontSize: '0.9rem', 
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-color)',
+                  whiteSpace: 'pre-line'
+                }}>
+                  {selectedAppDetail.candidateCoverNote}
+                </div>
+              </div>
+            )}
+
+            {/* Status Timeline */}
+            <div>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--text-secondary)' }}>
+                Application Stage History
+              </h4>
+
+              {selectedAppDetail.statusTimeline.length === 0 ? (
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No status transitions recorded yet.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative', paddingLeft: '1.5rem', borderLeft: '2px solid var(--border-color)' }}>
+                  {selectedAppDetail.statusTimeline.map((history, idx) => (
+                    <div key={history.id || idx} style={{ position: 'relative' }}>
+                      {/* Dot marker */}
+                      <div style={{ 
+                        position: 'absolute', 
+                        left: '-1.85rem', 
+                        top: '0.2rem', 
+                        width: '10px', 
+                        height: '10px', 
+                        borderRadius: '50%', 
+                        backgroundColor: idx === 0 ? 'var(--primary)' : 'var(--text-muted)',
+                        boxShadow: idx === 0 ? '0 0 0 4px rgba(2, 132, 199, 0.25)' : 'none'
+                      }} />
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                          Stage updated to {String(history.newStage)}
+                        </span>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                          {new Date(history.createdAtUtc).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+                        </span>
+                      </div>
+
+                      {history.reasonNote && (
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '0.25rem 0 0' }}>
+                          Note: {history.reasonNote}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="modal-actions" style={{ marginTop: '2rem' }}>
+              {canWithdraw(selectedAppDetail.currentStage) && (
+                <button 
+                  onClick={() => { setWithdrawingAppId(selectedAppDetail.id); setWithdrawError(null); }}
+                  className="btn btn-outline text-danger"
+                >
+                  Withdraw Application
+                </button>
+              )}
               <button 
                 onClick={() => { setSelectedAppId(null); setSelectedAppDetail(null); }}
-                className="btn btn-outline btn-sm"
-                style={{ padding: '0.35rem' }}
+                className="btn btn-secondary"
               >
-                <X size={18} />
+                Close
               </button>
             </div>
-
-            {loadingDetail || !selectedAppDetail ? (
-              <div style={{ textAlign: 'center', padding: '3rem 0' }}>
-                <div className="spinner" style={{ width: '32px', height: '32px', margin: '0 auto 1rem' }} />
-                <p style={{ color: 'var(--text-secondary)' }}>Loading recruitment history...</p>
-              </div>
-            ) : (
-              <div>
-                {/* Current Stage Highlight */}
-                <div style={{ 
-                  backgroundColor: 'var(--bg-surface-elevated)', 
-                  padding: '1.25rem', 
-                  borderRadius: 'var(--radius-md)', 
-                  marginBottom: '1.75rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  border: '1px solid var(--border-subtle)'
-                }}>
-                  <div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '0.25rem' }}>
-                      Current Recruitment Stage
-                    </span>
-                    <div>{getStageBadge(selectedAppDetail.currentStage)}</div>
-                  </div>
-
-                  <Link 
-                    to={`/jobs/${selectedAppDetail.jobPostingId}`}
-                    className="link-subtle" 
-                    style={{ fontSize: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
-                  >
-                    View Original Vacancy <ChevronRight size={14} />
-                  </Link>
-                </div>
-
-                {/* Candidate Cover Note */}
-                {selectedAppDetail.candidateCoverNote && (
-                  <div style={{ marginBottom: '1.75rem' }}>
-                    <h4 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
-                      Submitted Cover Note
-                    </h4>
-                    <div style={{ 
-                      backgroundColor: 'var(--bg-input)', 
-                      padding: '1rem', 
-                      borderRadius: 'var(--radius-sm)', 
-                      fontSize: '0.9rem', 
-                      color: 'var(--text-primary)',
-                      border: '1px solid var(--border-color)',
-                      whiteSpace: 'pre-line'
-                    }}>
-                      {selectedAppDetail.candidateCoverNote}
-                    </div>
-                  </div>
-                )}
-
-                {/* Status Timeline */}
-                <div>
-                  <h4 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--text-secondary)' }}>
-                    Application Stage History
-                  </h4>
-
-                  {selectedAppDetail.statusTimeline.length === 0 ? (
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No status transitions recorded yet.</p>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative', paddingLeft: '1.5rem', borderLeft: '2px solid var(--border-color)' }}>
-                      {selectedAppDetail.statusTimeline.map((history, idx) => (
-                        <div key={history.id || idx} style={{ position: 'relative' }}>
-                          {/* Dot marker */}
-                          <div style={{ 
-                            position: 'absolute', 
-                            left: '-1.85rem', 
-                            top: '0.2rem', 
-                            width: '10px', 
-                            height: '10px', 
-                            borderRadius: '50%', 
-                            backgroundColor: idx === 0 ? 'var(--primary)' : 'var(--text-muted)',
-                            boxShadow: idx === 0 ? '0 0 0 4px rgba(99, 102, 241, 0.25)' : 'none'
-                          }} />
-                          
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                              Stage updated to {String(history.newStage)}
-                            </span>
-                            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                              {new Date(history.createdAtUtc).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
-                            </span>
-                          </div>
-
-                          {history.reasonNote && (
-                            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '0.25rem 0 0' }}>
-                              Note: {history.reasonNote}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="modal-actions" style={{ marginTop: '2rem' }}>
-                  {canWithdraw(selectedAppDetail.currentStage) && (
-                    <button 
-                      onClick={() => { setWithdrawingAppId(selectedAppDetail.id); setWithdrawError(null); }}
-                      className="btn btn-outline text-danger"
-                    >
-                      Withdraw Application
-                    </button>
-                  )}
-                  <button 
-                    onClick={() => { setSelectedAppId(null); setSelectedAppDetail(null); }}
-                    className="btn btn-secondary"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* Withdraw Confirmation Modal */}
-      {withdrawingAppId && (
-        <div className="modal-backdrop">
-          <div className="modal-dialog" style={{ maxWidth: '480px' }}>
-            <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
-              <ShieldAlert size={48} className="text-warning" style={{ margin: '0 auto 0.75rem' }} />
-              <h3 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.5rem' }}>Confirm Application Withdrawal</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.5 }}>
-                Are you sure you want to withdraw this application? The employer will be notified that you are no longer participating in this recruitment cycle.
-              </p>
-            </div>
-
-            {withdrawError && (
-              <div className="alert alert-error" style={{ marginBottom: '1rem' }}>
-                <AlertCircle size={16} />
-                <span style={{ fontSize: '0.85rem' }}>{withdrawError}</span>
-              </div>
-            )}
-
-            <div className="modal-actions">
-              <button 
-                onClick={() => setWithdrawingAppId(null)}
-                className="btn btn-outline"
-                disabled={isWithdrawing}
-              >
-                Keep Active
-              </button>
-              <button 
-                onClick={handleWithdraw}
-                className="btn btn-danger"
-                disabled={isWithdrawing}
-              >
-                {isWithdrawing ? 'Withdrawing...' : 'Yes, Withdraw Application'}
-              </button>
-            </div>
-          </div>
+      <Modal 
+        isOpen={!!withdrawingAppId} 
+        onClose={() => setWithdrawingAppId(null)}
+        title="Confirm Application Withdrawal"
+      >
+        <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+          <ShieldAlert size={48} className="text-warning" style={{ margin: '0 auto 0.75rem' }} />
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+            Are you sure you want to withdraw this application? The employer will be notified that you are no longer participating in this recruitment cycle.
+          </p>
         </div>
-      )}
+
+        {withdrawError && (
+          <div className="alert alert-error" style={{ marginBottom: '1rem' }}>
+            <AlertCircle size={16} />
+            <span style={{ fontSize: '0.85rem' }}>{withdrawError}</span>
+          </div>
+        )}
+
+        <div className="modal-actions">
+          <button 
+            onClick={() => setWithdrawingAppId(null)}
+            className="btn btn-outline"
+            disabled={isWithdrawing}
+          >
+            Keep Active
+          </button>
+          <button 
+            onClick={handleWithdraw}
+            className="btn btn-danger"
+            disabled={isWithdrawing}
+          >
+            {isWithdrawing ? 'Withdrawing...' : 'Yes, Withdraw Application'}
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };

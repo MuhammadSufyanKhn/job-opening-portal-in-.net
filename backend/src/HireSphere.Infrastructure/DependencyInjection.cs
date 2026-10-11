@@ -67,7 +67,7 @@ public static class DependencyInjection
                 ClockSkew = TimeSpan.FromMinutes(1)
             };
 
-            // Server-side account status validation: reject suspended or deleted users even if token is unexpired
+            // Server-side account status and security stamp validation: reject suspended, deleted, or revoked sessions
             options.Events = new JwtBearerEvents
             {
                 OnTokenValidated = async context =>
@@ -82,6 +82,13 @@ public static class DependencyInjection
                         if (user == null || user.AccountStatus == Domain.Enums.AccountStatus.Disabled || user.IsDeleted)
                         {
                             context.Fail("User account has been disabled or suspended.");
+                            return;
+                        }
+
+                        var stampClaim = context.Principal?.FindFirst("security_stamp")?.Value;
+                        if (!string.IsNullOrEmpty(stampClaim) && user.SecurityStamp != stampClaim)
+                        {
+                            context.Fail("User credentials or security stamp have changed.");
                         }
                     }
                 }

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { 
   Users, 
-  Briefcase, 
   Search, 
   CheckCircle2, 
   AlertCircle, 
@@ -20,11 +19,16 @@ import {
   FileText,
   ShieldCheck,
   CheckCircle,
-  HelpCircle,
   XCircle,
   Terminal,
   RotateCw,
-  Ban
+  Ban,
+  LayoutGrid,
+  List,
+  Lock,
+  Clock,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { companyApplicationsApi, companyJobsApi, cvMatchingApi, workSimApi } from '../services/api';
@@ -32,10 +36,14 @@ import type {
   CompanyApplicationSummary, 
   CompanyApplicationDetail, 
   ApplicationStage,
-  JobPostingSummary
+  JobPostingSummary,
+  PipelineBoard,
+  CandidateNote,
+  InterviewSchedule
 } from '../types/recruitment';
 import type { CvMatchReport } from '../types/document';
 import type { AssessmentResult, CompanyAssessmentTrackingItem } from '../types/worksim';
+import { StageBadge } from '../components/common';
 
 export const CompanyApplications: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -48,6 +56,11 @@ export const CompanyApplications: React.FC = () => {
   const [jobs, setJobs] = useState<JobPostingSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // View Mode: Board (Kanban) or Table
+  const [viewMode, setViewMode] = useState<'board' | 'table'>('board');
+  const [pipelineBoard, setPipelineBoard] = useState<PipelineBoard | null>(null);
+  const [loadingBoard, setLoadingBoard] = useState(false);
 
   // Match Report state
   const [matchReport, setMatchReport] = useState<CvMatchReport | null>(null);
@@ -67,18 +80,39 @@ export const CompanyApplications: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  // Application detail & stage update modal
+  // Application detail & review modal
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
   const [selectedAppDetail, setSelectedAppDetail] = useState<CompanyApplicationDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [reviewTab, setReviewTab] = useState<'profile' | 'match' | 'worksim' | 'interviews' | 'notes' | 'decision'>('profile');
 
+  // Stage Update state
   const [newStage, setNewStage] = useState<number>(1); // UnderReview
   const [stageReason, setStageReason] = useState('');
   const [isUpdatingStage, setIsUpdatingStage] = useState(false);
   const [stageError, setStageError] = useState<string | null>(null);
   const [stageSuccess, setStageSuccess] = useState(false);
+  const [confirmingConsequentialDecision, setConfirmingConsequentialDecision] = useState<{ stage: number; stageName: string } | null>(null);
 
-  // Tab & Assessment Tracking State
+  // Recruiter Notes state
+  const [notesList, setNotesList] = useState<CandidateNote[]>([]);
+  const [newNoteText, setNewNoteText] = useState('');
+  const [isSubmittingNote, setIsSubmittingNote] = useState(false);
+  const [noteError, setNoteError] = useState<string | null>(null);
+
+  // Interview Coordination state
+  const [interviewsList, setInterviewsList] = useState<InterviewSchedule[]>([]);
+  const [showScheduleForm, setShowScheduleForm] = useState(false);
+  const [scheduleType, setScheduleType] = useState<number>(0); // 0: Screening, 1: Technical, 2: Cultural, 3: Final
+  const [scheduleStart, setScheduleStart] = useState('');
+  const [scheduleEnd, setScheduleEnd] = useState('');
+  const [scheduleLocation, setScheduleLocation] = useState('');
+  const [isSubmittingInterview, setIsSubmittingInterview] = useState(false);
+  const [interviewError, setInterviewError] = useState<string | null>(null);
+  const [cancellingInterviewId, setCancellingInterviewId] = useState<string | null>(null);
+  const [cancelInterviewReason, setCancelInterviewReason] = useState('');
+
+  // Top-level Navigation & Assessment Tracking State
   const [activeTab, setActiveTab] = useState<'applicants' | 'assessments'>('applicants');
   const [trackingList, setTrackingList] = useState<CompanyAssessmentTrackingItem[]>([]);
   const [trackingLoading, setTrackingLoading] = useState(false);
@@ -147,10 +181,14 @@ export const CompanyApplications: React.FC = () => {
   };
 
   useEffect(() => {
-    if (companyId) {
-      loadApplications(companyId);
+    if (companyId && activeTab === 'applicants') {
+      if (viewMode === 'board') {
+        loadPipelineBoard(companyId);
+      } else {
+        loadApplications(companyId);
+      }
     }
-  }, [companyId, selectedJobId, selectedStage, page]);
+  }, [companyId, selectedJobId, selectedStage, page, viewMode, activeTab]);
 
   const loadCompanyJobs = async (cId: string) => {
     try {
@@ -167,7 +205,7 @@ export const CompanyApplications: React.FC = () => {
     try {
       const params: any = {
         page,
-        pageSize: 10,
+        pageSize: 12,
       };
       if (selectedJobId) params.jobPostingId = selectedJobId;
       if (selectedStage !== '') params.stage = parseInt(selectedStage, 10);
@@ -184,6 +222,19 @@ export const CompanyApplications: React.FC = () => {
     }
   };
 
+  const loadPipelineBoard = async (cId: string) => {
+    setLoadingBoard(true);
+    setError(null);
+    try {
+      const board = await companyApplicationsApi.getPipelineBoard(cId, selectedJobId || undefined);
+      setPipelineBoard(board);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Failed to load recruitment pipeline board.');
+    } finally {
+      setLoadingBoard(false);
+    }
+  };
+
   const handleOpenDetail = async (id: string) => {
     if (!companyId) return;
     setSelectedAppId(id);
@@ -193,10 +244,15 @@ export const CompanyApplications: React.FC = () => {
     setStageReason('');
     setMatchReport(null);
     setMatchReportError(null);
+    setShowScheduleForm(false);
+    setReviewTab('profile');
 
     try {
       const detail = await companyApplicationsApi.getApplication(companyId, id);
       setSelectedAppDetail(detail);
+      setNotesList(detail.notes || []);
+      setInterviewsList(detail.interviews || []);
+
       // Pre-select next stage
       const stageVal = typeof detail.currentStage === 'number' ? detail.currentStage : 0;
       setNewStage(stageVal < 7 ? stageVal + 1 : stageVal);
@@ -248,33 +304,43 @@ export const CompanyApplications: React.FC = () => {
       const report = await cvMatchingApi.recalculateMatchReport(companyId, selectedAppId);
       setMatchReport(report);
     } catch (err: any) {
-      setMatchReportError(err.response?.data?.detail || err.response?.data?.title || 'Failed to recalculate matching report.');
+      setMatchReportError(err.response?.data?.detail || 'Failed to recalculate match evidence.');
     } finally {
       setRecalculatingMatch(false);
     }
   };
 
   const handleDownloadCv = async () => {
-    if (!companyId || !selectedAppDetail || !selectedAppDetail.candidateDocumentId) return;
+    if (!companyId || !selectedAppDetail) return;
     try {
       const fileName = (selectedAppDetail as any).candidateDocumentFileName || `${selectedAppDetail.candidateName.replace(/\s+/g, '_')}_CV.pdf`;
       await cvMatchingApi.downloadApplicationCv(companyId, selectedAppDetail.id, fileName);
-    } catch (err: any) {
-      console.error('Download error:', err);
+    } catch {
       alert('Failed to download candidate CV. Access might be restricted.');
     }
   };
 
-  const handleUpdateStage = async (e: React.FormEvent) => {
+  const handleStageFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (newStage === 7) {
+      setConfirmingConsequentialDecision({ stage: 7, stageName: 'Hired' });
+    } else if (newStage === 8) {
+      setConfirmingConsequentialDecision({ stage: 8, stageName: 'Rejected' });
+    } else {
+      executeStageTransition(newStage);
+    }
+  };
+
+  const executeStageTransition = async (targetStage: number) => {
     if (!companyId || !selectedAppId) return;
 
     setIsUpdatingStage(true);
     setStageError(null);
+    setConfirmingConsequentialDecision(null);
 
     try {
       const updated = await companyApplicationsApi.updateStage(companyId, selectedAppId, {
-        newStage: Number(newStage),
+        newStage: Number(targetStage),
         reasonNote: stageReason.trim() || undefined,
       });
 
@@ -282,8 +348,12 @@ export const CompanyApplications: React.FC = () => {
       setStageSuccess(true);
       setStageReason('');
 
-      // Refresh in list
-      setApplications(prev => prev.map(a => a.id === selectedAppId ? { ...a, currentStage: updated.currentStage } : a));
+      // Refresh data in active view
+      if (viewMode === 'board') {
+        loadPipelineBoard(companyId);
+      } else {
+        setApplications(prev => prev.map(a => a.id === selectedAppId ? { ...a, currentStage: updated.currentStage } : a));
+      }
     } catch (err: any) {
       setStageError(err.response?.data?.detail || 'Failed to transition application stage.');
     } finally {
@@ -291,79 +361,157 @@ export const CompanyApplications: React.FC = () => {
     }
   };
 
-  const getStageBadge = (stage: ApplicationStage) => {
-    const stageStr = String(stage);
-    const map: Record<string, { label: string; className: string }> = {
-      '0': { label: 'Submitted', className: 'badge-outline' },
-      '1': { label: 'Under Review', className: 'badge-purple' },
-      '2': { label: 'Shortlisted', className: 'badge-cyan' },
-      '3': { label: 'Assessment Pending', className: 'badge-amber' },
-      '4': { label: 'Assessment Completed', className: 'badge-cyan' },
-      '5': { label: 'Interview Scheduled', className: 'badge-purple' },
-      '6': { label: 'Offer Extended', className: 'badge-emerald' },
-      '7': { label: 'Hired', className: 'badge-emerald' },
-      '8': { label: 'Rejected', className: 'badge-danger' },
-      '9': { label: 'Withdrawn', className: 'badge-muted' },
-      'Submitted': { label: 'Submitted', className: 'badge-outline' },
-      'UnderReview': { label: 'Under Review', className: 'badge-purple' },
-      'Shortlisted': { label: 'Shortlisted', className: 'badge-cyan' },
-      'AssessmentPending': { label: 'Assessment Pending', className: 'badge-amber' },
-      'AssessmentCompleted': { label: 'Assessment Completed', className: 'badge-cyan' },
-      'InterviewScheduled': { label: 'Interview Scheduled', className: 'badge-purple' },
-      'Offered': { label: 'Offer Extended', className: 'badge-emerald' },
-      'Hired': { label: 'Hired', className: 'badge-emerald' },
-      'Rejected': { label: 'Rejected', className: 'badge-danger' },
-      'Withdrawn': { label: 'Withdrawn', className: 'badge-muted' },
-    };
-    const item = map[stageStr] || { label: stageStr, className: 'badge-outline' };
-    return <span className={`status-badge ${item.className}`}>{item.label}</span>;
+  const handleAddNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!companyId || !selectedAppId || !newNoteText.trim()) return;
+
+    setIsSubmittingNote(true);
+    setNoteError(null);
+
+    try {
+      const createdNote = await companyApplicationsApi.addNote(companyId, selectedAppId, {
+        noteText: newNoteText.trim(),
+      });
+      setNotesList(prev => [createdNote, ...prev]);
+      setNewNoteText('');
+    } catch (err: any) {
+      setNoteError(err.response?.data?.detail || 'Failed to add recruiter note.');
+    } finally {
+      setIsSubmittingNote(false);
+    }
   };
 
-  if (!companyId) {
-    return (
-      <div className="portal-container">
-        <div className="empty-state">
-          <Building2 size={40} className="text-muted" />
-          <h3>No Organization Selected</h3>
-          <p>Please select an approved company workspace to review candidate applications.</p>
-        </div>
-      </div>
-    );
-  }
+  const handleDeleteNote = async (noteId: string) => {
+    if (!companyId || !selectedAppId) return;
+    if (!window.confirm('Are you sure you want to delete this internal note?')) return;
+
+    try {
+      await companyApplicationsApi.deleteNote(companyId, selectedAppId, noteId);
+      setNotesList(prev => prev.filter(n => n.id !== noteId));
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Failed to delete note.');
+    }
+  };
+
+  const handleScheduleInterview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!companyId || !selectedAppId || !scheduleStart || !scheduleEnd) return;
+
+    setIsSubmittingInterview(true);
+    setInterviewError(null);
+
+    try {
+      const scheduled = await companyApplicationsApi.scheduleInterview(companyId, selectedAppId, {
+        interviewType: Number(scheduleType),
+        scheduledStartUtc: new Date(scheduleStart).toISOString(),
+        scheduledEndUtc: new Date(scheduleEnd).toISOString(),
+        meetingLocation: scheduleLocation.trim() || undefined,
+      });
+
+      setInterviewsList(prev => [...prev, scheduled]);
+      setShowScheduleForm(false);
+      setScheduleLocation('');
+      setScheduleStart('');
+      setScheduleEnd('');
+
+      // Refresh application to reflect InterviewScheduled stage
+      const refreshed = await companyApplicationsApi.getApplication(companyId, selectedAppId);
+      setSelectedAppDetail(refreshed);
+
+      if (viewMode === 'board') {
+        loadPipelineBoard(companyId);
+      } else {
+        loadApplications(companyId);
+      }
+    } catch (err: any) {
+      setInterviewError(err.response?.data?.detail || 'Failed to schedule interview.');
+    } finally {
+      setIsSubmittingInterview(false);
+    }
+  };
+
+  const handleCancelInterview = async (interviewId: string) => {
+    if (!companyId || !selectedAppId) return;
+
+    try {
+      const cancelled = await companyApplicationsApi.cancelInterview(companyId, selectedAppId, interviewId, cancelInterviewReason);
+      setInterviewsList(prev => prev.map(i => i.id === interviewId ? cancelled : i));
+      setCancellingInterviewId(null);
+      setCancelInterviewReason('');
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Failed to cancel interview.');
+    }
+  };
+
+  const getStageBadge = (stage: ApplicationStage) => {
+    return <StageBadge stage={stage} />;
+  };
+
 
   return (
-    <div className="portal-container" style={{ maxWidth: '1150px', padding: '2.5rem 1.5rem 5rem' }}>
-      {/* Header */}
-      <div className="flex-between" style={{ marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+    <div className="portal-container">
+      {/* Top Header */}
+      <div className="page-header flex-between" style={{ flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
         <div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '0.35rem' }}>
-            Recruitment Applications Pipeline
-          </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            Screen candidate submissions, review qualifications, and manage immutable stage transitions.
+          <div className="flex-align-gap" style={{ alignItems: 'center', gap: '0.65rem' }}>
+            <Building2 size={24} className="text-primary" />
+            <h1 style={{ margin: 0, fontSize: '1.65rem', fontWeight: 800 }}>Recruitment Pipeline & Candidate Review</h1>
+          </div>
+          <p style={{ margin: '0.25rem 0 0 0', color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
+            Centralized recruitment operations, candidate evaluation, interview coordination, and internal team notes.
           </p>
         </div>
-        <Link to="/company/jobs" className="btn btn-outline">
-          <Briefcase size={16} /> Manage Vacancies
-        </Link>
+
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <Link to="/company/dashboard" className="btn btn-outline btn-sm">
+            Workspace Dashboard
+          </Link>
+          <Link to="/company/jobs" className="btn btn-outline btn-sm">
+            Vacancies ({jobs.length})
+          </Link>
+        </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.75rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
-        <button
-          onClick={() => setActiveTab('applicants')}
-          className={`btn btn-sm ${activeTab === 'applicants' ? 'btn-primary' : 'btn-outline'}`}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}
-        >
-          <Users size={15} /> Applicants Pipeline
-        </button>
-        <button
-          onClick={() => setActiveTab('assessments')}
-          className={`btn btn-sm ${activeTab === 'assessments' ? 'btn-primary' : 'btn-outline'}`}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}
-        >
-          <Terminal size={15} /> WorkSim™ Assessment Tracking
-        </button>
+      {/* Main Tabs (Applicants Pipeline vs Assessment Tracking) */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            onClick={() => setActiveTab('applicants')}
+            className={`btn btn-sm ${activeTab === 'applicants' ? 'btn-primary' : 'btn-outline'}`}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}
+          >
+            <Users size={15} /> Candidates Pipeline
+          </button>
+          <button
+            onClick={() => setActiveTab('assessments')}
+            className={`btn btn-sm ${activeTab === 'assessments' ? 'btn-primary' : 'btn-outline'}`}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}
+          >
+            <Terminal size={15} /> WorkSim™ Tracking
+          </button>
+        </div>
+
+        {/* View Switcher (Board vs Table) for Applicants Tab */}
+        {activeTab === 'applicants' && (
+          <div style={{ display: 'flex', backgroundColor: 'var(--bg-input)', padding: '0.2rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+            <button
+              onClick={() => setViewMode('board')}
+              className={`btn btn-xs ${viewMode === 'board' ? 'btn-primary' : 'btn-ghost'}`}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.65rem' }}
+              title="Kanban Board View"
+            >
+              <LayoutGrid size={14} /> Pipeline Board
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`btn btn-xs ${viewMode === 'table' ? 'btn-primary' : 'btn-ghost'}`}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.65rem' }}
+              title="Tabular List View"
+            >
+              <List size={14} /> Table View
+            </button>
+          </div>
+        )}
       </div>
 
       {actionNotice && (
@@ -385,13 +533,14 @@ export const CompanyApplications: React.FC = () => {
         </div>
       )}
 
+      {/* APPLICANTS PIPELINE VIEW */}
       {activeTab === 'applicants' && (
         <>
-          {/* Filter Bar */}
-          <div className="card-form" style={{ padding: '1.25rem', marginBottom: '1.75rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', alignItems: 'end' }}>
+          {/* Universal Filter & Search Bar */}
+          <div className="card-form" style={{ padding: '1rem 1.25rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', alignItems: 'end' }}>
               <div>
-                <label className="form-label" style={{ fontSize: '0.85rem' }}>Filter by Vacancy</label>
+                <label className="form-label" style={{ fontSize: '0.82rem', marginBottom: '0.35rem' }}>Filter by Vacancy</label>
                 <select
                   className="select-standard"
                   value={selectedJobId}
@@ -401,182 +550,368 @@ export const CompanyApplications: React.FC = () => {
                     setPage(1);
                   }}
                 >
-                  <option value="">All Vacancies</option>
+                  <option value="">All Published Vacancies ({jobs.length})</option>
                   {jobs.map((j) => (
                     <option key={j.id} value={j.id}>{j.title}</option>
                   ))}
                 </select>
               </div>
 
-              <div>
-                <label className="form-label" style={{ fontSize: '0.85rem' }}>Recruitment Stage</label>
-                <select
-                  className="select-standard"
-                  value={selectedStage}
-                  onChange={(e) => { setSelectedStage(e.target.value); setPage(1); }}
-                >
-                  <option value="">All Stages</option>
-                  <option value="0">Submitted</option>
-                  <option value="1">Under Review</option>
-                  <option value="2">Shortlisted</option>
-                  <option value="3">Assessment Pending</option>
-                  <option value="4">Assessment Completed</option>
-                  <option value="5">Interview Scheduled</option>
-                  <option value="6">Offer Extended</option>
-                  <option value="7">Hired</option>
-                  <option value="8">Rejected</option>
-                  <option value="9">Withdrawn</option>
-                </select>
-              </div>
+              {viewMode === 'table' && (
+                <div>
+                  <label className="form-label" style={{ fontSize: '0.82rem', marginBottom: '0.35rem' }}>Recruitment Stage</label>
+                  <select
+                    className="select-standard"
+                    value={selectedStage}
+                    onChange={(e) => { setSelectedStage(e.target.value); setPage(1); }}
+                  >
+                    <option value="">All Stages</option>
+                    <option value="0">Submitted</option>
+                    <option value="1">Under Review</option>
+                    <option value="2">Shortlisted</option>
+                    <option value="3">Assessment Pending</option>
+                    <option value="4">Assessment Completed</option>
+                    <option value="5">Interview Scheduled</option>
+                    <option value="6">Offer Extended</option>
+                    <option value="7">Hired</option>
+                    <option value="8">Rejected</option>
+                    <option value="9">Withdrawn</option>
+                  </select>
+                </div>
+              )}
 
               <div>
-                <label className="form-label" style={{ fontSize: '0.85rem' }}>Candidate Search</label>
+                <label className="form-label" style={{ fontSize: '0.82rem', marginBottom: '0.35rem' }}>Candidate Search</label>
                 <div style={{ position: 'relative' }}>
-                  <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                  <Search size={15} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input
                     type="text"
                     className="input-standard"
                     style={{ paddingLeft: '2.25rem' }}
-                    placeholder="Search name or headline..."
+                    placeholder="Search name, headline, email..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         setPage(1);
-                        loadApplications(companyId);
+                        if (viewMode === 'board') loadPipelineBoard(companyId || '');
+                        else loadApplications(companyId || '');
                       }
                     }}
                   />
                 </div>
               </div>
 
-              <button
-                onClick={() => { setPage(1); loadApplications(companyId); }}
-                className="btn btn-secondary"
-                style={{ height: '40px' }}
-              >
-                Apply Filters
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPage(1);
+                    if (viewMode === 'board') loadPipelineBoard(companyId || '');
+                    else loadApplications(companyId || '');
+                  }}
+                  className="btn btn-secondary"
+                  style={{ height: '40px', flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}
+                >
+                  <Search size={14} /> Search
+                </button>
+                {(searchQuery || selectedJobId || selectedStage) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSelectedJobId('');
+                      setSelectedStage('');
+                      setSearchParams({});
+                      setPage(1);
+                    }}
+                    className="btn btn-outline"
+                    style={{ height: '40px' }}
+                    title="Clear filters"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Applications Table */}
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: '5rem 1.5rem' }}>
-              <div className="spinner" style={{ width: '40px', height: '40px', margin: '0 auto 1.25rem' }} />
-              <p style={{ color: 'var(--text-secondary)' }}>Loading candidate applications...</p>
+          {error && (
+            <div className="alert alert-error" style={{ marginBottom: '1.5rem' }}>
+              <AlertCircle size={18} />
+              <span>{error}</span>
             </div>
-          ) : error ? (
-            <div className="alert alert-error">
-              <AlertCircle size={20} />
-              <div>
-                <strong>Error loading applications</strong>
-                <p>{error}</p>
-              </div>
+          )}
+
+          {/* VIEW MODE 1: KANBAN PIPELINE BOARD */}
+          {viewMode === 'board' && (
+            <div>
+              {loadingBoard ? (
+                <div style={{ textAlign: 'center', padding: '5rem 0' }}>
+                  <div className="spinner" style={{ width: '40px', height: '40px', margin: '0 auto 1.25rem' }} />
+                  <p style={{ color: 'var(--text-secondary)' }}>Loading recruitment pipeline board...</p>
+                </div>
+              ) : !pipelineBoard || pipelineBoard.totalApplications === 0 ? (
+                <div className="card-form" style={{ textAlign: 'center', padding: '4.5rem 2rem' }}>
+                  <Users size={48} style={{ color: 'var(--text-muted)', margin: '0 auto 1.25rem' }} />
+                  <h3 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.5rem' }}>No Applications in Recruitment Pipeline</h3>
+                  <p style={{ color: 'var(--text-secondary)', maxWidth: '440px', margin: '0 auto 1.5rem auto' }}>
+                    {selectedJobId
+                      ? 'No applications submitted yet for this vacancy.'
+                      : 'Candidates will appear in the pipeline board as they apply to your published vacancies.'}
+                  </p>
+                  <Link to="/company/jobs" className="btn btn-primary btn-sm">
+                    View Published Vacancies
+                  </Link>
+                </div>
+              ) : (
+                <div style={{
+                  display: 'flex',
+                  gap: '1rem',
+                  overflowX: 'auto',
+                  paddingBottom: '1.5rem',
+                  minHeight: '620px'
+                }}>
+                  {pipelineBoard.stages.map(column => (
+                    <div
+                      key={column.stageName}
+                      style={{
+                        flex: '0 0 290px',
+                        backgroundColor: 'var(--bg-surface-elevated)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: 'var(--radius-md)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        maxHeight: '750px'
+                      }}
+                    >
+                      {/* Column Header */}
+                      <div style={{
+                        padding: '0.85rem 1rem',
+                        borderBottom: '1px solid var(--border-color)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        backgroundColor: 'var(--bg-surface)'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                          <strong style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>
+                            {column.stageName}
+                          </strong>
+                        </div>
+                        <span className="badge badge-outline" style={{ fontSize: '0.72rem', fontWeight: 700 }}>
+                          {column.count}
+                        </span>
+                      </div>
+
+                      {/* Cards Container */}
+                      <div style={{
+                        padding: '0.75rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.75rem',
+                        overflowY: 'auto',
+                        flex: 1
+                      }}>
+                        {column.applications.length === 0 ? (
+                          <div style={{
+                            padding: '2rem 1rem',
+                            textAlign: 'center',
+                            color: 'var(--text-muted)',
+                            fontSize: '0.78rem',
+                            border: '1px dashed var(--border-subtle)',
+                            borderRadius: 'var(--radius-sm)'
+                          }}>
+                            No candidates
+                          </div>
+                        ) : (
+                          column.applications.map(card => (
+                            <div
+                              key={card.id}
+                              style={{
+                                backgroundColor: 'var(--bg-surface)',
+                                border: '1px solid var(--border-color)',
+                                borderRadius: 'var(--radius-sm)',
+                                padding: '0.85rem',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '0.5rem',
+                                transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-primary)' }}>
+                                  {card.candidateName}
+                                </div>
+                              </div>
+
+                              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                {card.jobTitle}
+                              </div>
+
+                              {card.candidateHeadline && (
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  "{card.candidateHeadline}"
+                                </div>
+                              )}
+
+                              {/* Badges Ribbon (Match & WorkSim) */}
+                              <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: '0.2rem' }}>
+                                {card.matchEvidenceIndex != null && (
+                                  <span className="badge badge-purple" style={{ fontSize: '0.68rem', fontWeight: 700 }} title="Explainable CV-to-job match evidence index">
+                                    <Sparkles size={10} style={{ marginRight: '0.2rem' }} /> {card.matchEvidenceIndex.toFixed(0)}% Match
+                                  </span>
+                                )}
+                                {card.workSimScore != null && (
+                                  <span className="badge badge-emerald" style={{ fontSize: '0.68rem', fontWeight: 700 }} title="Completed WorkSim simulation total score">
+                                    <Terminal size={10} style={{ marginRight: '0.2rem' }} /> {card.workSimScore.toFixed(0)}/100
+                                  </span>
+                                )}
+                              </div>
+
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.35rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                <span>{new Date(card.submittedAtUtc).toLocaleDateString()}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenDetail(card.id)}
+                                  className="btn btn-outline btn-xs"
+                                  style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                                >
+                                  <Eye size={12} /> Review
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          ) : applications.length === 0 ? (
-            <div className="card-form" style={{ textAlign: 'center', padding: '4.5rem 2rem' }}>
-              <Users size={48} style={{ color: 'var(--text-muted)', margin: '0 auto 1.25rem' }} />
-              <h3 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.5rem' }}>No Applications Received</h3>
-              <p style={{ color: 'var(--text-secondary)', maxWidth: '440px', margin: '0 auto 1.75rem' }}>
-                {selectedJobId || selectedStage || searchQuery
-                  ? 'No applications match your selected filter criteria. Try clearing filters.'
-                  : 'Candidates will appear here as soon as they discover your published openings and submit their qualifications.'}
-              </p>
-            </div>
-          ) : (
+          )}
+
+          {/* VIEW MODE 2: RESPONSIVE TABLE VIEW */}
+          {viewMode === 'table' && (
             <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                  Showing <strong style={{ color: 'var(--text-primary)' }}>{applications.length}</strong> of <strong style={{ color: 'var(--text-primary)' }}>{totalCount}</strong> candidate applications
-                </p>
-                {totalPages > 1 && (
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <button 
-                      className="btn btn-outline btn-sm"
-                      disabled={page <= 1}
-                      onClick={() => setPage(p => Math.max(1, p - 1))}
-                    >
-                      Previous
-                    </button>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Page {page} of {totalPages}</span>
-                    <button 
-                      className="btn btn-outline btn-sm"
-                      disabled={page >= totalPages}
-                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    >
-                      Next
-                    </button>
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '5rem 0' }}>
+                  <div className="spinner" style={{ width: '40px', height: '40px', margin: '0 auto 1.25rem' }} />
+                  <p style={{ color: 'var(--text-secondary)' }}>Loading candidate applications...</p>
+                </div>
+              ) : applications.length === 0 ? (
+                <div className="card-form" style={{ textAlign: 'center', padding: '4.5rem 2rem' }}>
+                  <Users size={48} style={{ color: 'var(--text-muted)', margin: '0 auto 1.25rem' }} />
+                  <h3 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.5rem' }}>No Applications Found</h3>
+                  <p style={{ color: 'var(--text-secondary)', maxWidth: '440px', margin: '0 auto' }}>
+                    {selectedJobId || selectedStage || searchQuery
+                      ? 'No applications match your active filters.'
+                      : 'Candidates will appear here as they submit applications to your published vacancies.'}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="card-table-wrapper">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Candidate</th>
+                          <th>Vacancy</th>
+                          <th>Professional Background</th>
+                          <th>Recruitment Stage</th>
+                          <th>Applied Date</th>
+                          <th style={{ textAlign: 'right' }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {applications.map((app) => (
+                          <tr key={app.id}>
+                            <td>
+                              <div>
+                                <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                                  {app.candidateName}
+                                </div>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
+                                  {app.candidateEmail}
+                                </div>
+                              </div>
+                            </td>
+
+                            <td>
+                              <span style={{ fontWeight: 500, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                                {app.jobTitle}
+                              </span>
+                            </td>
+
+                            <td>
+                              <div style={{ fontSize: '0.85rem' }}>
+                                {app.candidateHeadline ? (
+                                  <div style={{ color: 'var(--text-primary)' }}>{app.candidateHeadline}</div>
+                                ) : (
+                                  <span style={{ color: 'var(--text-muted)' }}>—</span>
+                                )}
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                                  {app.candidateLocation || 'Remote'} • {app.yearsOfExperience != null ? `${app.yearsOfExperience} yrs exp` : 'Entry'}
+                                </div>
+                              </div>
+                            </td>
+
+                            <td>{getStageBadge(app.currentStage)}</td>
+
+                            <td>
+                              <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                                {new Date(app.submittedAtUtc).toLocaleDateString(undefined, { dateStyle: 'short' })}
+                              </span>
+                            </td>
+
+                            <td style={{ textAlign: 'right' }}>
+                              <button
+                                onClick={() => handleOpenDetail(app.id)}
+                                className="btn btn-outline btn-sm"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                              >
+                                <Eye size={14} /> Review Candidate
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                )}
-              </div>
 
-              <div className="card-table-wrapper">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Candidate</th>
-                      <th>Target Vacancy</th>
-                      <th>Experience & Location</th>
-                      <th>Stage</th>
-                      <th>Submitted</th>
-                      <th style={{ textAlign: 'right' }}>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {applications.map((app) => (
-                      <tr key={app.id}>
-                        <td>
-                          <div>
-                            <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-                              {app.candidateName}
-                            </div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
-                              {app.candidateEmail}
-                            </div>
-                          </div>
-                        </td>
-
-                        <td>
-                          <span style={{ fontWeight: 500, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                            {app.jobTitle}
-                          </span>
-                        </td>
-
-                        <td>
-                          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                            {app.yearsOfExperience != null ? `${app.yearsOfExperience} yrs exp` : 'Experience not specified'}
-                            {app.candidateLocation && ` • ${app.candidateLocation}`}
-                          </div>
-                        </td>
-
-                        <td>{getStageBadge(app.currentStage)}</td>
-
-                        <td>
-                          <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                            {new Date(app.submittedAtUtc).toLocaleDateString(undefined, { dateStyle: 'short' })}
-                          </span>
-                        </td>
-
-                        <td style={{ textAlign: 'right' }}>
-                          <button
-                            onClick={() => handleOpenDetail(app.id)}
-                            className="btn btn-outline btn-sm"
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
-                          >
-                            <Eye size={14} /> Review Candidate
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        Showing page {page} of {totalPages} ({totalCount} total applications)
+                      </span>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                          onClick={() => setPage(p => Math.max(1, p - 1))}
+                          disabled={page <= 1}
+                          className="btn btn-outline btn-sm"
+                        >
+                          Previous
+                        </button>
+                        <button
+                          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                          disabled={page >= totalPages}
+                          className="btn btn-outline btn-sm"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </>
           )}
         </>
       )}
 
+      {/* TAB 2: WORKSIM ASSESSMENT TRACKING */}
       {activeTab === 'assessments' && (
         <div>
           {/* Assessment Filter Bar */}
@@ -659,7 +994,6 @@ export const CompanyApplications: React.FC = () => {
                   {trackingList.map((item) => {
                     const isCompleted = item.status === 'Completed';
                     const isCancelled = item.status === 'Cancelled';
-                    const isExpired = item.status === 'Expired';
                     const canManage = !isCompleted && !isCancelled;
 
                     return (
@@ -703,90 +1037,50 @@ export const CompanyApplications: React.FC = () => {
                         </td>
 
                         <td>
-                          {item.status === 'Completed' ? (
-                            <span className="status-badge badge-emerald">Completed</span>
-                          ) : item.status === 'InProgress' ? (
-                            <span className="status-badge badge-cyan">In Progress</span>
-                          ) : item.status === 'Expired' ? (
-                            <span className="status-badge badge-danger">Expired</span>
-                          ) : item.status === 'Cancelled' ? (
-                            <span className="status-badge badge-muted">Cancelled</span>
-                          ) : (
-                            <span className="status-badge badge-amber">Pending</span>
-                          )}
-                          {item.resentCount > 0 && (
-                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                              Resent ({item.resentCount}x)
-                            </div>
-                          )}
+                          <span className={`status-badge status-${item.status.toLowerCase()}`}>
+                            {item.status}
+                          </span>
                         </td>
 
                         <td>
                           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                            Invited: {new Date(item.assignedAtUtc).toLocaleDateString()}
+                            <div>Assigned: {item.assignedAtUtc ? new Date(item.assignedAtUtc).toLocaleDateString() : '—'}</div>
+                            {item.deadlineUtc && <div>Deadline: {new Date(item.deadlineUtc).toLocaleDateString()}</div>}
                           </div>
-                          {item.deadlineUtc && (
-                            <div style={{ fontSize: '0.78rem', color: isExpired ? 'var(--color-danger, #ef4444)' : 'var(--text-muted)' }}>
-                              Due: {new Date(item.deadlineUtc).toLocaleDateString()}
-                            </div>
-                          )}
-                          {item.completedAtUtc && (
-                            <div style={{ fontSize: '0.78rem', color: 'var(--color-success, #10b981)' }}>
-                              Done: {new Date(item.completedAtUtc).toLocaleDateString()}
-                            </div>
-                          )}
                         </td>
 
                         <td>
-                          {item.totalScore !== null && item.totalScore !== undefined ? (
+                          {item.totalScore != null ? (
                             <span className="badge badge-emerald" style={{ fontWeight: 700 }}>
-                              {item.totalScore.toFixed(1)}%
+                              {item.totalScore.toFixed(1)} / 100
                             </span>
                           ) : (
-                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>—</span>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Pending</span>
                           )}
                         </td>
 
                         <td style={{ textAlign: 'right' }}>
-                          <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                            {isCompleted && (
-                              <button
-                                onClick={() => handleOpenDetail(item.jobApplicationId)}
-                                className="btn btn-outline btn-xs"
-                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
-                              >
-                                <Eye size={12} /> View Scorecard
-                              </button>
-                            )}
-
+                          <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
                             {canManage && (
                               <>
                                 <button
+                                  type="button"
                                   onClick={() => handleResendInvitation(item.assignmentId)}
                                   disabled={resendingId === item.assignmentId}
                                   className="btn btn-outline btn-xs"
-                                  title="Resend invitation notification to candidate"
-                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                                  title="Resend invitation email"
                                 >
                                   <RotateCw size={12} className={resendingId === item.assignmentId ? 'animate-spin' : ''} />
-                                  {resendingId === item.assignmentId ? 'Sending...' : 'Resend'}
                                 </button>
-
                                 <button
+                                  type="button"
                                   onClick={() => setCancellingItem(item)}
-                                  className="btn btn-outline btn-xs"
-                                  title="Cancel invitation"
-                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: 'var(--color-danger, #ef4444)' }}
+                                  className="btn btn-outline btn-xs text-danger"
+                                  title="Cancel assessment invitation"
                                 >
-                                  <Ban size={12} /> Cancel
+                                  <Ban size={12} />
                                 </button>
                               </>
-                            )}
-
-                            {isCancelled && item.cancellationReason && (
-                              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                                Reason: {item.cancellationReason}
-                              </span>
                             )}
                           </div>
                         </td>
@@ -800,17 +1094,21 @@ export const CompanyApplications: React.FC = () => {
         </div>
       )}
 
-      {/* Applicant Detail & Stage Update Modal */}
+      {/* CANDIDATE REVIEW WORKSPACE MODAL */}
       {selectedAppId && (
         <div className="modal-backdrop">
-          <div className="modal-dialog" style={{ maxWidth: '720px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+          <div className="modal-dialog" style={{ maxWidth: '820px', maxHeight: '92vh', overflowY: 'auto' }}>
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-color)' }}>
               <div>
-                <h3 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '0.25rem' }}>
-                  {selectedAppDetail?.candidateName || 'Candidate Profile'}
-                </h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                  Applied for <strong>{selectedAppDetail?.jobTitle}</strong> on {selectedAppDetail && new Date(selectedAppDetail.submittedAtUtc).toLocaleDateString(undefined, { dateStyle: 'medium' })}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0 }}>
+                    {selectedAppDetail?.candidateName || 'Candidate Profile'}
+                  </h3>
+                  {selectedAppDetail && getStageBadge(selectedAppDetail.currentStage)}
+                </div>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: '0.25rem 0 0 0' }}>
+                  Candidate for <strong>{selectedAppDetail?.jobTitle}</strong> • Submitted {selectedAppDetail && new Date(selectedAppDetail.submittedAtUtc).toLocaleDateString(undefined, { dateStyle: 'medium' })}
                 </p>
               </div>
               <button 
@@ -823,160 +1121,201 @@ export const CompanyApplications: React.FC = () => {
             </div>
 
             {loadingDetail || !selectedAppDetail ? (
-              <div style={{ textAlign: 'center', padding: '3rem 0' }}>
-                <div className="spinner" style={{ width: '32px', height: '32px', margin: '0 auto 1rem' }} />
-                <p style={{ color: 'var(--text-secondary)' }}>Loading candidate submission details...</p>
+              <div style={{ textAlign: 'center', padding: '3.5rem 0' }}>
+                <div className="spinner" style={{ width: '36px', height: '36px', margin: '0 auto 1rem' }} />
+                <p style={{ color: 'var(--text-secondary)' }}>Loading candidate review workspace...</p>
               </div>
             ) : (
               <div>
-                {/* Candidate Overview Card */}
-                <div style={{ 
-                  backgroundColor: 'var(--bg-surface-elevated)', 
-                  padding: '1.25rem', 
-                  borderRadius: 'var(--radius-md)', 
-                  marginBottom: '1.5rem',
-                  border: '1px solid var(--border-subtle)'
-                }}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', marginBottom: '0.75rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                      <Mail size={15} /> {selectedAppDetail.candidateEmail}
-                    </div>
-                    {selectedAppDetail.candidateLocation && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                        <MapPin size={15} /> {selectedAppDetail.candidateLocation}
-                      </div>
-                    )}
-                    {selectedAppDetail.yearsOfExperience != null && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                        <Calendar size={15} /> {selectedAppDetail.yearsOfExperience} Years Experience
-                      </div>
-                    )}
-                  </div>
-
-                  {selectedAppDetail.candidateHeadline && (
-                    <p style={{ fontStyle: 'italic', color: 'var(--text-primary)', fontSize: '0.95rem', margin: '0.5rem 0' }}>
-                      "{selectedAppDetail.candidateHeadline}"
-                    </p>
-                  )}
-
-                  {/* External Links */}
-                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
-                    {selectedAppDetail.linkedInUrl && (
-                      <a href={selectedAppDetail.linkedInUrl} target="_blank" rel="noreferrer" className="link-subtle" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                        <ExternalLink size={14} /> LinkedIn
-                      </a>
-                    )}
-                    {selectedAppDetail.gitHubUrl && (
-                      <a href={selectedAppDetail.gitHubUrl} target="_blank" rel="noreferrer" className="link-subtle" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                        <ExternalLink size={14} /> GitHub
-                      </a>
-                    )}
-                    {selectedAppDetail.portfolioUrl && (
-                      <a href={selectedAppDetail.portfolioUrl} target="_blank" rel="noreferrer" className="link-subtle" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                        <Globe size={14} /> Portfolio
-                      </a>
-                    )}
-                  </div>
+                {/* Candidate Review Tabs */}
+                <div style={{ display: 'flex', gap: '0.35rem', overflowX: 'auto', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.35rem' }}>
+                  <button
+                    onClick={() => setReviewTab('profile')}
+                    className={`btn btn-xs ${reviewTab === 'profile' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                  >
+                    <FileText size={13} /> Profile & CV
+                  </button>
+                  <button
+                    onClick={() => setReviewTab('match')}
+                    className={`btn btn-xs ${reviewTab === 'match' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                  >
+                    <Sparkles size={13} /> CV Match {matchReport && `(${matchReport.overallEvidenceIndex.toFixed(0)}%)`}
+                  </button>
+                  <button
+                    onClick={() => setReviewTab('worksim')}
+                    className={`btn btn-xs ${reviewTab === 'worksim' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                  >
+                    <Terminal size={13} /> WorkSim™ Scorecard
+                  </button>
+                  <button
+                    onClick={() => setReviewTab('interviews')}
+                    className={`btn btn-xs ${reviewTab === 'interviews' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                  >
+                    <Calendar size={13} /> Interviews ({interviewsList.length})
+                  </button>
+                  <button
+                    onClick={() => setReviewTab('notes')}
+                    className={`btn btn-xs ${reviewTab === 'notes' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                  >
+                    <Lock size={13} /> Private Notes ({notesList.length})
+                  </button>
+                  <button
+                    onClick={() => setReviewTab('decision')}
+                    className={`btn btn-xs ${reviewTab === 'decision' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                  >
+                    <CheckCircle size={13} /> Decision & Stage
+                  </button>
                 </div>
 
-                {/* Candidate Summary / Bio */}
-                {selectedAppDetail.candidateSummary && (
-                  <div style={{ marginBottom: '1.5rem' }}>
-                    <h4 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--text-secondary)' }}>
-                      Professional Background
-                    </h4>
-                    <p style={{ color: 'var(--text-primary)', fontSize: '0.9rem', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
-                      {selectedAppDetail.candidateSummary}
-                    </p>
-                  </div>
-                )}
-
-                {/* Cover Note */}
-                {selectedAppDetail.candidateCoverNote && (
-                  <div style={{ marginBottom: '1.5rem' }}>
-                    <h4 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--text-secondary)' }}>
-                      Candidate Cover Note
-                    </h4>
+                {/* TAB 1: PROFILE & CV */}
+                {reviewTab === 'profile' && (
+                  <div>
+                    {/* Candidate Overview Card */}
                     <div style={{ 
-                      backgroundColor: 'var(--bg-input)', 
-                      padding: '1rem', 
-                      borderRadius: 'var(--radius-sm)', 
-                      fontSize: '0.9rem', 
-                      color: 'var(--text-primary)',
-                      border: '1px solid var(--border-color)',
-                      whiteSpace: 'pre-line'
+                      backgroundColor: 'var(--bg-surface-elevated)', 
+                      padding: '1.25rem', 
+                      borderRadius: 'var(--radius-md)', 
+                      marginBottom: '1.25rem',
+                      border: '1px solid var(--border-subtle)'
                     }}>
-                      {selectedAppDetail.candidateCoverNote}
-                    </div>
-                  </div>
-                )}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', marginBottom: '0.75rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                          <Mail size={15} /> {selectedAppDetail.candidateEmail}
+                        </div>
+                        {selectedAppDetail.candidateLocation && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                            <MapPin size={15} /> {selectedAppDetail.candidateLocation}
+                          </div>
+                        )}
+                        {selectedAppDetail.yearsOfExperience != null && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                            <Calendar size={15} /> {selectedAppDetail.yearsOfExperience} Years Experience
+                          </div>
+                        )}
+                      </div>
 
-                {/* Attached CV Document Card */}
-                <div style={{
-                  backgroundColor: 'var(--bg-surface-elevated)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '1.25rem',
-                  marginBottom: '1.5rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: '1rem'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      {selectedAppDetail.candidateHeadline && (
+                        <p style={{ fontStyle: 'italic', color: 'var(--text-primary)', fontSize: '0.95rem', margin: '0.5rem 0' }}>
+                          "{selectedAppDetail.candidateHeadline}"
+                        </p>
+                      )}
+
+                      {/* Links */}
+                      <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
+                        {selectedAppDetail.linkedInUrl && (
+                          <a href={selectedAppDetail.linkedInUrl} target="_blank" rel="noreferrer" className="link-subtle" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <ExternalLink size={14} /> LinkedIn
+                          </a>
+                        )}
+                        {selectedAppDetail.gitHubUrl && (
+                          <a href={selectedAppDetail.gitHubUrl} target="_blank" rel="noreferrer" className="link-subtle" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <ExternalLink size={14} /> GitHub
+                          </a>
+                        )}
+                        {selectedAppDetail.portfolioUrl && (
+                          <a href={selectedAppDetail.portfolioUrl} target="_blank" rel="noreferrer" className="link-subtle" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <Globe size={14} /> Portfolio
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Candidate Summary */}
+                    {selectedAppDetail.candidateSummary && (
+                      <div style={{ marginBottom: '1.25rem' }}>
+                        <h4 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--text-secondary)' }}>
+                          Professional Background
+                        </h4>
+                        <p style={{ color: 'var(--text-primary)', fontSize: '0.9rem', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+                          {selectedAppDetail.candidateSummary}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Cover Note */}
+                    {selectedAppDetail.candidateCoverNote && (
+                      <div style={{ marginBottom: '1.25rem' }}>
+                        <h4 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--text-secondary)' }}>
+                          Candidate Cover Note
+                        </h4>
+                        <div style={{ 
+                          backgroundColor: 'var(--bg-input)', 
+                          padding: '0.85rem', 
+                          borderRadius: 'var(--radius-sm)', 
+                          fontSize: '0.88rem', 
+                          color: 'var(--text-primary)',
+                          border: '1px solid var(--border-color)',
+                          whiteSpace: 'pre-line'
+                        }}>
+                          {selectedAppDetail.candidateCoverNote}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Attached CV Card */}
                     <div style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '8px',
-                      backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                      color: 'var(--primary-color)',
+                      backgroundColor: 'var(--bg-surface-elevated)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '1.25rem',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '1rem'
                     }}>
-                      <FileText size={20} />
-                    </div>
-                    <div>
-                      <h4 style={{ fontSize: '0.95rem', fontWeight: 600, margin: '0 0 0.15rem 0' }}>
-                        {(selectedAppDetail as any).candidateDocumentFileName || 'Attached Candidate CV'}
-                      </h4>
-                      <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                        {selectedAppDetail.candidateDocumentId ? 'Securely stored • Verified digital integrity' : 'No CV document attached with this application'}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '8px',
+                          backgroundColor: 'rgba(2, 132, 199, 0.1)',
+                          color: 'var(--primary-color)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <FileText size={20} />
+                        </div>
+                        <div>
+                          <h4 style={{ fontSize: '0.95rem', fontWeight: 600, margin: '0 0 0.15rem 0' }}>
+                            {(selectedAppDetail as any).candidateDocumentFileName || 'Submitted Candidate CV'}
+                          </h4>
+                          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                            {selectedAppDetail.candidateDocumentId ? 'Secure digital file • Verified candidate document' : 'No CV document attached'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {selectedAppDetail.candidateDocumentId && (
+                        <button
+                          type="button"
+                          onClick={handleDownloadCv}
+                          className="btn btn-outline btn-sm"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                        >
+                          <Download size={14} /> Download CV
+                        </button>
+                      )}
                     </div>
                   </div>
+                )}
 
-                  {selectedAppDetail.candidateDocumentId && (
-                    <button
-                      type="button"
-                      onClick={handleDownloadCv}
-                      className="btn btn-outline btn-sm"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
-                    >
-                      <Download size={14} /> Download CV
-                    </button>
-                  )}
-                </div>
-
-                {/* Explainable CV-to-Job Matching Report Card */}
-                {selectedAppDetail.candidateDocumentId && (
-                  <div style={{
-                    backgroundColor: 'var(--bg-surface)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '1.5rem',
-                    marginBottom: '1.75rem'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                {/* TAB 2: EXPLAINABLE CV MATCH REPORT */}
+                {reviewTab === 'match' && (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <Sparkles size={18} className="text-primary" />
                         <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>
-                          Explainable CV-to-Job Matching
+                          Explainable CV-to-Job Matching Report
                         </h4>
-                        <span className="badge badge-purple" style={{ fontSize: '0.7rem' }}>
-                          v{matchReport?.engineVersion || '1.0-deterministic'}
-                        </span>
                       </div>
 
                       <button
@@ -992,20 +1331,20 @@ export const CompanyApplications: React.FC = () => {
                     </div>
 
                     {loadingMatchReport ? (
-                      <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-                        <div className="spinner" style={{ width: '24px', height: '24px', margin: '0 auto 0.75rem' }} />
+                      <div style={{ textAlign: 'center', padding: '2.5rem 0' }}>
+                        <div className="spinner" style={{ width: '28px', height: '28px', margin: '0 auto 0.75rem' }} />
                         <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                          Extracting text and computing deterministic criteria evidence...
+                          Extracting text and computing deterministic match evidence...
                         </p>
                       </div>
                     ) : matchReportError ? (
-                      <div className="alert alert-warning" style={{ fontSize: '0.85rem', marginBottom: '0.5rem' }}>
+                      <div className="alert alert-warning" style={{ fontSize: '0.85rem' }}>
                         <AlertCircle size={16} />
                         <span>{matchReportError}</span>
                       </div>
                     ) : matchReport ? (
                       <div>
-                        {/* Overall Evidence Index Gauge */}
+                        {/* Gauge Card */}
                         <div style={{
                           display: 'flex',
                           alignItems: 'center',
@@ -1013,18 +1352,19 @@ export const CompanyApplications: React.FC = () => {
                           backgroundColor: 'var(--bg-surface-elevated)',
                           padding: '1rem 1.25rem',
                           borderRadius: 'var(--radius-sm)',
-                          marginBottom: '1rem'
+                          marginBottom: '1rem',
+                          border: '1px solid var(--border-subtle)'
                         }}>
                           <div>
                             <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>
                               Overall Evidence Index
                             </span>
-                            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--primary-color)', lineHeight: 1.2 }}>
+                            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--primary-color)', lineHeight: 1.2 }}>
                               {matchReport.overallEvidenceIndex.toFixed(1)}%
                             </div>
                           </div>
 
-                          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                             <span className="badge badge-emerald" style={{ fontSize: '0.75rem' }}>
                               {matchReport.summary.supportedCount} Supported
                             </span>
@@ -1034,29 +1374,22 @@ export const CompanyApplications: React.FC = () => {
                             <span className="badge badge-outline" style={{ fontSize: '0.75rem' }}>
                               {matchReport.summary.notFoundCount} Not in CV
                             </span>
-                            {matchReport.summary.needsReviewCount > 0 && (
-                              <span className="badge badge-purple" style={{ fontSize: '0.75rem' }}>
-                                {matchReport.summary.needsReviewCount} Needs Review
-                              </span>
-                            )}
                           </div>
                         </div>
 
-                        {/* Decision Support Disclaimer */}
-                        <div className="info-banner" style={{ marginBottom: '1.25rem', fontSize: '0.78rem' }}>
+                        <div className="info-banner" style={{ marginBottom: '1rem', fontSize: '0.78rem' }}>
                           <ShieldCheck size={18} />
                           <div>
-                            <strong>Decision Support Only:</strong> This evidence index reflects explicit technical terms identified in the processed CV. &ldquo;Not found in CV&rdquo; indicates absence of text evidence, not proof of lack of capability. Final hiring decisions rest with the recruitment team.
+                            <strong>Deterministic Decision Support:</strong> Index reflects explicit technical criteria found in the candidate CV. Absence of a keyword is not proof of lack of capability.
                           </div>
                         </div>
 
                         {/* Criteria Breakdown */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
                           {matchReport.evaluations.map((ev) => {
                             const statusStr = String(ev.status);
                             const isSupported = statusStr === 'SupportedByEvidence' || statusStr === '0';
                             const isPartial = statusStr === 'PartiallySupported' || statusStr === '1';
-                            const isReview = statusStr === 'RequiresManualReview' || statusStr === '3';
 
                             return (
                               <div
@@ -1064,13 +1397,13 @@ export const CompanyApplications: React.FC = () => {
                                 style={{
                                   border: '1px solid var(--border-color)',
                                   borderRadius: 'var(--radius-sm)',
-                                  padding: '0.875rem',
+                                  padding: '0.75rem',
                                   backgroundColor: isSupported ? 'rgba(16, 185, 129, 0.02)' : 'var(--bg-surface-elevated)'
                                 }}
                               >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.35rem' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                    <span className="badge badge-outline" style={{ fontSize: '0.7rem' }}>
+                                    <span className="badge badge-outline" style={{ fontSize: '0.68rem' }}>
                                       {ev.requirementType === 0 ? 'Mandatory (2x)' : 'Preferred (1x)'}
                                     </span>
                                     <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)' }}>
@@ -1079,19 +1412,15 @@ export const CompanyApplications: React.FC = () => {
                                   </div>
 
                                   {isSupported ? (
-                                    <span className="badge badge-emerald" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem' }}>
+                                    <span className="badge badge-emerald" style={{ fontSize: '0.7rem' }}>
                                       <CheckCircle size={11} /> Supported
                                     </span>
                                   ) : isPartial ? (
-                                    <span className="badge badge-amber" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem' }}>
+                                    <span className="badge badge-amber" style={{ fontSize: '0.7rem' }}>
                                       <AlertCircle size={11} /> Partial
                                     </span>
-                                  ) : isReview ? (
-                                    <span className="badge badge-purple" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem' }}>
-                                      <HelpCircle size={11} /> Review
-                                    </span>
                                   ) : (
-                                    <span className="badge badge-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                    <span className="badge badge-outline" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                                       <XCircle size={11} /> Not in CV
                                     </span>
                                   )}
@@ -1101,302 +1430,496 @@ export const CompanyApplications: React.FC = () => {
                                   <div style={{
                                     backgroundColor: 'var(--bg-input)',
                                     borderLeft: '3px solid var(--primary-color)',
-                                    padding: '0.5rem 0.75rem',
-                                    borderRadius: '0 var(--radius-xs) var(--radius-xs) 0',
+                                    padding: '0.4rem 0.65rem',
                                     fontSize: '0.8rem',
                                     fontStyle: 'italic',
                                     color: 'var(--text-secondary)',
-                                    margin: '0.4rem 0'
+                                    margin: '0.35rem 0'
                                   }}>
                                     &ldquo;{ev.extractedExcerpt}&rdquo;
                                   </div>
-                                )}
-
-                                {ev.reviewerNote && (
-                                  <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.76rem', color: 'var(--text-muted)' }}>
-                                    {ev.reviewerNote}
-                                  </p>
                                 )}
                               </div>
                             );
                           })}
                         </div>
                       </div>
-                    ) : null}
+                    ) : (
+                      <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No match report available.</p>
+                    )}
                   </div>
                 )}
 
-                {/* WorkSim™ Assessment Invitation & Progress Status */}
-                {selectedAppDetail.assessment && (
-                  <div style={{
-                    backgroundColor: 'var(--bg-surface-elevated)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '1.25rem',
-                    marginBottom: '1.75rem'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                          <Terminal size={16} className="text-primary" />
-                          <h4 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>
-                            {selectedAppDetail.assessment.scenarioTitle}
-                          </h4>
-                          <span className="badge badge-purple" style={{ fontSize: '0.7rem' }}>
-                            {selectedAppDetail.assessment.scenarioCategory}
-                          </span>
-                          {selectedAppDetail.assessment.isRequired ? (
-                            <span className="badge badge-primary" style={{ fontSize: '0.7rem' }}>Required</span>
-                          ) : (
-                            <span className="badge badge-outline" style={{ fontSize: '0.7rem' }}>Optional</span>
-                          )}
-                        </div>
-                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', margin: '0.25rem 0 0 0' }}>
-                          Assessment Invitation Status: <strong>{selectedAppDetail.assessment.status}</strong>
-                        </p>
+                {/* TAB 3: WORKSIM ASSESSMENT SCORECARD */}
+                {reviewTab === 'worksim' && (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Terminal size={18} className="text-primary" />
+                        <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>
+                          WorkSim™ Interactive Simulation Scorecard
+                        </h4>
                       </div>
 
-                      <div>
-                        {selectedAppDetail.assessment.status === 'Completed' ? (
-                          <span className="status-badge badge-emerald">Completed</span>
-                        ) : selectedAppDetail.assessment.status === 'InProgress' ? (
-                          <span className="status-badge badge-cyan">In Progress</span>
-                        ) : selectedAppDetail.assessment.status === 'Expired' ? (
-                          <span className="status-badge badge-danger">Expired</span>
-                        ) : selectedAppDetail.assessment.status === 'Cancelled' ? (
-                          <span className="status-badge badge-muted">Cancelled</span>
-                        ) : (
-                          <span className="status-badge badge-amber">Pending</span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem', fontSize: '0.82rem', color: 'var(--text-secondary)', backgroundColor: 'var(--bg-surface)', padding: '0.75rem', borderRadius: 'var(--radius-sm)' }}>
-                      <div>
-                        <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem' }}>Attempts</span>
-                        <strong>{selectedAppDetail.assessment.resultId ? '1' : '0'} / {selectedAppDetail.assessment.maxAllowedAttempts}</strong>
-                      </div>
-                      <div>
-                        <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem' }}>Estimated Time</span>
-                        <strong>{selectedAppDetail.assessment.estimatedDurationMinutes} mins</strong>
-                      </div>
-                      <div>
-                        <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem' }}>Assigned Date</span>
-                        <strong>{selectedAppDetail.assessment.assignedAtUtc ? new Date(selectedAppDetail.assessment.assignedAtUtc).toLocaleDateString() : '—'}</strong>
-                      </div>
-                      {selectedAppDetail.assessment.deadlineUtc && (
-                        <div>
-                          <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem' }}>Deadline</span>
-                          <strong>{new Date(selectedAppDetail.assessment.deadlineUtc).toLocaleDateString()}</strong>
-                        </div>
+                      {assessmentResult && (
+                        <span className="badge badge-emerald" style={{ fontSize: '0.8rem', fontWeight: 700 }}>
+                          Score: {assessmentResult.totalScore.toFixed(1)} / 100.0
+                        </span>
                       )}
                     </div>
 
-                    {selectedAppDetail.assessment.cancellationReason && (
-                      <div className="alert alert-warning" style={{ marginTop: '0.75rem', fontSize: '0.8rem', padding: '0.5rem 0.75rem' }}>
-                        <Ban size={14} /> Cancellation reason: {selectedAppDetail.assessment.cancellationReason}
+                    {loadingAssessment ? (
+                      <div style={{ textAlign: 'center', padding: '2.5rem 0' }}>
+                        <RefreshCw size={24} className="animate-spin text-primary" style={{ margin: '0 auto 0.5rem auto' }} />
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Retrieving simulation results...</p>
+                      </div>
+                    ) : assessmentResult ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div style={{ backgroundColor: 'var(--bg-input)', padding: '0.85rem 1rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                            Scenario: {assessmentResult.scenarioTitle} ({assessmentResult.scenarioCategory})
+                          </span>
+                          <p style={{ margin: '0.35rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+                            {assessmentResult.evaluationSummary}
+                          </p>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          <h5 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)', margin: 0 }}>
+                            Criterion Breakdown & Observed Evidence:
+                          </h5>
+                          {assessmentResult.criterionScores.map((c) => (
+                            <div key={c.criterionName} style={{ backgroundColor: 'var(--bg-surface-elevated)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '0.75rem 1rem' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                                <span style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+                                  {c.criterionName}
+                                </span>
+                                <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--primary-color)' }}>
+                                  {c.score.toFixed(1)} / {c.maxScore.toFixed(1)} pts
+                                </span>
+                              </div>
+                              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0 0 0.5rem 0' }}>
+                                {c.feedback}
+                              </p>
+                              {c.supportingEvidence && c.supportingEvidence.length > 0 && (
+                                <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                                  {c.supportingEvidence.map((ev, idx) => (
+                                    <li key={idx} style={{ marginBottom: '0.2rem' }}>{ev}</li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ padding: '2rem', backgroundColor: 'var(--bg-input)', borderRadius: 'var(--radius-sm)', textAlign: 'center', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                        <Terminal size={32} style={{ margin: '0 auto 0.5rem auto', opacity: 0.5 }} />
+                        <p style={{ margin: 0, fontWeight: 600 }}>No Simulation Completed Yet</p>
+                        <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem' }}>
+                          When this candidate completes the assigned WorkSim assessment, verified scores will appear here.
+                        </p>
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* WorkSim™ Assessment Scorecard */}
-                <div style={{
-                  backgroundColor: 'var(--bg-surface)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '1.5rem',
-                  marginBottom: '1.75rem'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Terminal size={18} className="text-primary" />
-                      <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>
-                        WorkSim™ Interactive Simulation Scorecard
-                      </h4>
-                      <span className="badge badge-purple" style={{ fontSize: '0.7rem' }}>
-                        Deterministic Assessment
-                      </span>
-                    </div>
-
-                    {assessmentResult && (
-                      <span className="badge badge-emerald" style={{ fontSize: '0.8rem', fontWeight: 700 }}>
-                        Score: {assessmentResult.totalScore.toFixed(1)} / 100.0
-                      </span>
-                    )}
-                  </div>
-
-                  {loadingAssessment ? (
-                    <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
-                      <RefreshCw size={20} className="animate-spin text-primary" style={{ margin: '0 auto 0.5rem auto' }} />
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Retrieving simulation results...</p>
-                    </div>
-                  ) : assessmentResult ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                      <div style={{ backgroundColor: 'var(--bg-input)', padding: '0.85rem 1rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                          Scenario: {assessmentResult.scenarioTitle} ({assessmentResult.scenarioCategory})
-                        </span>
-                        <p style={{ margin: '0.35rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-                          {assessmentResult.evaluationSummary}
-                        </p>
+                {/* TAB 4: INTERVIEW COORDINATION */}
+                {reviewTab === 'interviews' && (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Calendar size={18} className="text-primary" />
+                        <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>
+                          Interview Coordination ({interviewsList.length})
+                        </h4>
                       </div>
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        <h5 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)', margin: 0 }}>
-                          Criterion Breakdown & Observed Behaviors:
+                      <button
+                        type="button"
+                        onClick={() => setShowScheduleForm(!showScheduleForm)}
+                        className="btn btn-primary btn-xs"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                      >
+                        <Plus size={13} /> {showScheduleForm ? 'Close Form' : 'Schedule Interview'}
+                      </button>
+                    </div>
+
+                    {interviewError && (
+                      <div className="alert alert-error" style={{ marginBottom: '1rem', fontSize: '0.85rem' }}>
+                        <AlertCircle size={15} /> {interviewError}
+                      </div>
+                    )}
+
+                    {/* Schedule Interview Form */}
+                    {showScheduleForm && (
+                      <form onSubmit={handleScheduleInterview} style={{
+                        backgroundColor: 'var(--bg-surface-elevated)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: 'var(--radius-md)',
+                        padding: '1.25rem',
+                        marginBottom: '1.25rem'
+                      }}>
+                        <h5 style={{ margin: '0 0 1rem 0', fontSize: '0.95rem', fontWeight: 700 }}>
+                          Schedule Candidate Interview
                         </h5>
-                        {assessmentResult.criterionScores.map((c) => (
-                          <div key={c.criterionName} style={{ backgroundColor: 'var(--bg-surface-elevated)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '0.75rem 1rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                              <span style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-                                {c.criterionName}
-                              </span>
-                              <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--primary-color)' }}>
-                                {c.score.toFixed(1)} / {c.maxScore.toFixed(1)} pts
-                              </span>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                          <div>
+                            <label className="form-label" style={{ fontSize: '0.82rem' }}>Interview Format / Type</label>
+                            <select
+                              className="select-standard"
+                              value={scheduleType}
+                              onChange={(e) => setScheduleType(parseInt(e.target.value, 10))}
+                            >
+                              <option value={0}>Initial Screening</option>
+                              <option value={1}>Technical Assessment</option>
+                              <option value={2}>Cultural / Team Fit</option>
+                              <option value={3}>Final Leadership Interview</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="form-label" style={{ fontSize: '0.82rem' }}>Scheduled Start (Local Time)</label>
+                            <input
+                              type="datetime-local"
+                              className="input-standard"
+                              value={scheduleStart}
+                              onChange={(e) => setScheduleStart(e.target.value)}
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="form-label" style={{ fontSize: '0.82rem' }}>Scheduled End (Local Time)</label>
+                            <input
+                              type="datetime-local"
+                              className="input-standard"
+                              value={scheduleEnd}
+                              onChange={(e) => setScheduleEnd(e.target.value)}
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: '1rem' }}>
+                          <label className="form-label" style={{ fontSize: '0.82rem' }}>Meeting Location / Video Conference Link / Instructions</label>
+                          <input
+                            type="text"
+                            className="input-standard"
+                            placeholder="e.g. Google Meet: https://meet.google.com/xyz-abc or Office Room 4B"
+                            value={scheduleLocation}
+                            onChange={(e) => setScheduleLocation(e.target.value)}
+                          />
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                          <button
+                            type="button"
+                            onClick={() => setShowScheduleForm(false)}
+                            className="btn btn-outline btn-sm"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="btn btn-primary btn-sm"
+                            disabled={isSubmittingInterview}
+                          >
+                            {isSubmittingInterview ? 'Scheduling...' : 'Confirm & Notify Candidate'}
+                          </button>
+                        </div>
+                      </form>
+                    )}
+
+                    {/* Interview List */}
+                    {interviewsList.length === 0 ? (
+                      <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'var(--bg-input)', borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                        No interviews recorded for this application yet. Click &ldquo;Schedule Interview&rdquo; to coordinate a session.
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        {interviewsList.map(interview => {
+                          const isCanceled = String(interview.status).toLowerCase() === 'canceled' || String(interview.status) === '3';
+
+                          return (
+                            <div
+                              key={interview.id}
+                              style={{
+                                backgroundColor: isCanceled ? 'rgba(239, 68, 68, 0.04)' : 'var(--bg-surface-elevated)',
+                                border: '1px solid var(--border-color)',
+                                borderRadius: 'var(--radius-sm)',
+                                padding: '1rem',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                flexWrap: 'wrap',
+                                gap: '0.75rem'
+                              }}
+                            >
+                              <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                  <strong style={{ fontSize: '0.92rem', color: 'var(--text-primary)' }}>
+                                    {String(interview.interviewType)} Interview
+                                  </strong>
+                                  <span className={`status-badge status-${String(interview.status).toLowerCase()}`} style={{ fontSize: '0.7rem' }}>
+                                    {String(interview.status)}
+                                  </span>
+                                </div>
+
+                                <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                                  <span>
+                                    <Clock size={13} style={{ display: 'inline', marginRight: '0.25rem' }} />
+                                    {new Date(interview.scheduledStartUtc).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                                  </span>
+                                  {interview.meetingLocation && (
+                                    <span>
+                                      <MapPin size={13} style={{ display: 'inline', marginRight: '0.25rem' }} />
+                                      {interview.meetingLocation}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {!isCanceled && (
+                                <button
+                                  type="button"
+                                  onClick={() => setCancellingInterviewId(interview.id)}
+                                  className="btn btn-outline btn-xs text-danger"
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                                >
+                                  <Ban size={12} /> Cancel Interview
+                                </button>
+                              )}
                             </div>
-                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0 0 0.5rem 0' }}>
-                              {c.feedback}
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* TAB 5: PRIVATE RECRUITER NOTES */}
+                {reviewTab === 'notes' && (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Lock size={18} className="text-primary" />
+                        <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>
+                          Internal Recruiter Notes ({notesList.length})
+                        </h4>
+                      </div>
+                      <span className="badge badge-purple" style={{ fontSize: '0.7rem' }}>
+                        🔒 Strictly Confidential
+                      </span>
+                    </div>
+
+                    <div className="info-banner" style={{ marginBottom: '1.25rem', fontSize: '0.78rem' }}>
+                      <Lock size={15} />
+                      <div>
+                        <strong>Private Company Data:</strong> Internal notes are accessible exclusively to authorized members of your organization. Candidates and other companies never see these comments.
+                      </div>
+                    </div>
+
+                    {noteError && (
+                      <div className="alert alert-error" style={{ marginBottom: '1rem', fontSize: '0.85rem' }}>
+                        <AlertCircle size={15} /> {noteError}
+                      </div>
+                    )}
+
+                    {/* Add Note Form */}
+                    <form onSubmit={handleAddNote} style={{ marginBottom: '1.5rem' }}>
+                      <div className="form-group" style={{ marginBottom: '0.5rem' }}>
+                        <textarea
+                          className="input-standard"
+                          rows={3}
+                          placeholder="Write internal review feedback, interview debrief, or candidate observation..."
+                          value={newNoteText}
+                          onChange={(e) => setNewNoteText(e.target.value)}
+                          maxLength={4000}
+                          required
+                        />
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <button
+                          type="submit"
+                          className="btn btn-primary btn-sm"
+                          disabled={isSubmittingNote || !newNoteText.trim()}
+                        >
+                          {isSubmittingNote ? 'Saving Note...' : 'Add Private Note'}
+                        </button>
+                      </div>
+                    </form>
+
+                    {/* Notes Thread */}
+                    {notesList.length === 0 ? (
+                      <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'var(--bg-input)', borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                        No internal recruiter notes added yet. Use the box above to record observations.
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        {notesList.map(note => (
+                          <div
+                            key={note.id}
+                            style={{
+                              backgroundColor: 'var(--bg-surface-elevated)',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: 'var(--radius-sm)',
+                              padding: '1rem'
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <strong style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>
+                                  {note.authorName}
+                                </strong>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                  {new Date(note.createdAtUtc).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+                                </span>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteNote(note.id)}
+                                className="btn-icon text-danger"
+                                title="Delete note"
+                                style={{ padding: '0.2rem' }}
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+
+                            <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-primary)', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
+                              {note.noteText}
                             </p>
-                            {c.supportingEvidence && c.supportingEvidence.length > 0 && (
-                              <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.76rem', color: 'var(--text-muted)' }}>
-                                {c.supportingEvidence.map((ev, idx) => (
-                                  <li key={idx} style={{ marginBottom: '0.2rem' }}>{ev}</li>
-                                ))}
-                              </ul>
-                            )}
                           </div>
                         ))}
                       </div>
+                    )}
+                  </div>
+                )}
 
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
-                        💡 <strong>Decision Support:</strong> WorkSim provides verifiable evidence of on-the-job problem solving. Assessment results inform human candidate review and must not replace human judgment.
+                {/* TAB 6: DECISION & TIMELINE */}
+                {reviewTab === 'decision' && (
+                  <div>
+                    {/* Stage Progression Form */}
+                    <form onSubmit={handleStageFormSubmit} style={{ 
+                      backgroundColor: 'var(--bg-surface)', 
+                      border: '1px solid var(--border-color)', 
+                      borderRadius: 'var(--radius-md)', 
+                      padding: '1.25rem',
+                      marginBottom: '1.75rem' 
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                        <h4 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>
+                          Recruitment Decision & Pipeline Progression
+                        </h4>
+                        <div>
+                          Current: {getStageBadge(selectedAppDetail.currentStage)}
+                        </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', borderRadius: 'var(--radius-sm)', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                      No WorkSim simulation completed by candidate yet for this application.
-                    </div>
-                  )}
-                </div>
 
-                {/* Stage Progression Form */}
-                <form onSubmit={handleUpdateStage} style={{ 
-                  backgroundColor: 'var(--bg-surface)', 
-                  border: '1px solid var(--border-color)', 
-                  borderRadius: 'var(--radius-md)', 
-                  padding: '1.25rem',
-                  marginBottom: '1.75rem' 
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                    <h4 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>
-                      Recruiter Decision & Stage Transition
-                    </h4>
+                      {stageSuccess && (
+                        <div className="alert alert-success" style={{ marginBottom: '1rem' }}>
+                          <CheckCircle2 size={16} /> Stage updated successfully!
+                        </div>
+                      )}
+
+                      {stageError && (
+                        <div className="alert alert-error" style={{ marginBottom: '1rem' }}>
+                          <AlertCircle size={16} /> {stageError}
+                        </div>
+                      )}
+
+                      <div className="form-row" style={{ marginBottom: '1rem' }}>
+                        <div className="form-group">
+                          <label htmlFor="newStage" className="form-label" style={{ fontSize: '0.85rem' }}>Promote / Move to Stage</label>
+                          <select
+                            id="newStage"
+                            className="select-standard"
+                            value={newStage}
+                            onChange={(e) => setNewStage(parseInt(e.target.value, 10))}
+                          >
+                            <option value={1}>Under Review</option>
+                            <option value={2}>Shortlisted</option>
+                            <option value={3}>Assessment Pending</option>
+                            <option value={4}>Assessment Completed</option>
+                            <option value={5}>Interview Scheduled</option>
+                            <option value={6}>Offer Extended</option>
+                            <option value={7}>Hired (Consequential)</option>
+                            <option value={8}>Rejected (Consequential)</option>
+                          </select>
+                        </div>
+
+                        <div className="form-group">
+                          <label htmlFor="stageReason" className="form-label" style={{ fontSize: '0.85rem' }}>Decision Reason / Log Note</label>
+                          <input
+                            id="stageReason"
+                            type="text"
+                            className="input-standard"
+                            placeholder="e.g. Exceptional technical interview and WorkSim score"
+                            value={stageReason}
+                            onChange={(e) => setStageReason(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <button
+                          type="submit"
+                          className="btn btn-primary btn-sm"
+                          disabled={isUpdatingStage}
+                        >
+                          {isUpdatingStage ? 'Updating...' : 'Update Recruitment Stage'}
+                        </button>
+                      </div>
+                    </form>
+
+                    {/* Immutable Status History Timeline */}
                     <div>
-                      Current: {getStageBadge(selectedAppDetail.currentStage)}
-                    </div>
-                  </div>
+                      <h4 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--text-secondary)' }}>
+                        Recruitment Audit History Timeline
+                      </h4>
 
-                  {stageSuccess && (
-                    <div className="alert alert-success" style={{ marginBottom: '1rem' }}>
-                      <CheckCircle2 size={16} /> Stage updated successfully!
-                    </div>
-                  )}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', paddingLeft: '1.25rem', borderLeft: '2px solid var(--border-color)' }}>
+                        {selectedAppDetail.statusTimeline.map((item, idx) => (
+                          <div key={item.id || idx} style={{ position: 'relative' }}>
+                            <div style={{ 
+                              position: 'absolute', 
+                              left: '-1.55rem', 
+                              top: '0.2rem', 
+                              width: '8px', 
+                              height: '8px', 
+                              borderRadius: '50%', 
+                              backgroundColor: idx === 0 ? 'var(--primary)' : 'var(--text-muted)' 
+                            }} />
 
-                  {stageError && (
-                    <div className="alert alert-error" style={{ marginBottom: '1rem' }}>
-                      <AlertCircle size={16} /> {stageError}
-                    </div>
-                  )}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                                Stage changed to {String(item.newStage)}
+                              </span>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                {new Date(item.createdAtUtc).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+                              </span>
+                            </div>
 
-                  <div className="form-row" style={{ marginBottom: '1rem' }}>
-                    <div className="form-group">
-                      <label htmlFor="newStage">Promote / Move to Stage</label>
-                      <select
-                        id="newStage"
-                        className="select-standard"
-                        value={newStage}
-                        onChange={(e) => setNewStage(parseInt(e.target.value, 10))}
-                      >
-                        <option value={1}>Under Review</option>
-                        <option value={2}>Shortlisted</option>
-                        <option value={3}>Assessment Pending</option>
-                        <option value={4}>Assessment Completed</option>
-                        <option value={5}>Interview Scheduled</option>
-                        <option value={6}>Offer Extended</option>
-                        <option value={7}>Hired</option>
-                        <option value={8}>Rejected</option>
-                      </select>
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="stageReason">Evaluation Reason / Internal Note</label>
-                      <input
-                        id="stageReason"
-                        type="text"
-                        className="input-standard"
-                        placeholder="e.g. Strong .NET experience, moving to technical interview"
-                        value={stageReason}
-                        onChange={(e) => setStageReason(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <button
-                      type="submit"
-                      className="btn btn-primary btn-sm"
-                      disabled={isUpdatingStage}
-                    >
-                      {isUpdatingStage ? 'Updating...' : 'Update Application Stage'}
-                    </button>
-                  </div>
-                </form>
-
-                {/* Immutable Status History Timeline */}
-                <div>
-                  <h4 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--text-secondary)' }}>
-                    Recruitment Stage Audit History
-                  </h4>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', paddingLeft: '1.25rem', borderLeft: '2px solid var(--border-color)' }}>
-                    {selectedAppDetail.statusTimeline.map((item, idx) => (
-                      <div key={item.id || idx} style={{ position: 'relative' }}>
-                        <div style={{ 
-                          position: 'absolute', 
-                          left: '-1.55rem', 
-                          top: '0.2rem', 
-                          width: '8px', 
-                          height: '8px', 
-                          borderRadius: '50%', 
-                          backgroundColor: idx === 0 ? 'var(--primary)' : 'var(--text-muted)' 
-                        }} />
-
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                            Stage changed to {String(item.newStage)}
-                          </span>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                            {new Date(item.createdAtUtc).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
-                          </span>
-                        </div>
-
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.15rem' }}>
-                          By: {item.changedByName || 'Recruiter'}
-                          {item.reasonNote && ` — "${item.reasonNote}"`}
-                        </div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.15rem' }}>
+                              By: {item.changedByName || 'Recruiter'}
+                              {item.reasonNote && ` — "${item.reasonNote}"`}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="modal-actions" style={{ marginTop: '2rem' }}>
                   <button 
                     onClick={() => { setSelectedAppId(null); setSelectedAppDetail(null); }}
                     className="btn btn-secondary"
                   >
-                    Close
+                    Close Review Workspace
                   </button>
                 </div>
               </div>
@@ -1405,7 +1928,80 @@ export const CompanyApplications: React.FC = () => {
         </div>
       )}
 
-      {/* Cancel Assessment Invitation Modal */}
+      {/* CONSEQUENTIAL DECISION CONFIRMATION MODAL */}
+      {confirmingConsequentialDecision && (
+        <div className="modal-backdrop">
+          <div className="modal-dialog" style={{ maxWidth: '480px' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.75rem' }}>
+              Confirm Consequential Decision: Mark as {confirmingConsequentialDecision.stageName}?
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+              Are you sure you want to transition candidate <strong>{selectedAppDetail?.candidateName}</strong> to stage <strong>{confirmingConsequentialDecision.stageName}</strong>?
+              {confirmingConsequentialDecision.stage === 8 && ' This will issue an official rejection status update.'}
+              {confirmingConsequentialDecision.stage === 7 && ' This will mark the recruitment process as completed with a successful hire.'}
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={() => setConfirmingConsequentialDecision(null)}
+              >
+                Back to Review
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm ${confirmingConsequentialDecision.stage === 8 ? 'btn-danger' : 'btn-primary'}`}
+                onClick={() => executeStageTransition(confirmingConsequentialDecision.stage)}
+              >
+                Confirm {confirmingConsequentialDecision.stageName}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CANCEL INTERVIEW MODAL */}
+      {cancellingInterviewId && (
+        <div className="modal-backdrop">
+          <div className="modal-dialog" style={{ maxWidth: '480px' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.75rem' }}>
+              Cancel Candidate Interview
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: 1.5 }}>
+              Are you sure you want to cancel this interview session? A cancellation notification will be delivered to the candidate.
+            </p>
+            <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+              <label className="form-label" style={{ fontSize: '0.85rem' }}>Cancellation Reason (Optional)</label>
+              <input
+                type="text"
+                className="input-standard"
+                placeholder="e.g. Rescheduling required or interviewer conflict"
+                value={cancelInterviewReason}
+                onChange={(e) => setCancelInterviewReason(e.target.value)}
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={() => { setCancellingInterviewId(null); setCancelInterviewReason(''); }}
+              >
+                Keep Interview
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger btn-sm"
+                onClick={() => handleCancelInterview(cancellingInterviewId)}
+              >
+                Confirm Cancellation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CANCEL ASSESSMENT MODAL */}
       {cancellingItem && (
         <div className="modal-backdrop">
           <div className="modal-dialog" style={{ maxWidth: '480px' }}>

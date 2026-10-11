@@ -259,6 +259,24 @@ GO
 
 ---
 
+### Script 12: `012_EnsureRecruiterNotesAndInterviewSchedules.sql`
+* **Purpose:** Verifies and idempotently ensures `dbo.CandidateNotes` and `dbo.InterviewSchedules` tables, foreign keys, columns, defaults, and non-clustered performance indexes exist for the Company Recruitment Workspace, Interview Coordination, and Private Recruiter Notes.
+* **Objects Modified / Verified:** `dbo.CandidateNotes` and `dbo.InterviewSchedules` tables, constraints, and indexes (`IX_CandidateNotes_JobApplicationId`, `IX_CandidateNotes_CompanyId_CreatedAtUtc`, `IX_InterviewSchedules_CompanyId_ScheduledStartUtc`, `IX_InterviewSchedules_JobApplicationId`).
+* **Prerequisites:** Scripts `001_CreateCoreIdentityAndTenantSchema.sql` and `002_CreateRecruitmentAndApplicationsSchema.sql` executed.
+* **Expected Order:** Execution Step 13 (Prompt 11 Company Workspace & Pipeline).
+* **Rerun Safety (Idempotency):** Fully idempotent; guarded by `IF NOT EXISTS` table, column, and index checks.
+* **Data Impact:** Purely additive or verification. Zero data loss.
+* **SSMS Verification Query:**
+  ```sql
+  SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, IS_NULLABLE
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_NAME IN ('CandidateNotes', 'InterviewSchedules')
+  ORDER BY TABLE_NAME, ORDINAL_POSITION;
+  ```
+* **EF Core Mapping Alignment:** Matches `HireSphere.Infrastructure.Persistence.Configurations.ApplicationConfigurations.CandidateNoteConfiguration` and `InterviewScheduleConfiguration`.
+
+---
+
 ### Seed Script 1: `database/seeds/001_SeedInitialRolesAndAdmin.sql`
 * **Purpose:** Seeds foundational platform roles (`Candidate`, `CompanyMember`, `SuperAdmin`) into the `Roles` table with idempotent checks. Includes an optional, commented bootstrap block for a local development SuperAdmin (`admin@hiresphere.local`).
 * **Objects Modified:** Inserts into `Roles` (and conditionally `Users`, `UserRoles`).

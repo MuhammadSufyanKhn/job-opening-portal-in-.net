@@ -52,3 +52,20 @@ public enum ApplicationStage
     Rejected = 8,
     Withdrawn = 9
 }
+
+public enum InterviewType
+{
+    Screening = 0,
+    Technical = 1,
+    Cultural = 2,
+    Final = 3
+}
+
+public enum InterviewStatus
+{
+    Scheduled = 0,
+    Completed = 1,
+    Rescheduled = 2,
+    Canceled = 3
+}
+

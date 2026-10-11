@@ -19,7 +19,7 @@ public interface ICandidateDocumentService
     Task<bool> SetDefaultCvAsync(Guid candidateProfileId, Guid documentId, CancellationToken cancellationToken = default);
     Task<bool> DeleteDocumentAsync(Guid candidateProfileId, Guid documentId, CancellationToken cancellationToken = default);
     Task<(Stream Stream, string FileName, string ContentType)> GetDocumentFileForCandidateAsync(Guid candidateProfileId, Guid documentId, CancellationToken cancellationToken = default);
-    Task<(Stream Stream, string FileName, string ContentType)> GetDocumentFileForCompanyAsync(Guid companyId, Guid applicationId, CancellationToken cancellationToken = default);
+    Task<(Stream Stream, string FileName, string ContentType)> GetDocumentFileForCompanyAsync(Guid companyId, Guid applicationId, Guid? currentUserId = null, CancellationToken cancellationToken = default);
 }
 
 public class CandidateDocumentService : ICandidateDocumentService
@@ -328,8 +328,21 @@ public class CandidateDocumentService : ICandidateDocumentService
     public async Task<(Stream Stream, string FileName, string ContentType)> GetDocumentFileForCompanyAsync(
         Guid companyId,
         Guid applicationId,
+        Guid? currentUserId = null,
         CancellationToken cancellationToken = default)
     {
+        // Enforce company membership check when caller identity is provided
+        if (currentUserId.HasValue)
+        {
+            var isMember = await _context.CompanyMembers
+                .AnyAsync(cm => cm.CompanyId == companyId && cm.UserId == currentUserId.Value && cm.MembershipStatus == CompanyMembershipStatus.Active, cancellationToken);
+
+            if (!isMember)
+            {
+                throw new ForbiddenAccessException("You are not an active member of this company.");
+            }
+        }
+
         var application = await _context.JobApplications
             .AsNoTracking()
             .Include(a => a.CandidateDocument)

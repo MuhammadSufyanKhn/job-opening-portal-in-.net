@@ -12,10 +12,9 @@ import {
   RefreshCw,
   Building2,
   MapPin,
-  ChevronLeft,
-  ChevronRight,
   Users,
 } from 'lucide-react';
+import { Modal, Pagination } from '../components/common';
 
 export const AdminJobs: React.FC = () => {
   const [jobs, setJobs] = useState<AdminJobSummary[]>([]);
@@ -303,47 +302,30 @@ export const AdminJobs: React.FC = () => {
             </table>
 
             {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="pagination-container">
-                <span className="text-sm text-muted">
-                  Showing {jobs.length} of {totalCount} job postings
-                </span>
-                <div className="pagination-controls">
-                  <button
-                    className="btn btn-outline btn-sm"
-                    disabled={page <= 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  >
-                    <ChevronLeft size={14} /> Previous
-                  </button>
-                  <span className="text-sm font-medium px-2">
-                    Page {page} of {totalPages}
-                  </span>
-                  <button
-                    className="btn btn-outline btn-sm"
-                    disabled={page >= totalPages}
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  >
-                    Next <ChevronRight size={14} />
-                  </button>
-                </div>
-              </div>
-            )}
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              totalItems={totalCount}
+              pageSize={10}
+              onPageChange={setPage}
+            />
           </div>
         )}
 
         {/* Job Detail Review Modal */}
-        {selectedJobId && jobDetail && (
-          <div className="modal-backdrop">
-            <div className="modal-dialog modal-dialog-lg">
+        <Modal
+          isOpen={!!selectedJobId && !!jobDetail}
+          onClose={() => { setSelectedJobId(null); setJobDetail(null); }}
+          title={jobDetail?.title || 'Job Listing Review'}
+          size="lg"
+        >
+          {jobDetail && (
+            <div>
               <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
-                <div>
-                  <h3 style={{ fontSize: '1.3rem', fontWeight: 700 }}>{jobDetail.title}</h3>
-                  <div className="text-muted text-sm" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.2rem' }}>
-                    <Building2 size={14} /> {jobDetail.companyName}
-                    <span>·</span>
-                    <MapPin size={14} /> {jobDetail.location} ({jobDetail.workplaceType})
-                  </div>
+                <div className="text-muted text-sm" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Building2 size={14} /> {jobDetail.companyName}
+                  <span>·</span>
+                  <MapPin size={14} /> {jobDetail.location} ({jobDetail.workplaceType})
                 </div>
                 <span className={`status-badge ${getStatusBadgeClass(jobDetail.status)}`}>
                   {jobDetail.status}
@@ -456,7 +438,7 @@ export const AdminJobs: React.FC = () => {
               <div className="modal-actions">
                 <button
                   type="button"
-                  onClick={() => setSelectedJobId(null)}
+                  onClick={() => { setSelectedJobId(null); setJobDetail(null); }}
                   className="btn btn-outline"
                 >
                   Close
@@ -502,20 +484,23 @@ export const AdminJobs: React.FC = () => {
                 )}
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </Modal>
 
         {/* Suspend Job Modal */}
-        {suspendingJob && (
-          <div className="modal-backdrop">
-            <div className="modal-dialog">
+        <Modal
+          isOpen={!!suspendingJob}
+          onClose={() => { setSuspendingJob(null); setSuspensionReason(''); }}
+          title="Suspend Job Listing"
+        >
+          {suspendingJob && (
+            <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
                 <Ban size={24} className="text-warning" />
-                <h3 style={{ margin: 0 }}>Suspend Job Listing</h3>
+                <p className="text-muted text-sm" style={{ margin: 0 }}>
+                  Suspending <strong>"{suspendingJob.title}"</strong> ({suspendingJob.companyName}) will immediately remove it from public search and vacancy feeds. Existing applications and candidate submissions will be safely preserved.
+                </p>
               </div>
-              <p className="text-muted text-sm">
-                Suspending <strong>"{suspendingJob.title}"</strong> ({suspendingJob.companyName}) will immediately remove it from public search and vacancy feeds. Existing applications and candidate submissions will be safely preserved.
-              </p>
 
               <form onSubmit={handleSuspendJob}>
                 <div className="form-group" style={{ marginTop: '1rem' }}>
@@ -553,8 +538,8 @@ export const AdminJobs: React.FC = () => {
                 </div>
               </form>
             </div>
-          </div>
-        )}
+          )}
+        </Modal>
       </motion.div>
     </div>
   );

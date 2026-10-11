@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { candidateDashboardApi, candidateSavedJobsApi } from '../services/api';
 import type { CandidateDashboard as DashboardData } from '../types/candidate';
+import { StageBadge, LoadingState } from '../components/common';
 
 export const CandidateDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -69,34 +70,6 @@ export const CandidateDashboard: React.FC = () => {
     }
   };
 
-  const getStageBadge = (stage: any) => {
-    const stageStr = String(stage);
-    const map: Record<string, { label: string; className: string }> = {
-      '0': { label: 'Submitted', className: 'badge-outline' },
-      '1': { label: 'Under Review', className: 'badge-purple' },
-      '2': { label: 'Shortlisted', className: 'badge-cyan' },
-      '3': { label: 'Assessment Pending', className: 'badge-amber' },
-      '4': { label: 'Assessment Completed', className: 'badge-cyan' },
-      '5': { label: 'Interview Scheduled', className: 'badge-purple' },
-      '6': { label: 'Offer Extended', className: 'badge-emerald' },
-      '7': { label: 'Hired', className: 'badge-emerald' },
-      '8': { label: 'Not Selected', className: 'badge-danger' },
-      '9': { label: 'Withdrawn', className: 'badge-muted' },
-      'Submitted': { label: 'Submitted', className: 'badge-outline' },
-      'UnderReview': { label: 'Under Review', className: 'badge-purple' },
-      'Shortlisted': { label: 'Shortlisted', className: 'badge-cyan' },
-      'AssessmentPending': { label: 'Assessment Pending', className: 'badge-amber' },
-      'AssessmentCompleted': { label: 'Assessment Completed', className: 'badge-cyan' },
-      'InterviewScheduled': { label: 'Interview Scheduled', className: 'badge-purple' },
-      'Offered': { label: 'Offer Extended', className: 'badge-emerald' },
-      'Hired': { label: 'Hired', className: 'badge-emerald' },
-      'Rejected': { label: 'Not Selected', className: 'badge-danger' },
-      'Withdrawn': { label: 'Withdrawn', className: 'badge-muted' },
-    };
-    const item = map[stageStr] || { label: stageStr, className: 'badge-outline' };
-    return <span className={`status-badge ${item.className}`}>{item.label}</span>;
-  };
-
   const getExtractionStatusLabel = (status: any) => {
     const s = String(status);
     if (s === '1' || s === 'Success') return { label: 'Indexed & Ready', color: 'text-emerald' };
@@ -107,9 +80,8 @@ export const CandidateDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="portal-container" style={{ textAlign: 'center', padding: '6rem 1.5rem' }}>
-        <div className="spinner" style={{ width: '40px', height: '40px', margin: '0 auto 1.5rem' }} />
-        <p style={{ color: 'var(--text-secondary)' }}>Loading candidate workspace and application telemetry...</p>
+      <div className="portal-container" style={{ padding: '6rem 1.5rem' }}>
+        <LoadingState message="Loading candidate workspace and application telemetry..." />
       </div>
     );
   }
@@ -447,7 +419,7 @@ export const CandidateDashboard: React.FC = () => {
                   </div>
 
                   <div style={{ textAlign: 'right' }}>
-                    {getStageBadge(app.currentStage)}
+                    <StageBadge stage={app.currentStage} />
                   </div>
                 </div>
               ))}

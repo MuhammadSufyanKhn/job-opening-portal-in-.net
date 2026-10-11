@@ -200,7 +200,17 @@ public class AdminUserService : IAdminUserService
         }
 
         user.AccountStatus = AccountStatus.Disabled;
+        user.SecurityStamp = Guid.NewGuid().ToString("N");
         user.UpdatedAtUtc = DateTimeOffset.UtcNow;
+
+        // Immediately revoke all active refresh tokens for the suspended user
+        var activeRefreshTokens = await _context.RefreshTokens
+            .Where(rt => rt.UserId == userId && rt.RevokedAtUtc == null)
+            .ToListAsync(ct);
+        foreach (var rt in activeRefreshTokens)
+        {
+            rt.RevokedAtUtc = DateTimeOffset.UtcNow;
+        }
 
         await _context.SaveChangesAsync(ct);
 

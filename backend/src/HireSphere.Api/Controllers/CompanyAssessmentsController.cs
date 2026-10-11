@@ -33,7 +33,9 @@ public class CompanyAssessmentsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetCompanyScenarios(Guid companyId, CancellationToken ct)
     {
-        var scenarios = await _managementService.GetAvailableScenariosAsync(companyId, ct);
+        if (!_currentUserService.UserId.HasValue) return Unauthorized();
+
+        var scenarios = await _managementService.GetCompanyAvailableScenariosAsync(companyId, _currentUserService.UserId.Value, ct);
         return Ok(scenarios);
     }
 

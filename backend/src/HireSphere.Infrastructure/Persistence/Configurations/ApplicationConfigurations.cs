@@ -148,3 +148,28 @@ public class CandidateSavedJobConfiguration : IEntityTypeConfiguration<Candidate
         builder.HasIndex(s => new { s.CandidateProfileId, s.SavedAtUtc });
     }
 }
+
+public class InterviewScheduleConfiguration : IEntityTypeConfiguration<InterviewSchedule>
+{
+    public void Configure(EntityTypeBuilder<InterviewSchedule> builder)
+    {
+        builder.ToTable("InterviewSchedules");
+        builder.HasKey(i => i.Id);
+
+        builder.Property(i => i.MeetingLocation).HasMaxLength(500);
+
+        builder.HasOne(i => i.Company)
+            .WithMany()
+            .HasForeignKey(i => i.CompanyId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(i => i.JobApplication)
+            .WithMany(a => a.InterviewSchedules)
+            .HasForeignKey(i => i.JobApplicationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(i => new { i.CompanyId, i.ScheduledStartUtc });
+        builder.HasIndex(i => i.JobApplicationId);
+    }
+}
+

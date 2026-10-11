@@ -14,9 +14,8 @@ import {
   ExternalLink,
   Search,
   Eye,
-  ChevronLeft,
-  ChevronRight,
 } from 'lucide-react';
+import { Modal, Pagination } from '../components/common';
 
 export const AdminCompanies: React.FC = () => {
   const [companies, setCompanies] = useState<CompanyReview[]>([]);
@@ -307,44 +306,27 @@ export const AdminCompanies: React.FC = () => {
             </table>
 
             {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="pagination-container">
-                <span className="text-sm text-muted">
-                  Showing {companies.length} of {totalCount} organizations
-                </span>
-                <div className="pagination-controls">
-                  <button
-                    className="btn btn-outline btn-sm"
-                    disabled={page <= 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  >
-                    <ChevronLeft size={14} /> Previous
-                  </button>
-                  <span className="text-sm font-medium px-2">
-                    Page {page} of {totalPages}
-                  </span>
-                  <button
-                    className="btn btn-outline btn-sm"
-                    disabled={page >= totalPages}
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  >
-                    Next <ChevronRight size={14} />
-                  </button>
-                </div>
-              </div>
-            )}
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              totalItems={totalCount}
+              pageSize={10}
+              onPageChange={setPage}
+            />
           </div>
         )}
 
         {/* Company Details Inspection Modal */}
-        {inspectingCompany && (
-          <div className="modal-backdrop">
-            <div className="modal-dialog modal-dialog-lg">
+        <Modal
+          isOpen={!!inspectingCompany}
+          onClose={() => setInspectingCompany(null)}
+          title={inspectingCompany?.name || 'Company Details'}
+          size="lg"
+        >
+          {inspectingCompany && (
+            <div>
               <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
-                <div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>{inspectingCompany.name}</h3>
-                  <span className="text-muted text-sm">Organization Verification Review</span>
-                </div>
+                <span className="text-muted text-sm">Organization Verification Review</span>
                 <span className={`status-badge status-${inspectingCompany.approvalStatus.toLowerCase()}`}>
                   {inspectingCompany.approvalStatus}
                 </span>
@@ -430,88 +412,86 @@ export const AdminCompanies: React.FC = () => {
                 )}
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </Modal>
 
         {/* Rejection Modal */}
-        {rejectingCompanyId && (
-          <div className="modal-backdrop">
-            <div className="modal-dialog">
-              <h3>Reject Company Registration</h3>
-              <p className="text-muted text-sm">
-                State the explicit compliance reason for rejecting this organization. This will be stored in the audit trail and sent to the applicant.
-              </p>
+        <Modal
+          isOpen={!!rejectingCompanyId}
+          onClose={() => { setRejectingCompanyId(null); setRejectionReason(''); }}
+          title="Reject Company Registration"
+        >
+          <p className="text-muted text-sm" style={{ marginBottom: '1rem' }}>
+            State the explicit compliance reason for rejecting this organization. This will be stored in the audit trail and sent to the applicant.
+          </p>
 
-              <form onSubmit={handleReject}>
-                <div className="form-group" style={{ marginTop: '1rem' }}>
-                  <label htmlFor="rejectionReason">Reason for Rejection *</label>
-                  <textarea
-                    id="rejectionReason"
-                    rows={3}
-                    className="textarea-standard"
-                    value={rejectionReason}
-                    onChange={(e) => setRejectionReason(e.target.value)}
-                    placeholder="e.g. Unverifiable business tax registration or non-compliant recruitment profile."
-                    required
-                  />
-                </div>
-
-                <div className="modal-actions">
-                  <button
-                    type="button"
-                    onClick={() => { setRejectingCompanyId(null); setRejectionReason(''); }}
-                    className="btn btn-outline"
-                  >
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn btn-danger">
-                    Confirm Rejection
-                  </button>
-                </div>
-              </form>
+          <form onSubmit={handleReject}>
+            <div className="form-group" style={{ marginTop: '1rem' }}>
+              <label htmlFor="rejectionReason">Reason for Rejection *</label>
+              <textarea
+                id="rejectionReason"
+                rows={3}
+                className="textarea-standard"
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="e.g. Unverifiable business tax registration or non-compliant recruitment profile."
+                required
+              />
             </div>
-          </div>
-        )}
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                onClick={() => { setRejectingCompanyId(null); setRejectionReason(''); }}
+                className="btn btn-outline"
+              >
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-danger">
+                Confirm Rejection
+              </button>
+            </div>
+          </form>
+        </Modal>
 
         {/* Suspension Modal */}
-        {suspendingCompanyId && (
-          <div className="modal-backdrop">
-            <div className="modal-dialog">
-              <h3>Suspend Company Account</h3>
-              <p className="text-muted text-sm">
-                Provide an operational or compliance justification for suspending this organization. Active job postings and membership access will be placed on hold.
-              </p>
+        <Modal
+          isOpen={!!suspendingCompanyId}
+          onClose={() => { setSuspendingCompanyId(null); setSuspensionReason(''); }}
+          title="Suspend Company Account"
+        >
+          <p className="text-muted text-sm" style={{ marginBottom: '1rem' }}>
+            Provide an operational or compliance justification for suspending this organization. Active job postings and membership access will be placed on hold.
+          </p>
 
-              <form onSubmit={handleSuspend}>
-                <div className="form-group" style={{ marginTop: '1rem' }}>
-                  <label htmlFor="suspensionReason">Reason for Suspension *</label>
-                  <textarea
-                    id="suspensionReason"
-                    rows={3}
-                    className="textarea-standard"
-                    value={suspensionReason}
-                    onChange={(e) => setSuspensionReason(e.target.value)}
-                    placeholder="e.g. Reported fraudulent recruitment practices or regulatory breach."
-                    required
-                  />
-                </div>
-
-                <div className="modal-actions">
-                  <button
-                    type="button"
-                    onClick={() => { setSuspendingCompanyId(null); setSuspensionReason(''); }}
-                    className="btn btn-outline"
-                  >
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn btn-warning">
-                    Confirm Suspension
-                  </button>
-                </div>
-              </form>
+          <form onSubmit={handleSuspend}>
+            <div className="form-group" style={{ marginTop: '1rem' }}>
+              <label htmlFor="suspensionReason">Reason for Suspension *</label>
+              <textarea
+                id="suspensionReason"
+                rows={3}
+                className="textarea-standard"
+                value={suspensionReason}
+                onChange={(e) => setSuspensionReason(e.target.value)}
+                placeholder="e.g. Reported fraudulent recruitment practices or regulatory breach."
+                required
+              />
             </div>
-          </div>
-        )}
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                onClick={() => { setSuspendingCompanyId(null); setSuspensionReason(''); }}
+                className="btn btn-outline"
+              >
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-warning">
+                Confirm Suspension
+              </button>
+            </div>
+          </form>
+        </Modal>
       </motion.div>
     </div>
   );

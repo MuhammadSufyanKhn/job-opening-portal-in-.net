@@ -81,6 +81,13 @@ public class ExceptionHandlingMiddleware
                 problemDetails.Extensions["errors"] = validationEx.Errors.Select(e => new { e.PropertyName, e.ErrorMessage });
                 break;
 
+            case ValidationException domainValidationEx:
+                statusCode = HttpStatusCode.BadRequest;
+                problemDetails.Title = "Validation Failed";
+                problemDetails.Detail = domainValidationEx.Message;
+                problemDetails.Status = (int)statusCode;
+                break;
+
             case ArgumentException argEx:
                 statusCode = HttpStatusCode.BadRequest;
                 problemDetails.Title = "Bad Request";

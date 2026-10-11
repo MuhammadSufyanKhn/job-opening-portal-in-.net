@@ -13,12 +13,11 @@ import {
   Building2,
   ShieldCheck,
   Award,
-  ChevronLeft,
-  ChevronRight,
   AlertCircle,
 } from 'lucide-react';
 import { notificationsApi } from '../services/api';
 import type { InAppNotification } from '../types/worksim';
+import { Pagination } from '../components/common';
 
 export const NotificationCenter: React.FC = () => {
   const [notifications, setNotifications] = useState<InAppNotification[]>([]);
@@ -297,32 +296,14 @@ export const NotificationCenter: React.FC = () => {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="pagination-container" style={{ marginTop: '1.5rem', borderRadius: 'var(--radius-md)' }}>
-                <span className="text-sm text-muted">
-                  Showing {notifications.length} of {totalCount} notifications
-                </span>
-                <div className="pagination-controls">
-                  <button
-                    className="btn btn-outline btn-sm"
-                    disabled={page <= 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  >
-                    <ChevronLeft size={14} /> Previous
-                  </button>
-                  <span className="text-sm font-medium px-2">
-                    Page {page} of {totalPages}
-                  </span>
-                  <button
-                    className="btn btn-outline btn-sm"
-                    disabled={page >= totalPages}
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  >
-                    Next <ChevronRight size={14} />
-                  </button>
-                </div>
-              </div>
-            )}
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              totalItems={totalCount}
+              pageSize={15}
+              onPageChange={setPage}
+              style={{ marginTop: '1.5rem', borderRadius: 'var(--radius-md)' }}
+            />
           </>
         )}
       </motion.div>

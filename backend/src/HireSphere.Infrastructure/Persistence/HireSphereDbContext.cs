@@ -30,6 +30,7 @@ public class HireSphereDbContext : DbContext, IApplicationDbContext
     public DbSet<JobApplication> JobApplications => Set<JobApplication>();
     public DbSet<ApplicationStatusHistory> ApplicationStatusHistories => Set<ApplicationStatusHistory>();
     public DbSet<CandidateNote> CandidateNotes => Set<CandidateNote>();
+    public DbSet<InterviewSchedule> InterviewSchedules => Set<InterviewSchedule>();
     public DbSet<DocumentExtractionJob> DocumentExtractionJobs => Set<DocumentExtractionJob>();
     public DbSet<CvMatchReport> CvMatchReports => Set<CvMatchReport>();
     public DbSet<CvRequirementEvaluation> CvRequirementEvaluations => Set<CvRequirementEvaluation>();

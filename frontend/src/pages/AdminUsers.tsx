@@ -11,10 +11,9 @@ import {
   Ban,
   RefreshCw,
   ShieldAlert,
-  ChevronLeft,
-  ChevronRight,
   Briefcase,
 } from 'lucide-react';
+import { Modal, Pagination } from '../components/common';
 
 export const AdminUsers: React.FC = () => {
   const [users, setUsers] = useState<AdminUserSummary[]>([]);
@@ -319,44 +318,27 @@ export const AdminUsers: React.FC = () => {
             </table>
 
             {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="pagination-container">
-                <span className="text-sm text-muted">
-                  Showing {users.length} of {totalCount} users
-                </span>
-                <div className="pagination-controls">
-                  <button
-                    className="btn btn-outline btn-sm"
-                    disabled={page <= 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  >
-                    <ChevronLeft size={14} /> Previous
-                  </button>
-                  <span className="text-sm font-medium px-2">
-                    Page {page} of {totalPages}
-                  </span>
-                  <button
-                    className="btn btn-outline btn-sm"
-                    disabled={page >= totalPages}
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  >
-                    Next <ChevronRight size={14} />
-                  </button>
-                </div>
-              </div>
-            )}
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              totalItems={totalCount}
+              pageSize={10}
+              onPageChange={setPage}
+            />
           </div>
         )}
 
         {/* User Account Details Modal */}
-        {selectedUserId && userDetail && (
-          <div className="modal-backdrop">
-            <div className="modal-dialog modal-dialog-lg">
+        <Modal
+          isOpen={!!selectedUserId && !!userDetail}
+          onClose={() => { setSelectedUserId(null); setUserDetail(null); }}
+          title={userDetail?.fullName || 'User Account Details'}
+          size="lg"
+        >
+          {userDetail && (
+            <div>
               <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
-                <div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>{userDetail.fullName}</h3>
-                  <span className="text-muted text-sm">{userDetail.email}</span>
-                </div>
+                <span className="text-muted text-sm">{userDetail.email}</span>
                 <span
                   className={`status-badge ${
                     userDetail.accountStatus === 'Active'
@@ -486,27 +468,30 @@ export const AdminUsers: React.FC = () => {
               <div className="modal-actions">
                 <button
                   type="button"
-                  onClick={() => setSelectedUserId(null)}
+                  onClick={() => { setSelectedUserId(null); setUserDetail(null); }}
                   className="btn btn-outline"
                 >
                   Close
                 </button>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </Modal>
 
         {/* Suspend User Modal */}
-        {suspendingUser && (
-          <div className="modal-backdrop">
-            <div className="modal-dialog">
+        <Modal
+          isOpen={!!suspendingUser}
+          onClose={() => { setSuspendingUser(null); setSuspensionReason(''); }}
+          title="Suspend User Account"
+        >
+          {suspendingUser && (
+            <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
                 <ShieldAlert size={24} className="text-warning" />
-                <h3 style={{ margin: 0 }}>Suspend User Account</h3>
+                <p className="text-muted text-sm" style={{ margin: 0 }}>
+                  Suspending <strong>{suspendingUser.fullName}</strong> ({suspendingUser.email}) will immediately revoke active session tokens via server-side validation and block all API access until reactivated.
+                </p>
               </div>
-              <p className="text-muted text-sm">
-                Suspending <strong>{suspendingUser.fullName}</strong> ({suspendingUser.email}) will immediately revoke active session tokens via server-side validation and block all API access until reactivated.
-              </p>
 
               <form onSubmit={handleSuspendUser}>
                 <div className="form-group" style={{ marginTop: '1rem' }}>
@@ -544,8 +529,8 @@ export const AdminUsers: React.FC = () => {
                 </div>
               </form>
             </div>
-          </div>
-        )}
+          )}
+        </Modal>
       </motion.div>
     </div>
   );

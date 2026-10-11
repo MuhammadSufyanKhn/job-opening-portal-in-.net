@@ -147,6 +147,11 @@ public class CandidateDocumentsController : ControllerBase
     {
         var profileId = await GetCandidateProfileIdAsync(ct);
         var (stream, fileName, contentType) = await _documentService.GetDocumentFileForCandidateAsync(profileId, id, ct);
-        return File(stream, contentType, fileName);
+
+        Response.Headers.Append("X-Content-Type-Options", "nosniff");
+        Response.Headers.Append("Content-Security-Policy", "default-src 'none'");
+
+        var safeFileName = Path.GetFileName(fileName).Replace("\r", "").Replace("\n", "");
+        return File(stream, contentType, safeFileName);
     }
 }

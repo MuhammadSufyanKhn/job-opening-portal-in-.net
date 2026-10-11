@@ -163,4 +163,122 @@ export interface CompanyApplicationDetail extends CompanyApplicationSummary {
   candidateDocumentFileName?: string | null;
   statusTimeline: ApplicationStatusHistory[];
   assessment?: import('./worksim').AssessmentAssignment | null;
+  notes?: CandidateNote[] | null;
+  interviews?: InterviewSchedule[] | null;
 }
+
+// --- Recruiter Notes ---
+export interface CandidateNote {
+  id: string;
+  companyId: string;
+  jobApplicationId: string;
+  authorUserId: string;
+  authorName: string;
+  noteText: string;
+  createdAtUtc: string;
+  updatedAtUtc?: string | null;
+}
+
+export interface CreateCandidateNoteRequest {
+  noteText: string;
+}
+
+// --- Interview Coordination ---
+export type InterviewType = 'Screening' | 'Technical' | 'Cultural' | 'Final' | number;
+export type InterviewStatus = 'Scheduled' | 'Completed' | 'Rescheduled' | 'Canceled' | number;
+
+export interface InterviewSchedule {
+  id: string;
+  companyId: string;
+  jobApplicationId: string;
+  candidateName: string;
+  jobTitle: string;
+  interviewType: InterviewType;
+  scheduledStartUtc: string;
+  scheduledEndUtc: string;
+  meetingLocation?: string | null;
+  status: InterviewStatus;
+  createdAtUtc: string;
+  updatedAtUtc?: string | null;
+}
+
+export interface ScheduleInterviewRequest {
+  interviewType: number;
+  scheduledStartUtc: string;
+  scheduledEndUtc: string;
+  meetingLocation?: string;
+}
+
+export interface UpdateInterviewRequest {
+  interviewType: number;
+  scheduledStartUtc: string;
+  scheduledEndUtc: string;
+  meetingLocation?: string;
+  status: number;
+}
+
+// --- Pipeline Board (Kanban) ---
+export interface PipelineBoardCard {
+  id: string;
+  jobPostingId: string;
+  jobTitle: string;
+  candidateProfileId: string;
+  candidateName: string;
+  candidateEmail: string;
+  candidateHeadline?: string;
+  candidateLocation?: string;
+  yearsOfExperience?: number;
+  currentStage: ApplicationStage;
+  submittedAtUtc: string;
+  stageUpdatedAtUtc?: string;
+  matchEvidenceIndex?: number | null;
+  workSimScore?: number | null;
+}
+
+export interface PipelineBoardStageColumn {
+  stage: ApplicationStage;
+  stageName: string;
+  count: number;
+  applications: PipelineBoardCard[];
+}
+
+export interface PipelineBoard {
+  companyId: string;
+  jobPostingId?: string | null;
+  totalApplications: number;
+  stages: PipelineBoardStageColumn[];
+}
+
+// --- Company Recruitment Workspace Dashboard ---
+export interface WorkspaceJobSummary {
+  id: string;
+  title: string;
+  slug: string;
+  status: JobPostingStatus;
+  applicationCount: number;
+  createdAtUtc: string;
+}
+
+export interface RecruitmentTaskItem {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  actionUrl: string;
+  severity: 'info' | 'warning' | 'danger';
+}
+
+export interface CompanyWorkspaceDashboard {
+  companyId: string;
+  companyName: string;
+  activeJobsCount: number;
+  pendingReviewCount: number;
+  shortlistedCount: number;
+  upcomingInterviewsCount: number;
+  pendingAssessmentsCount: number;
+  activeJobListings: WorkspaceJobSummary[];
+  upcomingInterviews: InterviewSchedule[];
+  recentApplications: CompanyApplicationSummary[];
+  actionItems: RecruitmentTaskItem[];
+}
+

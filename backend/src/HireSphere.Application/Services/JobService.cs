@@ -358,6 +358,9 @@ public class JobService : IJobService
 
     public async Task<PagedResult<JobPostingSummaryDto>> GetCompanyJobsAsync(Guid companyId, Guid userId, JobPostingStatus? status = null, int page = 1, int pageSize = 10, CancellationToken ct = default)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
         await ValidateCompanyMembershipAndRole(companyId, userId, canWrite: false, ct);
 
         var query = _context.JobPostings

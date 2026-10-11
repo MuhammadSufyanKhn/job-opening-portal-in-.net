@@ -13,8 +13,8 @@ namespace HireSphere.Application.Services;
 
 public interface ICvMatchingService
 {
-    Task<CvMatchReportDto> GetMatchReportForApplicationAsync(Guid companyId, Guid applicationId, CancellationToken cancellationToken = default);
-    Task<CvMatchReportDto> RecalculateMatchReportAsync(Guid companyId, Guid applicationId, CancellationToken cancellationToken = default);
+    Task<CvMatchReportDto> GetMatchReportForApplicationAsync(Guid companyId, Guid applicationId, Guid? currentUserId = null, CancellationToken cancellationToken = default);
+    Task<CvMatchReportDto> RecalculateMatchReportAsync(Guid companyId, Guid applicationId, Guid? currentUserId = null, CancellationToken cancellationToken = default);
 }
 
 public class CvMatchingService : ICvMatchingService
@@ -64,8 +64,20 @@ public class CvMatchingService : ICvMatchingService
         _logger = logger;
     }
 
-    public async Task<CvMatchReportDto> GetMatchReportForApplicationAsync(Guid companyId, Guid applicationId, CancellationToken cancellationToken = default)
+    public async Task<CvMatchReportDto> GetMatchReportForApplicationAsync(Guid companyId, Guid applicationId, Guid? currentUserId = null, CancellationToken cancellationToken = default)
     {
+        // Enforce company membership check when caller identity is provided
+        if (currentUserId.HasValue)
+        {
+            var isMember = await _context.CompanyMembers
+                .AnyAsync(cm => cm.CompanyId == companyId && cm.UserId == currentUserId.Value && cm.MembershipStatus == CompanyMembershipStatus.Active, cancellationToken);
+
+            if (!isMember)
+            {
+                throw new ForbiddenAccessException("You are not an active member of this company.");
+            }
+        }
+
         // Tenant security check
         var application = await _context.JobApplications
             .AsNoTracking()
@@ -90,8 +102,20 @@ public class CvMatchingService : ICvMatchingService
         return await GenerateMatchReportAsync(application, cancellationToken);
     }
 
-    public async Task<CvMatchReportDto> RecalculateMatchReportAsync(Guid companyId, Guid applicationId, CancellationToken cancellationToken = default)
+    public async Task<CvMatchReportDto> RecalculateMatchReportAsync(Guid companyId, Guid applicationId, Guid? currentUserId = null, CancellationToken cancellationToken = default)
     {
+        // Enforce company membership check when caller identity is provided
+        if (currentUserId.HasValue)
+        {
+            var isMember = await _context.CompanyMembers
+                .AnyAsync(cm => cm.CompanyId == companyId && cm.UserId == currentUserId.Value && cm.MembershipStatus == CompanyMembershipStatus.Active, cancellationToken);
+
+            if (!isMember)
+            {
+                throw new ForbiddenAccessException("You are not an active member of this company.");
+            }
+        }
+
         var application = await _context.JobApplications
             .Include(a => a.JobPosting)
             .Include(a => a.CandidateProfile).ThenInclude(p => p.User)
