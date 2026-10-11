@@ -35,6 +35,29 @@ public class NotificationsController : ControllerBase
         return Ok(notifications);
     }
 
+    [HttpGet("paged")]
+    [ProducesResponseType(typeof(HireSphere.Application.DTOs.Job.PagedResult<NotificationDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetNotificationsPaged(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] bool? unreadOnly = null,
+        [FromQuery] string? type = null,
+        CancellationToken ct = default)
+    {
+        if (!_currentUserService.UserId.HasValue) return Unauthorized();
+
+        var paged = await _notificationService.GetUserNotificationsPagedAsync(
+            _currentUserService.UserId.Value,
+            page,
+            pageSize,
+            unreadOnly,
+            type,
+            ct);
+
+        return Ok(paged);
+    }
+
     [HttpGet("unread-count")]
     [ProducesResponseType(typeof(UnreadNotificationCountDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

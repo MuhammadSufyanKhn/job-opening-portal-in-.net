@@ -8,7 +8,11 @@ import { RegisterCandidate } from './pages/RegisterCandidate';
 import { RegisterCompany } from './pages/RegisterCompany';
 import { CandidateProfile } from './pages/CandidateProfile';
 import { CompanyDashboard } from './pages/CompanyDashboard';
+import { AdminDashboard } from './pages/AdminDashboard';
 import { AdminCompanies } from './pages/AdminCompanies';
+import { AdminUsers } from './pages/AdminUsers';
+import { AdminJobs } from './pages/AdminJobs';
+import { AdminAudit } from './pages/AdminAudit';
 import { Jobs } from './pages/Jobs';
 import { JobDetail } from './pages/JobDetail';
 import { CandidateApplications } from './pages/CandidateApplications';
@@ -19,6 +23,7 @@ import { CandidateDocuments } from './pages/CandidateDocuments';
 import { CandidateSimulations } from './pages/CandidateSimulations';
 import { SimulationWorkspace } from './pages/SimulationWorkspace';
 import { SimulationResult } from './pages/SimulationResult';
+import { NotificationCenter } from './pages/NotificationCenter';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; requiredRole?: string }> = ({
   children,
@@ -158,10 +163,60 @@ export const App: React.FC = () => {
 
               {/* Super Admin Protected Routes */}
               <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requiredRole="SuperAdmin">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <ProtectedRoute requiredRole="SuperAdmin">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/admin/companies"
                 element={
                   <ProtectedRoute requiredRole="SuperAdmin">
                     <AdminCompanies />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute requiredRole="SuperAdmin">
+                    <AdminUsers />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/jobs"
+                element={
+                  <ProtectedRoute requiredRole="SuperAdmin">
+                    <AdminJobs />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/audit"
+                element={
+                  <ProtectedRoute requiredRole="SuperAdmin">
+                    <AdminAudit />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Common Authenticated Routes */}
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute>
+                    <NotificationCenter />
                   </ProtectedRoute>
                 }
               />

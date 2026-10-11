@@ -24,6 +24,10 @@ public static class DependencyInjection
         services.AddScoped<IWorkSimManagementService, WorkSimManagementService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IAssessmentWorkflowService, AssessmentWorkflowService>();
+        services.AddScoped<IAdminDashboardService, AdminDashboardService>();
+        services.AddScoped<IAdminUserService, AdminUserService>();
+        services.AddScoped<IAdminJobService, AdminJobService>();
+        services.AddScoped<IAdminAuditService, AdminAuditService>();
 
         return services;
     }

@@ -22,4 +22,29 @@ public interface IEmailService
         DateTimeOffset? deadlineUtc,
         string invitationLink,
         CancellationToken cancellationToken = default);
+
+    Task SendApplicationSubmittedEmailAsync(
+        string recipientEmail,
+        string candidateName,
+        string companyName,
+        string jobTitle,
+        Guid applicationId,
+        CancellationToken cancellationToken = default);
+
+    Task SendApplicationStatusUpdatedEmailAsync(
+        string recipientEmail,
+        string candidateName,
+        string companyName,
+        string jobTitle,
+        string newStage,
+        string? note,
+        CancellationToken cancellationToken = default);
+
+    Task SendCompanyReviewDecisionEmailAsync(
+        string recipientEmail,
+        string ownerName,
+        string companyName,
+        string decision,
+        string? reason,
+        CancellationToken cancellationToken = default);
 }

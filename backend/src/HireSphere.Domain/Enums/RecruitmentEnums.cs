@@ -6,7 +6,8 @@ public enum JobPostingStatus
     Published = 1,
     Paused = 2,
     Closed = 3,
-    Archived = 4
+    Archived = 4,
+    Suspended = 5
 }
 
 public enum EmploymentType

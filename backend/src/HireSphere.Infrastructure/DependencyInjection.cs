@@ -66,6 +66,26 @@ public static class DependencyInjection
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
                 ClockSkew = TimeSpan.FromMinutes(1)
             };
+
+            // Server-side account status validation: reject suspended or deleted users even if token is unexpired
+            options.Events = new JwtBearerEvents
+            {
+                OnTokenValidated = async context =>
+                {
+                    var db = context.HttpContext.RequestServices.GetRequiredService<IApplicationDbContext>();
+                    var userIdClaim = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                        ?? context.Principal?.FindFirst("sub")?.Value;
+
+                    if (Guid.TryParse(userIdClaim, out var userId))
+                    {
+                        var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+                        if (user == null || user.AccountStatus == Domain.Enums.AccountStatus.Disabled || user.IsDeleted)
+                        {
+                            context.Fail("User account has been disabled or suspended.");
+                        }
+                    }
+                }
+            };
         });
 
         return services;

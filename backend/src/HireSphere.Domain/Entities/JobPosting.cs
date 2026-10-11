@@ -41,6 +41,12 @@ public class JobPosting
     public bool IsDeleted { get; set; }
     public DateTimeOffset? DeletedAtUtc { get; set; }
 
+    // Content moderation
+    public string? ModerationReason { get; set; }
+    public DateTimeOffset? ModeratedAtUtc { get; set; }
+    public Guid? ModeratedByUserId { get; set; }
+    public User? ModeratedByUser { get; set; }
+
     public ICollection<JobRequirement> Requirements { get; set; } = new List<JobRequirement>();
     public ICollection<JobDescriptionVersion> Versions { get; set; } = new List<JobDescriptionVersion>();
     public ICollection<JobApplication> Applications { get; set; } = new List<JobApplication>();

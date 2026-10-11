@@ -95,4 +95,66 @@ public class NotificationServiceTests
         var unread = await service.GetUnreadCountAsync(userId);
         Assert.Equal(0, unread.UnreadCount);
     }
+
+    [Fact]
+    public async Task GetUserNotificationsPagedAsync_ReturnsPagedItems_AndFiltersCorrectly()
+    {
+        using var context = TestDbContextFactory.CreateInMemoryDbContext();
+        var service = new NotificationService(context);
+        var userId = Guid.NewGuid();
+
+        for (int i = 1; i <= 15; i++)
+        {
+            var notif = await service.CreateNotificationAsync(
+                userId,
+                i % 2 == 0 ? "ApplicationUpdate" : "AssessmentInvitation",
+                $"Notice {i}",
+                $"Message {i}");
+
+            if (i > 10)
+            {
+                await service.MarkNotificationAsReadAsync(userId, notif.Id);
+            }
+        }
+
+        // Page 1 with pageSize 5
+        var pagedResult = await service.GetUserNotificationsPagedAsync(userId, page: 1, pageSize: 5);
+        Assert.Equal(15, pagedResult.TotalCount);
+        Assert.Equal(5, pagedResult.Items.Count);
+        Assert.Equal(3, pagedResult.TotalPages);
+
+        // Filter unread only
+        var unreadOnly = await service.GetUserNotificationsPagedAsync(userId, page: 1, pageSize: 10, unreadOnly: true);
+        Assert.Equal(10, unreadOnly.TotalCount);
+        Assert.All(unreadOnly.Items, n => Assert.False(n.IsRead));
+
+        // Filter by type
+        var typeFiltered = await service.GetUserNotificationsPagedAsync(userId, page: 1, pageSize: 20, notificationType: "ApplicationUpdate");
+        Assert.Equal(7, typeFiltered.TotalCount);
+        Assert.All(typeFiltered.Items, n => Assert.Equal("ApplicationUpdate", n.NotificationType));
+    }
+
+    [Fact]
+    public async Task CreateNotificationAsync_DeduplicatesIdenticalRecentNotifications()
+    {
+        using var context = TestDbContextFactory.CreateInMemoryDbContext();
+        var service = new NotificationService(context);
+        var userId = Guid.NewGuid();
+
+        var notif1 = await service.CreateNotificationAsync(
+            userId,
+            "AssessmentDeadlineApproaching",
+            "Deadline Alert: Assessment Due",
+            "Please complete your assessment within 24 hours.");
+
+        var notif2 = await service.CreateNotificationAsync(
+            userId,
+            "AssessmentDeadlineApproaching",
+            "Deadline Alert: Assessment Due",
+            "Please complete your assessment within 24 hours.");
+
+        // Deduplication should return the existing notification without creating a second row
+        Assert.Equal(notif1.Id, notif2.Id);
+        Assert.Single(context.Notifications);
+    }
 }

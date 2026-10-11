@@ -22,15 +22,18 @@ public class WorkSimRuntimeService : IWorkSimRuntimeService
     private readonly IApplicationDbContext _context;
     private readonly IWorkSimScoringService _scoringService;
     private readonly IAuditService _auditService;
+    private readonly INotificationService? _notificationService;
 
     public WorkSimRuntimeService(
         IApplicationDbContext context,
         IWorkSimScoringService scoringService,
-        IAuditService auditService)
+        IAuditService auditService,
+        INotificationService? notificationService = null)
     {
         _context = context;
         _scoringService = scoringService;
         _auditService = auditService;
+        _notificationService = notificationService;
     }
 
     public async Task<CandidateSimulationRuntimeStateDto> StartSessionAsync(Guid userId, Guid assignmentId, CancellationToken ct = default)
@@ -323,6 +326,43 @@ public class WorkSimRuntimeService : IWorkSimRuntimeService
         {
             var evaluation = await _scoringService.EvaluateSessionAsync(session.Id, ct);
             resultId = evaluation.ResultId;
+
+            if (_notificationService != null)
+            {
+                var candidateUser = await _context.CandidateProfiles
+                    .Include(cp => cp.User)
+                    .Where(cp => cp.Id == session.AssessmentAssignment.CandidateProfileId)
+                    .Select(cp => cp.User)
+                    .FirstOrDefaultAsync(ct);
+
+                if (candidateUser != null)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        userId: candidateUser.Id,
+                        notificationType: "AssessmentCompleted",
+                        title: $"Assessment Evaluated: {scenarioDef.Title}",
+                        message: $"Your simulation results for '{scenarioDef.Title}' are now available (Score: {Math.Round(evaluation.TotalScore)}%).",
+                        actionUrl: $"/candidate/simulations/session/{session.Id}/results",
+                        ct: ct);
+                }
+
+                var recruiterIds = await _context.CompanyMembers
+                    .AsNoTracking()
+                    .Where(m => m.CompanyId == session.AssessmentAssignment.CompanyId && m.MembershipStatus == CompanyMembershipStatus.Active)
+                    .Select(m => m.UserId)
+                    .ToListAsync(ct);
+
+                foreach (var recruiterUserId in recruiterIds)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        userId: recruiterUserId,
+                        notificationType: "CandidateAssessmentCompleted",
+                        title: $"Assessment Completed: {scenarioDef.Title}",
+                        message: $"A candidate has completed the '{scenarioDef.Title}' assessment with a score of {Math.Round(evaluation.TotalScore)}%.",
+                        actionUrl: "/company/applications",
+                        ct: ct);
+                }
+            }
 
             await _auditService.LogAsync(
                 action: "WorkSimSessionCompleted",

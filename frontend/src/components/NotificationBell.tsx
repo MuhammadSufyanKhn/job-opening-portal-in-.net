@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Bell, CheckCheck, ExternalLink } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import {
+  Bell,
+  CheckCheck,
+  ExternalLink,
+  Briefcase,
+  Terminal,
+  Clock,
+  Building2,
+  ShieldCheck,
+  Award,
+} from 'lucide-react';
 import { notificationsApi } from '../services/api';
 import type { InAppNotification } from '../types/worksim';
 
@@ -24,7 +34,7 @@ export const NotificationBell: React.FC = () => {
   const loadNotifications = async () => {
     setLoading(true);
     try {
-      const data = await notificationsApi.getNotifications(20);
+      const data = await notificationsApi.getNotifications(10);
       setNotifications(data);
       setUnreadCount(data.filter(n => !n.isRead).length);
     } catch {
@@ -86,29 +96,48 @@ export const NotificationBell: React.FC = () => {
     }
   };
 
+  const getNotificationIcon = (type: string) => {
+    if (type.includes('Application') || type.includes('CandidateApplied')) {
+      return <Briefcase size={16} className="text-primary" />;
+    }
+    if (type.includes('AssessmentDeadline') || type.includes('Reminder')) {
+      return <Clock size={16} className="text-amber" />;
+    }
+    if (type.includes('AssessmentCompleted')) {
+      return <Award size={16} className="text-emerald" />;
+    }
+    if (type.includes('Assessment')) {
+      return <Terminal size={16} className="text-primary" />;
+    }
+    if (type.includes('Company')) {
+      return <Building2 size={16} className="text-warning" />;
+    }
+    return <ShieldCheck size={16} className="text-primary" />;
+  };
+
   return (
-    <div className="relative inline-block" ref={dropdownRef}>
+    <div style={{ position: 'relative', display: 'inline-block' }} ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50/80 rounded-lg transition-colors border border-slate-200/80 bg-white"
+        className="notification-bell-btn"
         title="Notifications"
         aria-label="View notifications"
       >
         <Bell size={18} />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-4 text-center shadow-sm">
+          <span className="notification-unread-badge">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-slate-200 rounded-xl shadow-lg z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-          <div className="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-sm text-slate-800">Notifications</span>
+        <div className="notification-dropdown">
+          <div className="notification-dropdown-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>Notifications</span>
               {unreadCount > 0 && (
-                <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">
+                <span className="badge badge-purple" style={{ fontSize: '0.7rem' }}>
                   {unreadCount} new
                 </span>
               )}
@@ -116,7 +145,17 @@ export const NotificationBell: React.FC = () => {
             {notifications.length > 0 && unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 hover:underline"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--primary)',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                }}
               >
                 <CheckCheck size={14} />
                 Mark all read
@@ -124,56 +163,63 @@ export const NotificationBell: React.FC = () => {
             )}
           </div>
 
-          <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
+          <div className="notification-dropdown-list">
             {loading ? (
-              <div className="p-6 text-center text-xs text-slate-500">Loading notifications...</div>
+              <div style={{ padding: '2rem', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                Loading notifications...
+              </div>
             ) : notifications.length === 0 ? (
-              <div className="p-6 text-center text-xs text-slate-500">
-                No notifications to display.
+              <div style={{ padding: '2.5rem 1rem', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                No notifications right now.
               </div>
             ) : (
               notifications.map(n => (
                 <div
                   key={n.id}
                   onClick={() => handleMarkAsRead(n.id, n.actionUrl)}
-                  className={`p-3 text-left transition-colors cursor-pointer ${
-                    n.isRead ? 'bg-white hover:bg-slate-50' : 'bg-blue-50/50 hover:bg-blue-50'
-                  }`}
+                  className={`notification-item ${!n.isRead ? 'unread' : ''}`}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-1.5">
-                        {!n.isRead && (
-                          <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0" />
-                        )}
-                        <h4 className="text-xs font-semibold text-slate-900 leading-tight">
-                          {n.title}
-                        </h4>
-                      </div>
-                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                        {n.message}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-[10px] text-slate-400">
-                          {new Date(n.createdAtUtc).toLocaleDateString([], {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                  <div
+                    className="notification-item-icon"
+                    style={{ background: n.isRead ? '#f1f5f9' : '#e0f2fe' }}
+                  >
+                    {getNotificationIcon(n.notificationType)}
+                  </div>
+
+                  <div className="notification-item-content">
+                    <div className="notification-item-title">
+                      {!n.isRead && <span className="unread-dot" />}
+                      <span>{n.title}</span>
+                    </div>
+                    <p className="notification-item-message">{n.message}</p>
+                    <div className="notification-item-meta">
+                      <span>
+                        {new Date(n.createdAtUtc).toLocaleDateString([], {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                      {n.actionUrl && (
+                        <span style={{ color: 'var(--primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                          Open <ExternalLink size={10} />
                         </span>
-                        {n.actionUrl && (
-                          <span className="text-[10px] text-blue-600 flex items-center gap-0.5 font-medium">
-                            Open <ExternalLink size={10} />
-                          </span>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
               ))
             )}
           </div>
+
+          <Link
+            to="/notifications"
+            onClick={() => setIsOpen(false)}
+            className="notification-dropdown-footer"
+          >
+            View all in Notification Center &rarr;
+          </Link>
         </div>
       )}
     </div>

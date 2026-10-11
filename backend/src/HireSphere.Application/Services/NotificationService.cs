@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using HireSphere.Application.Common.Interfaces;
+using HireSphere.Application.DTOs.Job;
 using HireSphere.Application.DTOs.Notification;
 using HireSphere.Domain.Entities;
 using HireSphere.Domain.Exceptions;
@@ -19,6 +20,14 @@ public interface INotificationService
     Task<IReadOnlyList<NotificationDto>> GetUserNotificationsAsync(
         Guid userId,
         int limit = 30,
+        CancellationToken ct = default);
+
+    Task<PagedResult<NotificationDto>> GetUserNotificationsPagedAsync(
+        Guid userId,
+        int page = 1,
+        int pageSize = 20,
+        bool? unreadOnly = null,
+        string? notificationType = null,
         CancellationToken ct = default);
 
     Task MarkNotificationAsReadAsync(
@@ -52,6 +61,28 @@ public class NotificationService : INotificationService
         string? actionUrl = null,
         CancellationToken ct = default)
     {
+        // Deduplication: if an unread notification for the same user, type, and title exists within the last 5 minutes, avoid duplicate flooding
+        var recentWindow = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var existing = await _context.Notifications
+            .FirstOrDefaultAsync(n => n.UserId == userId &&
+                                      n.NotificationType == notificationType &&
+                                      n.Title == title &&
+                                      !n.IsRead &&
+                                      n.CreatedAtUtc >= recentWindow, ct);
+
+        if (existing != null)
+        {
+            return new NotificationDto(
+                existing.Id,
+                existing.NotificationType,
+                existing.Title,
+                existing.Message,
+                existing.ActionUrl,
+                existing.IsRead,
+                existing.ReadAtUtc,
+                existing.CreatedAtUtc);
+        }
+
         var notification = new Notification
         {
             UserId = userId,
@@ -97,6 +128,53 @@ public class NotificationService : INotificationService
                 n.ReadAtUtc,
                 n.CreatedAtUtc))
             .ToListAsync(ct);
+    }
+
+    public async Task<PagedResult<NotificationDto>> GetUserNotificationsPagedAsync(
+        Guid userId,
+        int page = 1,
+        int pageSize = 20,
+        bool? unreadOnly = null,
+        string? notificationType = null,
+        CancellationToken ct = default)
+    {
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 20;
+        if (pageSize > 100) pageSize = 100;
+
+        var query = _context.Notifications
+            .AsNoTracking()
+            .Where(n => n.UserId == userId);
+
+        if (unreadOnly == true)
+        {
+            query = query.Where(n => !n.IsRead);
+        }
+
+        if (!string.IsNullOrWhiteSpace(notificationType))
+        {
+            query = query.Where(n => n.NotificationType == notificationType.Trim());
+        }
+
+        var totalCount = await query.CountAsync(ct);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        var items = await query
+            .OrderByDescending(n => n.CreatedAtUtc)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(n => new NotificationDto(
+                n.Id,
+                n.NotificationType,
+                n.Title,
+                n.Message,
+                n.ActionUrl,
+                n.IsRead,
+                n.ReadAtUtc,
+                n.CreatedAtUtc))
+            .ToListAsync(ct);
+
+        return new PagedResult<NotificationDto>(items, totalCount, page, pageSize, totalPages);
     }
 
     public async Task MarkNotificationAsReadAsync(

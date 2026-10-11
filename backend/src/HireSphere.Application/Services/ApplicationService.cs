@@ -192,6 +192,45 @@ public class ApplicationService : IApplicationService
             };
         }
 
+        if (_notificationService != null)
+        {
+            await _notificationService.CreateNotificationAsync(
+                userId: userId,
+                notificationType: "ApplicationSubmitted",
+                title: $"Application Submitted: {job.Title}",
+                message: $"Your application for '{job.Title}' at {job.Company.Name} has been received.",
+                actionUrl: "/candidate/applications",
+                ct: ct);
+
+            var companyMemberIds = await _context.CompanyMembers
+                .AsNoTracking()
+                .Where(m => m.CompanyId == job.CompanyId && m.MembershipStatus == CompanyMembershipStatus.Active)
+                .Select(m => m.UserId)
+                .ToListAsync(ct);
+
+            foreach (var memberId in companyMemberIds)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    userId: memberId,
+                    notificationType: "CandidateApplied",
+                    title: $"New Applicant: {job.Title}",
+                    message: $"{candidateProfile.User.FullName} submitted an application for '{job.Title}'.",
+                    actionUrl: "/company/applications",
+                    ct: ct);
+            }
+        }
+
+        if (_emailService != null)
+        {
+            await _emailService.SendApplicationSubmittedEmailAsync(
+                recipientEmail: candidateProfile.User.Email,
+                candidateName: candidateProfile.User.FullName,
+                companyName: job.Company.Name,
+                jobTitle: job.Title,
+                applicationId: application.Id,
+                cancellationToken: ct);
+        }
+
         await _auditService.LogAsync(
             action: "ApplicationSubmitted",
             targetResource: "JobApplication",
@@ -563,6 +602,7 @@ public class ApplicationService : IApplicationService
 
         var application = await _context.JobApplications
             .Include(a => a.JobPosting)
+                .ThenInclude(jp => jp.Company)
             .Include(a => a.CandidateProfile)
                 .ThenInclude(cp => cp.User)
             .Include(a => a.StatusHistories)
@@ -594,6 +634,43 @@ public class ApplicationService : IApplicationService
 
         _context.ApplicationStatusHistories.Add(history);
         await _context.SaveChangesAsync(ct);
+
+        if (_notificationService != null)
+        {
+            var stageTitle = request.NewStage switch
+            {
+                ApplicationStage.UnderReview => "Application Under Review",
+                ApplicationStage.Shortlisted => $"Shortlisted: {application.JobPosting.Title}",
+                ApplicationStage.InterviewScheduled => $"Interview Scheduled: {application.JobPosting.Title}",
+                ApplicationStage.Offered => $"Offer Extended: {application.JobPosting.Title}",
+                ApplicationStage.Hired => "Congratulations: You're Hired!",
+                ApplicationStage.Rejected => $"Application Update: {application.JobPosting.Title}",
+                _ => $"Application Status: {request.NewStage}"
+            };
+
+            var notePart = !string.IsNullOrWhiteSpace(request.ReasonNote) ? $" Note: {request.ReasonNote}" : "";
+            var stageMessage = $"Your application for '{application.JobPosting.Title}' has moved to '{request.NewStage}'.{notePart}";
+
+            await _notificationService.CreateNotificationAsync(
+                userId: application.CandidateProfile.UserId,
+                notificationType: "ApplicationStageChanged",
+                title: stageTitle,
+                message: stageMessage,
+                actionUrl: "/candidate/applications",
+                ct: ct);
+        }
+
+        if (_emailService != null)
+        {
+            await _emailService.SendApplicationStatusUpdatedEmailAsync(
+                recipientEmail: application.CandidateProfile.User.Email,
+                candidateName: application.CandidateProfile.User.FullName,
+                companyName: application.JobPosting.Company?.Name ?? "the employer",
+                jobTitle: application.JobPosting.Title,
+                newStage: request.NewStage.ToString(),
+                note: request.ReasonNote,
+                cancellationToken: ct);
+        }
 
         await _auditService.LogAsync(
             action: "ApplicationStageChanged",

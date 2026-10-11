@@ -39,6 +39,7 @@ public class JobPostingConfiguration : IEntityTypeConfiguration<JobPosting>
         builder.Property(p => p.SalaryCurrency).HasMaxLength(10).HasDefaultValue("USD");
         builder.Property(p => p.ActiveVersionNumber).HasDefaultValue(1);
         builder.Property(p => p.RowVersion).IsRowVersion();
+        builder.Property(p => p.ModerationReason).HasMaxLength(500);
 
         builder.HasOne(p => p.Company)
             .WithMany(c => c.JobPostings)
@@ -50,8 +51,14 @@ public class JobPostingConfiguration : IEntityTypeConfiguration<JobPosting>
             .HasForeignKey(p => p.JobCategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(p => p.ModeratedByUser)
+            .WithMany()
+            .HasForeignKey(p => p.ModeratedByUserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         builder.HasIndex(p => new { p.CompanyId, p.Status });
         builder.HasIndex(p => new { p.Status, p.PublishedAtUtc });
+        builder.HasIndex(p => p.ModeratedAtUtc);
     }
 }
 

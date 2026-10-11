@@ -24,17 +24,20 @@ public class AuthService : IAuthService
     private readonly IPasswordHasherService _passwordHasher;
     private readonly ITokenService _tokenService;
     private readonly IAuditService _auditService;
+    private readonly INotificationService? _notificationService;
 
     public AuthService(
         IApplicationDbContext context,
         IPasswordHasherService passwordHasher,
         ITokenService tokenService,
-        IAuditService auditService)
+        IAuditService auditService,
+        INotificationService? notificationService = null)
     {
         _context = context;
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
         _auditService = auditService;
+        _notificationService = notificationService;
     }
 
     public async Task<AuthResponse> RegisterCandidateAsync(RegisterCandidateRequest request, CancellationToken ct = default)
@@ -184,6 +187,26 @@ public class AuthService : IAuthService
             companyId: company.Id,
             metadata: new { CompanyName = company.Name, OwnerEmail = user.Email },
             cancellationToken: ct);
+
+        if (_notificationService != null)
+        {
+            var adminUserIds = await _context.UserRoles
+                .Include(ur => ur.Role)
+                .Where(ur => ur.Role.Name == PlatformRoles.SuperAdmin)
+                .Select(ur => ur.UserId)
+                .ToListAsync(ct);
+
+            foreach (var adminId in adminUserIds)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    userId: adminId,
+                    notificationType: "CompanyPendingApproval",
+                    title: $"New Organization Registered: {company.Name}",
+                    message: $"'{company.Name}' ({company.Industry}) has registered and requires platform verification.",
+                    actionUrl: "/admin/companies",
+                    ct: ct);
+            }
+        }
 
         return await GenerateAuthResponseAsync(user, new List<string> { PlatformRoles.CompanyMember }, company.Id, CompanyRole.Owner.ToString(), ct);
     }

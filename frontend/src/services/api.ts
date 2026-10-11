@@ -1,5 +1,18 @@
 import axios, { AxiosError } from 'axios';
 import type { AuthResponse, CandidateProfile, CompanyMember, CompanyReview, User } from '../types/auth';
+import type {
+  PlatformDashboardStats,
+  AdminUserSummary,
+  AdminUserDetail,
+  AdminJobSummary,
+  AdminJobDetail,
+  AdminAuditItem,
+  AdminUserQueryParams,
+  AdminJobQueryParams,
+  AdminAuditQueryParams,
+  AdminCompanyQueryParams,
+} from '../types/admin';
+import type { PagedResult } from '../types/recruitment';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
@@ -65,11 +78,34 @@ export const companyApi = {
 export const adminApi = {
   getPendingCompanies: () => api.get<CompanyReview[]>('/admin/companies/pending').then(r => r.data),
   getAllCompanies: (status?: string) => api.get<CompanyReview[]>('/admin/companies', { params: { status } }).then(r => r.data),
+  getCompaniesPaged: (params?: AdminCompanyQueryParams) => api.get<PagedResult<CompanyReview>>('/admin/companies/paged', { params }).then(r => r.data),
   getCompanyDetails: (id: string) => api.get<CompanyReview>(`/admin/companies/${id}`).then(r => r.data),
   approveCompany: (id: string) => api.post(`/admin/companies/${id}/approve`).then(r => r.data),
   rejectCompany: (id: string, reason: string) => api.post(`/admin/companies/${id}/reject`, { rejectionReason: reason }).then(r => r.data),
   suspendCompany: (id: string, reason: string) => api.post(`/admin/companies/${id}/suspend`, { reason }).then(r => r.data),
   restoreCompany: (id: string) => api.post(`/admin/companies/${id}/restore`).then(r => r.data),
+};
+
+export const adminDashboardApi = {
+  getStats: () => api.get<PlatformDashboardStats>('/admin/dashboard/stats').then(r => r.data),
+};
+
+export const adminUsersApi = {
+  getUsers: (params?: AdminUserQueryParams) => api.get<PagedResult<AdminUserSummary>>('/admin/users', { params }).then(r => r.data),
+  getUser: (id: string) => api.get<AdminUserDetail>(`/admin/users/${id}`).then(r => r.data),
+  suspendUser: (id: string, reason: string) => api.post(`/admin/users/${id}/suspend`, { reason }).then(r => r.data),
+  reactivateUser: (id: string) => api.post(`/admin/users/${id}/reactivate`).then(r => r.data),
+};
+
+export const adminJobsApi = {
+  getJobs: (params?: AdminJobQueryParams) => api.get<PagedResult<AdminJobSummary>>('/admin/jobs', { params }).then(r => r.data),
+  getJob: (id: string) => api.get<AdminJobDetail>(`/admin/jobs/${id}`).then(r => r.data),
+  suspendJob: (id: string, reason: string) => api.post(`/admin/jobs/${id}/suspend`, { reason }).then(r => r.data),
+  restoreJob: (id: string) => api.post(`/admin/jobs/${id}/restore`).then(r => r.data),
+};
+
+export const adminAuditApi = {
+  getAuditLogs: (params?: AdminAuditQueryParams) => api.get<PagedResult<AdminAuditItem>>('/admin/audit', { params }).then(r => r.data),
 };
 
 // Public Marketplace API
@@ -199,6 +235,8 @@ export const workSimApi = {
 export const notificationsApi = {
   getNotifications: (limit: number = 30) =>
     api.get<import('../types/worksim').InAppNotification[]>('/notifications', { params: { limit } }).then(r => r.data),
+  getPagedNotifications: (params?: { page?: number; pageSize?: number; unreadOnly?: boolean; type?: string }) =>
+    api.get<import('../types/recruitment').PagedResult<import('../types/worksim').InAppNotification>>('/notifications/paged', { params }).then(r => r.data),
   getUnreadCount: () =>
     api.get<import('../types/worksim').UnreadNotificationCount>('/notifications/unread-count').then(r => r.data),
   markAsRead: (id: string) =>

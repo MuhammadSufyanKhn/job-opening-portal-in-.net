@@ -65,9 +65,9 @@ export const Navbar: React.FC = () => {
               )}
 
               {isSuperAdmin && (
-                <Link to="/admin/companies" className="nav-link nav-link-admin">
+                <Link to="/admin" className="nav-link nav-link-admin">
                   <Shield size={17} />
-                  <span>Admin Governance</span>
+                  <span>Admin Operations</span>
                 </Link>
               )}
             </>

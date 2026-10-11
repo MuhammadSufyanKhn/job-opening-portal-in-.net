@@ -226,6 +226,23 @@ GO
 
 ---
 
+### Script 10: `010_AddJobModerationSupport.sql`
+* **Purpose:** Adds content moderation audit columns (`ModerationReason`, `ModeratedAtUtc`, `ModeratedByUserId`) to `dbo.JobPostings` to enable platform administrators to unpublish/suspend offending job listings with documented reasons.
+* **Objects Modified:** Alters `dbo.JobPostings` (adds nullable columns, foreign key `FK_JobPostings_Users_ModeratedByUserId`, and index `IX_JobPostings_ModeratedAtUtc`).
+* **Prerequisites:** Script `002_CreateRecruitmentAndApplicationsSchema.sql` executed.
+* **Expected Order:** Execution Step 11.
+* **Rerun Safety (Idempotency):** Fully idempotent; guarded by `IF NOT EXISTS` column, index, and constraint checks.
+* **Data Impact:** Additive only; existing records receive `NULL` without data loss.
+* **SSMS Verification Query:**
+  ```sql
+  SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_NAME = 'JobPostings'
+    AND COLUMN_NAME IN ('ModerationReason', 'ModeratedAtUtc', 'ModeratedByUserId');
+  ```
+
+---
+
 ### Seed Script 1: `database/seeds/001_SeedInitialRolesAndAdmin.sql`
 * **Purpose:** Seeds foundational platform roles (`Candidate`, `CompanyMember`, `SuperAdmin`) into the `Roles` table with idempotent checks. Includes an optional, commented bootstrap block for a local development SuperAdmin (`admin@hiresphere.local`).
 * **Objects Modified:** Inserts into `Roles` (and conditionally `Users`, `UserRoles`).
