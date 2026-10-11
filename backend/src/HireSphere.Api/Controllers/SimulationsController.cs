@@ -13,17 +13,20 @@ public class SimulationsController : ControllerBase
     private readonly IWorkSimRuntimeService _runtimeService;
     private readonly IWorkSimScoringService _scoringService;
     private readonly IWorkSimManagementService _managementService;
+    private readonly IAssessmentWorkflowService _workflowService;
     private readonly ICurrentUserService _currentUserService;
 
     public SimulationsController(
         IWorkSimRuntimeService runtimeService,
         IWorkSimScoringService scoringService,
         IWorkSimManagementService managementService,
+        IAssessmentWorkflowService workflowService,
         ICurrentUserService currentUserService)
     {
         _runtimeService = runtimeService;
         _scoringService = scoringService;
         _managementService = managementService;
+        _workflowService = workflowService;
         _currentUserService = currentUserService;
     }
 
@@ -46,6 +49,20 @@ public class SimulationsController : ControllerBase
 
         var assignments = await _managementService.GetCandidateAssignmentsAsync(_currentUserService.UserId.Value, ct);
         return Ok(assignments);
+    }
+
+    [Authorize(Roles = PlatformRoles.Candidate)]
+    [HttpGet("api/candidate/simulations/assignments/{assignmentId:guid}")]
+    [ProducesResponseType(typeof(AssessmentAssignmentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAssignmentDetails(Guid assignmentId, CancellationToken ct)
+    {
+        if (!_currentUserService.UserId.HasValue) return Unauthorized();
+
+        var assignment = await _workflowService.GetCandidateInvitationByIdAsync(_currentUserService.UserId.Value, assignmentId, ct);
+        return Ok(assignment);
     }
 
     [Authorize(Roles = PlatformRoles.Candidate)]

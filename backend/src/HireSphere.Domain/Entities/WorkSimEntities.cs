@@ -65,6 +65,13 @@ public class AssessmentAssignment
     public DateTimeOffset AssignedAtUtc { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? CompletedAtUtc { get; set; }
 
+    // Invitation and progress tracking
+    public DateTimeOffset? ReminderSentAtUtc { get; set; }
+    public DateTimeOffset? CancelledAtUtc { get; set; }
+    public string? CancellationReason { get; set; }
+    public int ResentCount { get; set; }
+    public DateTimeOffset? LastResentAtUtc { get; set; }
+
     public ICollection<SimulationSession> Sessions { get; set; } = new List<SimulationSession>();
 }
 

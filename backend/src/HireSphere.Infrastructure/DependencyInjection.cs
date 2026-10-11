@@ -42,6 +42,8 @@ public static class DependencyInjection
         services.AddSingleton<ICvStorageService, LocalCvStorageService>();
         services.AddSingleton<IMalwareScanner, NullMalwareScanner>();
         services.AddSingleton<IDocumentParsingService, DocumentParsingService>();
+        services.AddScoped<IEmailService, DevLoggingEmailService>();
+        services.AddHostedService<AssessmentDeadlineBackgroundService>();
 
         // JWT Authentication registration
         services.AddAuthentication(options =>

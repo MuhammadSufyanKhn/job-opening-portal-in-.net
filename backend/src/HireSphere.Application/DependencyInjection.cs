@@ -22,6 +22,8 @@ public static class DependencyInjection
         services.AddScoped<IWorkSimScoringService, WorkSimScoringService>();
         services.AddScoped<IWorkSimRuntimeService, WorkSimRuntimeService>();
         services.AddScoped<IWorkSimManagementService, WorkSimManagementService>();
+        services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IAssessmentWorkflowService, AssessmentWorkflowService>();
 
         return services;
     }

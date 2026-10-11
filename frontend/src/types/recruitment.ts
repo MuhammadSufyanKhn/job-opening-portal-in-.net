@@ -134,6 +134,7 @@ export interface CandidateApplicationDetail extends CandidateApplicationSummary 
   employmentType: EmploymentType;
   candidateCoverNote?: string;
   statusTimeline: ApplicationStatusHistory[];
+  assessment?: import('./worksim').AssessmentAssignment | null;
 }
 
 export interface CompanyApplicationSummary {
@@ -160,4 +161,5 @@ export interface CompanyApplicationDetail extends CompanyApplicationSummary {
   candidateDocumentId?: string | null;
   candidateDocumentFileName?: string | null;
   statusTimeline: ApplicationStatusHistory[];
+  assessment?: import('./worksim').AssessmentAssignment | null;
 }

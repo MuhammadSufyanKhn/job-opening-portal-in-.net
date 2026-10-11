@@ -54,6 +54,11 @@ public class WorkSimRuntimeService : IWorkSimRuntimeService
         if (assignment.CandidateProfileId != candidateProfile.Id)
             throw new ForbiddenAccessException("You are not authorized to access this assessment assignment.");
 
+        if (assignment.Status == AssessmentAssignmentStatus.Cancelled)
+        {
+            throw new ConflictException("This assessment invitation has been cancelled.");
+        }
+
         if (assignment.DeadlineUtc <= DateTimeOffset.UtcNow)
         {
             assignment.Status = AssessmentAssignmentStatus.Expired;

@@ -43,7 +43,8 @@ public record CandidateApplicationDetailDto(
     DateTimeOffset SubmittedAtUtc,
     DateTimeOffset? StageUpdatedAtUtc,
     string? CandidateCoverNote,
-    IReadOnlyList<ApplicationStatusHistoryDto> StatusTimeline);
+    IReadOnlyList<ApplicationStatusHistoryDto> StatusTimeline,
+    HireSphere.Application.DTOs.WorkSim.AssessmentAssignmentDto? Assessment = null);
 
 public record CompanyApplicationSummaryDto(
     Guid Id,
@@ -79,4 +80,6 @@ public record CompanyApplicationDetailDto(
     string? CandidateCoverNote,
     IReadOnlyList<ApplicationStatusHistoryDto> StatusTimeline,
     Guid? CandidateDocumentId = null,
-    string? CandidateDocumentFileName = null);
+    string? CandidateDocumentFileName = null,
+    HireSphere.Application.DTOs.WorkSim.AssessmentAssignmentDto? Assessment = null);
+

@@ -96,8 +96,14 @@ public class AssessmentAssignmentConfiguration : IEntityTypeConfiguration<Assess
             .HasForeignKey(a => a.CandidateProfileId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.Property(a => a.CancellationReason)
+            .HasMaxLength(500);
+
         builder.HasIndex(a => a.JobApplicationId);
         builder.HasIndex(a => a.CandidateProfileId);
+        builder.HasIndex(a => new { a.CompanyId, a.Status });
+        builder.HasIndex(a => new { a.Status, a.DeadlineUtc });
+        builder.HasIndex(a => new { a.JobApplicationId, a.JobAssessmentConfigurationId });
     }
 }
 

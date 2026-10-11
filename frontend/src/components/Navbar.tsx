@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Building2, UserCircle, Shield, LogOut, Briefcase, Users, FileText, Terminal } from 'lucide-react';
+import { NotificationBell } from './NotificationBell';
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout, isCandidate, isCompanyMember, isSuperAdmin } = useAuth();
@@ -81,6 +82,7 @@ export const Navbar: React.FC = () => {
 
         {isAuthenticated && user && (
           <div className="navbar-user">
+            <NotificationBell />
             <div className="user-details">
               <span className="user-name">{user.fullName}</span>
               <span className="user-badge">{user.roles.join(', ')}</span>

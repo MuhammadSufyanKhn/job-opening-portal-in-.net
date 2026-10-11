@@ -101,23 +101,23 @@ export const SimulationWorkspace: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center space-y-4">
-        <RefreshCw className="w-8 h-8 text-indigo-400 animate-spin" />
-        <p className="text-slate-400 text-sm font-medium">Booting WorkSim interactive environment...</p>
+      <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col items-center justify-center space-y-4">
+        <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
+        <p className="text-slate-600 text-sm font-medium">Booting WorkSim interactive environment...</p>
       </div>
     );
   }
 
   if (error && !state) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 p-8 flex items-center justify-center">
-        <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center space-y-4">
-          <AlertTriangle className="w-10 h-10 text-rose-400 mx-auto" />
-          <h2 className="text-lg font-bold text-white">Simulation Error</h2>
-          <p className="text-sm text-slate-300">{error}</p>
+      <div className="min-h-screen bg-slate-50 text-slate-800 p-8 flex items-center justify-center">
+        <div className="max-w-md w-full bg-white border border-slate-200 rounded-2xl p-6 text-center space-y-4 shadow-sm">
+          <AlertTriangle className="w-10 h-10 text-rose-500 mx-auto" />
+          <h2 className="text-lg font-bold text-slate-900">Simulation Error</h2>
+          <p className="text-sm text-slate-600">{error}</p>
           <Link
             to="/candidate/simulations"
-            className="inline-block px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold"
+            className="inline-block px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm"
           >
             Return to Simulations
           </Link>
@@ -132,43 +132,43 @@ export const SimulationWorkspace: React.FC = () => {
     || state.unlockedEvidence[0];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
       {/* Top Header / Status Bar */}
-      <header className="sticky top-0 z-30 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <header className="sticky top-0 z-30 bg-white border-b border-slate-200 px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
             <Terminal className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-700">
                 {state.scenarioCategory}
               </span>
-              <span className="text-slate-600">•</span>
-              <span className="text-xs text-slate-400 font-medium">
+              <span className="text-slate-300">•</span>
+              <span className="text-xs text-slate-500 font-medium">
                 Stage {state.taskIndex} of {state.totalTasks}
               </span>
             </div>
-            <h1 className="text-sm sm:text-base font-bold text-white truncate max-w-md sm:max-w-xl">
+            <h1 className="text-sm sm:text-base font-bold text-slate-900 truncate max-w-md sm:max-w-xl">
               {state.scenarioTitle}
             </h1>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/60 text-xs text-slate-300">
-            <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-            <span>State: <span className="font-semibold text-white">{state.status}</span></span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-700">
+            <Activity className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+            <span>State: <span className="font-semibold text-slate-900">{state.status}</span></span>
           </div>
 
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/60 text-xs text-slate-300">
-            <Clock className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Actions: <span className="font-semibold text-white">{state.totalActionsTaken}</span></span>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-700">
+            <Clock className="w-3.5 h-3.5 text-blue-600" />
+            <span>Actions: <span className="font-semibold text-slate-900">{state.totalActionsTaken}</span></span>
           </div>
 
           <Link
             to="/candidate/simulations"
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 transition-colors"
+            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-medium text-slate-700 transition-colors border border-slate-200"
           >
             Exit Workspace
           </Link>
@@ -182,17 +182,17 @@ export const SimulationWorkspace: React.FC = () => {
         <div className="lg:col-span-7 space-y-6 flex flex-col">
           
           {/* Current Task Banner */}
-          <div className="rounded-2xl bg-gradient-to-br from-indigo-950/60 to-slate-900 border border-indigo-500/30 p-6 space-y-3 shadow-xl">
+          <div className="rounded-2xl bg-white border border-blue-200 p-6 space-y-3 shadow-sm">
             <div className="flex items-center justify-between text-xs">
-              <span className="px-2.5 py-0.5 rounded-full font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+              <span className="px-2.5 py-0.5 rounded-full font-semibold bg-blue-100 text-blue-800 border border-blue-200">
                 ACTIVE TASK
               </span>
-              <span className="text-slate-400">Decision Point #{state.taskIndex}</span>
+              <span className="text-slate-500 font-medium">Decision Point #{state.taskIndex}</span>
             </div>
-            <h2 className="text-xl font-extrabold text-white">
+            <h2 className="text-xl font-extrabold text-slate-900">
               {state.currentTaskTitle}
             </h2>
-            <p className="text-sm text-slate-200 leading-relaxed bg-slate-900/60 rounded-xl p-4 border border-indigo-500/20">
+            <p className="text-sm text-slate-700 leading-relaxed bg-blue-50/50 rounded-xl p-4 border border-blue-100">
               {state.currentTaskInstructions}
             </p>
           </div>
@@ -204,11 +204,11 @@ export const SimulationWorkspace: React.FC = () => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="rounded-xl bg-emerald-950/70 border border-emerald-500/40 p-4 text-emerald-200 text-xs flex items-start gap-3"
+                className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-emerald-800 text-xs flex items-start gap-3 shadow-sm"
               >
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-emerald-300">Observation Recorded</p>
+                  <p className="font-semibold text-emerald-900">Observation Recorded</p>
                   <p className="mt-0.5">{actionFeedback}</p>
                 </div>
               </motion.div>
@@ -217,8 +217,8 @@ export const SimulationWorkspace: React.FC = () => {
 
           {/* Error Banner */}
           {error && (
-            <div className="rounded-xl bg-rose-950/60 border border-rose-500/40 p-3.5 text-rose-200 text-xs flex items-start gap-2.5">
-              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="rounded-xl bg-rose-50 border border-rose-200 p-3.5 text-rose-800 text-xs flex items-start gap-2.5 shadow-sm">
+              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
               <div>
                 <p className="font-semibold">Execution Blocked</p>
                 <p>{error}</p>
@@ -229,11 +229,11 @@ export const SimulationWorkspace: React.FC = () => {
           {/* Available Decision Actions */}
           <div className="space-y-3 flex-1">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Send className="w-4 h-4 text-indigo-400" />
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Send className="w-4 h-4 text-blue-600" />
                 Available Actions & Operational Decisions
               </h3>
-              <span className="text-xs text-slate-400">{state.availableActions.length} choices</span>
+              <span className="text-xs text-slate-500">{state.availableActions.length} choices</span>
             </div>
 
             <div className="space-y-3">
@@ -249,8 +249,8 @@ export const SimulationWorkspace: React.FC = () => {
                     }}
                     className={`cursor-pointer rounded-2xl border p-4 transition-all ${
                       isSelected
-                        ? 'bg-indigo-950/40 border-indigo-500 shadow-lg shadow-indigo-500/10'
-                        : 'bg-slate-900/80 border-slate-800 hover:border-slate-700 hover:bg-slate-900'
+                        ? 'bg-blue-50/70 border-blue-500 shadow-sm'
+                        : 'bg-white border-slate-200 hover:border-blue-300 hover:bg-slate-50/60 shadow-sm'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -258,25 +258,25 @@ export const SimulationWorkspace: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                             action.actionType === 'INSPECT'
-                              ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/30'
+                              ? 'bg-blue-100 text-blue-700 border border-blue-200'
                               : action.actionType === 'PRIORITIZE'
-                              ? 'bg-purple-500/10 text-purple-300 border border-purple-500/30'
+                              ? 'bg-purple-100 text-purple-700 border border-purple-200'
                               : action.actionType === 'REMEDIATE'
-                              ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
-                              : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
+                              ? 'bg-amber-100 text-amber-700 border border-amber-200'
+                              : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
                           }`}>
                             {action.actionType}
                           </span>
-                          <h4 className="text-sm font-bold text-white">{action.title}</h4>
+                          <h4 className="text-sm font-bold text-slate-900">{action.title}</h4>
                         </div>
-                        <p className="text-xs text-slate-300 leading-relaxed">{action.description}</p>
+                        <p className="text-xs text-slate-600 leading-relaxed">{action.description}</p>
                       </div>
 
                       <div className="shrink-0 mt-1">
                         <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
                           isSelected
-                            ? 'border-indigo-400 bg-indigo-500'
-                            : 'border-slate-600'
+                            ? 'border-blue-600 bg-blue-600'
+                            : 'border-slate-300'
                         }`}>
                           {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                         </div>
@@ -293,14 +293,14 @@ export const SimulationWorkspace: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl bg-slate-900 border border-indigo-500/40 p-5 space-y-4 shadow-2xl"
+              className="rounded-2xl bg-white border border-blue-300 p-5 space-y-4 shadow-md"
             >
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-xs font-semibold text-indigo-300">
-                  <ShieldAlert className="w-4 h-4 text-indigo-400" />
+                <div className="flex items-center gap-2 text-xs font-semibold text-blue-700">
+                  <ShieldAlert className="w-4 h-4 text-blue-600" />
                   Confirm Action Decision: {selectedAction.title}
                 </div>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500">
                   {selectedAction.requiresRationale
                     ? 'This consequential decision requires an operational rationale to be scored by the evaluation rubric.'
                     : 'Optional: Document your reasoning to add supporting evidence to your evaluation scorecard.'}
@@ -308,15 +308,15 @@ export const SimulationWorkspace: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                  Technical Reasoning / Operational Rationale {selectedAction.requiresRationale && <span className="text-indigo-400">*</span>}
+                <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                  Technical Reasoning / Operational Rationale {selectedAction.requiresRationale && <span className="text-blue-600">*</span>}
                 </label>
                 <textarea
                   rows={3}
                   value={candidateRationale}
                   onChange={(e) => setCandidateRationale(e.target.value)}
                   placeholder="Explain why you chose this action, which telemetry or log lines support it, and the expected system outcome..."
-                  className="w-full rounded-xl bg-slate-950 border border-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs text-slate-100 p-3 outline-none resize-none placeholder-slate-600"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white text-xs text-slate-900 p-3 outline-none resize-none placeholder-slate-400"
                 />
               </div>
 
@@ -324,7 +324,7 @@ export const SimulationWorkspace: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedAction(null)}
-                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-colors"
+                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors border border-slate-200"
                 >
                   Cancel
                 </button>
@@ -333,7 +333,7 @@ export const SimulationWorkspace: React.FC = () => {
                   type="button"
                   onClick={handleExecuteAction}
                   disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-lg shadow-indigo-600/30 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-sm disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <>
@@ -353,27 +353,27 @@ export const SimulationWorkspace: React.FC = () => {
 
           {/* Action History Audit Trail */}
           {state.actionHistory.length > 0 && (
-            <div className="rounded-2xl bg-slate-900/60 border border-slate-800 p-5 space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                <Layers className="w-3.5 h-3.5 text-slate-500" />
+            <div className="rounded-2xl bg-white border border-slate-200 p-5 space-y-3 shadow-sm">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2">
+                <Layers className="w-3.5 h-3.5 text-blue-600" />
                 Action Audit Trail ({state.actionHistory.length})
               </h4>
               <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1">
                 {state.actionHistory.map((item) => (
                   <div
                     key={item.sequenceNumber}
-                    className="rounded-xl bg-slate-950/70 border border-slate-800/80 p-2.5 text-xs space-y-1"
+                    className="rounded-xl bg-slate-50 border border-slate-200 p-2.5 text-xs space-y-1"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-indigo-300">
+                      <span className="font-semibold text-blue-700">
                         #{item.sequenceNumber} {item.actionTitle}
                       </span>
-                      <span className="text-[10px] text-slate-500">
+                      <span className="text-[10px] text-slate-400">
                         +{(item.elapsedMilliseconds / 1000).toFixed(0)}s
                       </span>
                     </div>
                     {item.candidateRationale && (
-                      <p className="text-slate-400 italic text-[11px]">
+                      <p className="text-slate-600 italic text-[11px]">
                         Rationale: "{item.candidateRationale}"
                       </p>
                     )}
@@ -389,13 +389,13 @@ export const SimulationWorkspace: React.FC = () => {
         <div className="lg:col-span-5 space-y-6 flex flex-col">
           
           {/* Simulated System State Monitor */}
-          <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-emerald-400" />
+          <div className="rounded-2xl bg-white border border-slate-200 p-5 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-emerald-600" />
                 Live Simulated State Monitor
               </h3>
-              <span className="text-[10px] text-slate-500">Authoritative Vector</span>
+              <span className="text-[10px] text-slate-400 font-medium">Authoritative Vector</span>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-xs">
@@ -409,13 +409,13 @@ export const SimulationWorkspace: React.FC = () => {
                     key={key}
                     className={`rounded-xl p-3 border ${
                       isDegraded
-                        ? 'bg-rose-950/20 border-rose-500/30 text-rose-300'
+                        ? 'bg-rose-50 border-rose-200 text-rose-800'
                         : isHealthy
-                        ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-300'
-                        : 'bg-slate-950/60 border-slate-800 text-slate-300'
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                        : 'bg-slate-50 border-slate-200 text-slate-700'
                     }`}
                   >
-                    <span className="text-[10px] uppercase font-bold text-slate-500 block truncate">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block truncate">
                       {key.replace(/_/g, ' ')}
                     </span>
                     <span className="font-mono font-bold text-xs truncate block mt-0.5">
@@ -428,13 +428,13 @@ export const SimulationWorkspace: React.FC = () => {
           </div>
 
           {/* Unlocked Evidence Explorer */}
-          <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 space-y-4 shadow-xl flex-1 flex flex-col">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-cyan-400" />
+          <div className="rounded-2xl bg-white border border-slate-200 p-5 space-y-4 shadow-sm flex-1 flex flex-col">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-600" />
                 Investigation Evidence Vault ({state.unlockedEvidence.length})
               </h3>
-              <span className="text-[10px] text-cyan-400">Inspecting Artifacts</span>
+              <span className="text-[10px] text-blue-600 font-semibold">Inspecting Artifacts</span>
             </div>
 
             {/* Evidence Selector Tabs */}
@@ -447,10 +447,10 @@ export const SimulationWorkspace: React.FC = () => {
                   <button
                     key={key}
                     onClick={() => setSelectedEvidenceKey(key)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 border ${
                       isSelected
-                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                        : 'bg-slate-800/80 hover:bg-slate-800 text-slate-300 border border-slate-700/60'
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
                     }`}
                   >
                     <Eye className="w-3 h-3" />
@@ -460,12 +460,12 @@ export const SimulationWorkspace: React.FC = () => {
               })}
             </div>
 
-            {/* Evidence Document Terminal Viewer */}
-            <div className="flex-1 rounded-xl bg-slate-950 border border-slate-800 p-4 font-mono text-xs overflow-auto max-h-[380px] shadow-inner">
+            {/* Evidence Document Viewer */}
+            <div className="flex-1 rounded-xl bg-slate-900 border border-slate-800 p-4 font-mono text-xs overflow-auto max-h-[380px] shadow-inner text-slate-200">
               {currentEvidence ? (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 border-b border-slate-800 pb-2">
-                    <span className="text-indigo-400 font-semibold">{currentEvidence.category}</span>
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 border-b border-slate-800 pb-2">
+                    <span className="text-blue-400 font-semibold">{currentEvidence.category}</span>
                     <span>{currentEvidence.title}</span>
                   </div>
                   <pre className="text-slate-200 whitespace-pre-wrap leading-relaxed select-text font-mono text-[11.5px]">
@@ -473,12 +473,12 @@ export const SimulationWorkspace: React.FC = () => {
                   </pre>
                 </div>
               ) : (
-                <p className="text-slate-500 italic">No evidence selected.</p>
+                <p className="text-slate-400 italic">No evidence selected.</p>
               )}
             </div>
 
             <p className="text-[11px] text-slate-500 italic flex items-center gap-1.5">
-              <Info className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+              <Info className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               Evidence updates as you progress through tasks and execute diagnostic decisions.
             </p>
           </div>

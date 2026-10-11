@@ -1,5 +1,5 @@
 export type SimulationStatus = 'Active' | 'Submitted' | 'TimedOut' | 'Aborted';
-export type AssignmentStatus = 'Assigned' | 'InProgress' | 'Completed' | 'Expired';
+export type AssignmentStatus = 'Assigned' | 'InProgress' | 'Completed' | 'Expired' | 'Cancelled';
 
 export interface SimulationScenario {
   id: string;
@@ -22,11 +22,18 @@ export interface AssessmentAssignment {
   scenarioId: string;
   scenarioTitle: string;
   scenarioCategory: string;
+  scenarioDescription?: string;
   estimatedDurationMinutes: number;
   isRequired: boolean;
   maxAllowedAttempts: number;
+  assignedAtUtc?: string;
   deadlineUtc: string;
   status: AssignmentStatus;
+  reminderSentAtUtc?: string | null;
+  cancelledAtUtc?: string | null;
+  cancellationReason?: string | null;
+  resentCount?: number;
+  lastResentAtUtc?: string | null;
   activeSessionId?: string | null;
   resultId?: string | null;
   totalScore?: number | null;
@@ -136,3 +143,43 @@ export interface AssignJobSimulationRequest {
   maxAllowedAttempts: number;
   deadlineDaysAfterAssignment: number;
 }
+
+export interface CompanyAssessmentTrackingItem {
+  assignmentId: string;
+  jobApplicationId: string;
+  candidateProfileId: string;
+  candidateName: string;
+  candidateEmail: string;
+  jobPostingId: string;
+  jobTitle: string;
+  scenarioTitle: string;
+  scenarioCategory: string;
+  isRequired: boolean;
+  status: AssignmentStatus;
+  assignedAtUtc: string;
+  deadlineUtc: string;
+  completedAtUtc?: string | null;
+  reminderSentAtUtc?: string | null;
+  cancelledAtUtc?: string | null;
+  cancellationReason?: string | null;
+  resentCount: number;
+  lastResentAtUtc?: string | null;
+  totalScore?: number | null;
+  resultId?: string | null;
+}
+
+export interface InAppNotification {
+  id: string;
+  notificationType: string;
+  title: string;
+  message: string;
+  actionUrl?: string | null;
+  isRead: boolean;
+  readAtUtc?: string | null;
+  createdAtUtc: string;
+}
+
+export interface UnreadNotificationCount {
+  unreadCount: number;
+}
+

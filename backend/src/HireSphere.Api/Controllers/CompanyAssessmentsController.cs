@@ -13,15 +13,18 @@ public class CompanyAssessmentsController : ControllerBase
 {
     private readonly IWorkSimManagementService _managementService;
     private readonly IWorkSimScoringService _scoringService;
+    private readonly IAssessmentWorkflowService _workflowService;
     private readonly ICurrentUserService _currentUserService;
 
     public CompanyAssessmentsController(
         IWorkSimManagementService managementService,
         IWorkSimScoringService scoringService,
+        IAssessmentWorkflowService workflowService,
         ICurrentUserService currentUserService)
     {
         _managementService = managementService;
         _scoringService = scoringService;
+        _workflowService = workflowService;
         _currentUserService = currentUserService;
     }
 
@@ -99,5 +102,62 @@ public class CompanyAssessmentsController : ControllerBase
         if (result == null) return NotFound(new { message = "No completed assessment result is available for this application." });
 
         return Ok(result);
+    }
+
+    [HttpGet("api/companies/{companyId:guid}/assessments/tracking")]
+    [ProducesResponseType(typeof(List<CompanyAssessmentTrackingItemDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetTracking(
+        Guid companyId,
+        [FromQuery] string? statusFilter,
+        [FromQuery] Guid? jobPostingId,
+        CancellationToken ct)
+    {
+        if (!_currentUserService.UserId.HasValue) return Unauthorized();
+
+        var tracking = await _workflowService.GetCompanyAssessmentTrackingAsync(
+            companyId, _currentUserService.UserId.Value, statusFilter, jobPostingId, ct);
+
+        return Ok(tracking);
+    }
+
+    [HttpPost("api/companies/{companyId:guid}/assessments/{assignmentId:guid}/resend")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> ResendInvitation(
+        Guid companyId,
+        Guid assignmentId,
+        CancellationToken ct)
+    {
+        if (!_currentUserService.UserId.HasValue) return Unauthorized();
+
+        await _workflowService.ResendAssessmentInvitationAsync(
+            companyId, _currentUserService.UserId.Value, assignmentId, ct);
+
+        return Ok(new { success = true, message = "Assessment invitation re-sent successfully." });
+    }
+
+    [HttpPost("api/companies/{companyId:guid}/assessments/{assignmentId:guid}/cancel")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> CancelInvitation(
+        Guid companyId,
+        Guid assignmentId,
+        [FromBody] CancelAssessmentInvitationRequest? request,
+        CancellationToken ct)
+    {
+        if (!_currentUserService.UserId.HasValue) return Unauthorized();
+
+        await _workflowService.CancelAssessmentInvitationAsync(
+            companyId, _currentUserService.UserId.Value, assignmentId, request?.Reason, ct);
+
+        return Ok(new { success = true, message = "Assessment invitation cancelled successfully." });
     }
 }

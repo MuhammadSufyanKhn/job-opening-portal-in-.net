@@ -36,5 +36,8 @@ public interface IApplicationDbContext
     DbSet<AssessmentResult> AssessmentResults { get; }
     DbSet<CriterionScore> CriterionScores { get; }
 
+    DbSet<Notification> Notifications { get; }
+    DbSet<EmailDeliveryAttempt> EmailDeliveryAttempts { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

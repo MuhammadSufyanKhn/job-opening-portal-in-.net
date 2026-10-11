@@ -209,6 +209,23 @@ GO
 
 ---
 
+### Script 9: `009_EnhanceAssessmentInvitationsAndNotifications.sql`
+* **Purpose:** Extends `dbo.AssessmentAssignments` with columns for reminder delivery (`ReminderSentAtUtc`), cancellations (`CancelledAtUtc`, `CancellationReason`), and resend tracking (`ResentCount`, `LastResentAtUtc`). Also ensures indexes and tables for in-app `Notifications` and `EmailDeliveryAttempts` exist.
+* **Objects Modified:** Alters `dbo.AssessmentAssignments`, creates/verifies `dbo.Notifications`, `dbo.EmailDeliveryAttempts`, and adds composite indexes.
+* **Prerequisites:** Scripts `004_CreateWorkSimAssessmentSchema.sql` and `005_CreateSubscriptionsAndOperationsSchema.sql` executed.
+* **Expected Order:** Execution Step 10.
+* **Rerun Safety (Idempotency):** Fully idempotent; guarded by `IF NOT EXISTS` column, index, and table checks.
+* **Data Impact:** Additive only; existing records receive `NULL` or default `0` without data loss.
+* **SSMS Verification Query:**
+  ```sql
+  SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_NAME = 'AssessmentAssignments'
+    AND COLUMN_NAME IN ('ReminderSentAtUtc', 'CancelledAtUtc', 'CancellationReason', 'ResentCount', 'LastResentAtUtc');
+  ```
+
+---
+
 ### Seed Script 1: `database/seeds/001_SeedInitialRolesAndAdmin.sql`
 * **Purpose:** Seeds foundational platform roles (`Candidate`, `CompanyMember`, `SuperAdmin`) into the `Roles` table with idempotent checks. Includes an optional, commented bootstrap block for a local development SuperAdmin (`admin@hiresphere.local`).
 * **Objects Modified:** Inserts into `Roles` (and conditionally `Users`, `UserRoles`).

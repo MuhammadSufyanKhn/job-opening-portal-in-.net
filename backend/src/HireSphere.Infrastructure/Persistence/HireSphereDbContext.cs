@@ -42,6 +42,9 @@ public class HireSphereDbContext : DbContext, IApplicationDbContext
     public DbSet<AssessmentResult> AssessmentResults => Set<AssessmentResult>();
     public DbSet<CriterionScore> CriterionScores => Set<CriterionScore>();
 
+    public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<EmailDeliveryAttempt> EmailDeliveryAttempts => Set<EmailDeliveryAttempt>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

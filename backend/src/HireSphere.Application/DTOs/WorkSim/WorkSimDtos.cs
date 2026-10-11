@@ -23,11 +23,18 @@ public class AssessmentAssignmentDto
     public Guid ScenarioId { get; set; }
     public string ScenarioTitle { get; set; } = string.Empty;
     public string ScenarioCategory { get; set; } = string.Empty;
+    public string ScenarioDescription { get; set; } = string.Empty;
     public int EstimatedDurationMinutes { get; set; }
     public bool IsRequired { get; set; }
     public int MaxAllowedAttempts { get; set; }
+    public DateTimeOffset AssignedAtUtc { get; set; }
     public DateTimeOffset DeadlineUtc { get; set; }
     public string Status { get; set; } = string.Empty;
+    public DateTimeOffset? ReminderSentAtUtc { get; set; }
+    public DateTimeOffset? CancelledAtUtc { get; set; }
+    public string? CancellationReason { get; set; }
+    public int ResentCount { get; set; }
+    public DateTimeOffset? LastResentAtUtc { get; set; }
     public Guid? ActiveSessionId { get; set; }
     public Guid? ResultId { get; set; }
     public decimal? TotalScore { get; set; }
@@ -138,3 +145,39 @@ public class JobAssessmentConfigurationDto
     public int DeadlineDaysAfterAssignment { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
 }
+
+public class CompanyAssessmentTrackingItemDto
+{
+    public Guid AssignmentId { get; set; }
+    public Guid JobApplicationId { get; set; }
+    public Guid CandidateProfileId { get; set; }
+    public string CandidateName { get; set; } = string.Empty;
+    public string CandidateEmail { get; set; } = string.Empty;
+    public Guid JobPostingId { get; set; }
+    public string JobTitle { get; set; } = string.Empty;
+    public string ScenarioTitle { get; set; } = string.Empty;
+    public string ScenarioCategory { get; set; } = string.Empty;
+    public bool IsRequired { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public DateTimeOffset AssignedAtUtc { get; set; }
+    public DateTimeOffset DeadlineUtc { get; set; }
+    public DateTimeOffset? CompletedAtUtc { get; set; }
+    public DateTimeOffset? ReminderSentAtUtc { get; set; }
+    public DateTimeOffset? CancelledAtUtc { get; set; }
+    public string? CancellationReason { get; set; }
+    public int ResentCount { get; set; }
+    public DateTimeOffset? LastResentAtUtc { get; set; }
+    public decimal? TotalScore { get; set; }
+    public Guid? ResultId { get; set; }
+}
+
+public class CancelAssessmentInvitationRequest
+{
+    public string? Reason { get; set; }
+}
+
+public record AssessmentDeadlineProcessResultDto(
+    int ExpiredCount,
+    int RemindersSentCount,
+    DateTimeOffset ProcessedAtUtc);
+

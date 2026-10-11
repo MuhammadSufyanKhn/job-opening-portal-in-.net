@@ -24,11 +24,19 @@ public class ApplicationService : IApplicationService
 {
     private readonly IApplicationDbContext _context;
     private readonly IAuditService _auditService;
+    private readonly INotificationService? _notificationService;
+    private readonly IEmailService? _emailService;
 
-    public ApplicationService(IApplicationDbContext context, IAuditService auditService)
+    public ApplicationService(
+        IApplicationDbContext context,
+        IAuditService auditService,
+        INotificationService? notificationService = null,
+        IEmailService? emailService = null)
     {
         _context = context;
         _auditService = auditService;
+        _notificationService = notificationService;
+        _emailService = emailService;
     }
 
     public async Task<CandidateApplicationDetailDto> SubmitApplicationAsync(Guid jobId, Guid userId, SubmitApplicationRequest request, CancellationToken ct = default)
@@ -118,8 +126,11 @@ public class ApplicationService : IApplicationService
 
         // Auto-assign WorkSim simulation if job has an assessment configured
         var assessmentConfig = await _context.JobAssessmentConfigurations
+            .Include(c => c.ScenarioVersion)
+                .ThenInclude(v => v.SimulationScenario)
             .FirstOrDefaultAsync(c => c.JobPostingId == job.Id, ct);
 
+        HireSphere.Application.DTOs.WorkSim.AssessmentAssignmentDto? assessmentDto = null;
         if (assessmentConfig != null)
         {
             var assignment = new AssessmentAssignment
@@ -134,6 +145,51 @@ public class ApplicationService : IApplicationService
             };
             _context.AssessmentAssignments.Add(assignment);
             await _context.SaveChangesAsync(ct);
+
+            var scenario = assessmentConfig.ScenarioVersion.SimulationScenario;
+
+            if (_notificationService != null)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    userId: userId,
+                    notificationType: "AssessmentInvitationCreated",
+                    title: "Assessment Required: " + scenario.Title,
+                    message: $"You have been invited to complete the '{scenario.Title}' assessment for {job.Title} at {job.Company.Name}. Deadline: {assignment.DeadlineUtc:MMM dd, yyyy}.",
+                    actionUrl: "/candidate/simulations",
+                    ct: ct);
+            }
+
+            if (_emailService != null)
+            {
+                await _emailService.SendAssessmentInvitationEmailAsync(
+                    recipientEmail: candidateProfile.User.Email,
+                    candidateName: candidateProfile.User.FullName,
+                    companyName: job.Company.Name,
+                    jobTitle: job.Title,
+                    assessmentTitle: scenario.Title,
+                    isRequired: assessmentConfig.IsRequired,
+                    deadlineUtc: assignment.DeadlineUtc,
+                    invitationLink: "/candidate/simulations",
+                    cancellationToken: ct);
+            }
+
+            assessmentDto = new HireSphere.Application.DTOs.WorkSim.AssessmentAssignmentDto
+            {
+                AssignmentId = assignment.Id,
+                JobApplicationId = application.Id,
+                JobTitle = job.Title,
+                CompanyName = job.Company.Name,
+                ScenarioId = scenario.Id,
+                ScenarioTitle = scenario.Title,
+                ScenarioCategory = scenario.Category,
+                ScenarioDescription = scenario.Description,
+                EstimatedDurationMinutes = scenario.EstimatedDurationMinutes,
+                IsRequired = assessmentConfig.IsRequired,
+                MaxAllowedAttempts = assessmentConfig.MaxAllowedAttempts,
+                AssignedAtUtc = assignment.AssignedAtUtc,
+                DeadlineUtc = assignment.DeadlineUtc,
+                Status = assignment.Status.ToString()
+            };
         }
 
         await _auditService.LogAsync(
@@ -161,7 +217,8 @@ public class ApplicationService : IApplicationService
             new List<ApplicationStatusHistoryDto>
             {
                 new(initialHistory.Id, initialHistory.PreviousStage, initialHistory.NewStage, candidateProfile.User.FullName, initialHistory.ReasonNote, initialHistory.CreatedAtUtc)
-            });
+            },
+            assessmentDto);
     }
 
     public async Task<IReadOnlyList<CandidateApplicationSummaryDto>> GetCandidateApplicationsAsync(Guid userId, CancellationToken ct = default)
@@ -220,6 +277,49 @@ public class ApplicationService : IApplicationService
                 h.CreatedAtUtc))
             .ToList();
 
+        var assignment = await _context.AssessmentAssignments
+            .Include(a => a.JobAssessmentConfiguration)
+                .ThenInclude(c => c.ScenarioVersion)
+                    .ThenInclude(v => v.SimulationScenario)
+            .Include(a => a.Sessions)
+                .ThenInclude(s => s.AssessmentResult)
+            .FirstOrDefaultAsync(a => a.JobApplicationId == application.Id, ct);
+
+        HireSphere.Application.DTOs.WorkSim.AssessmentAssignmentDto? assessmentDto = null;
+        if (assignment != null)
+        {
+            var activeSession = assignment.Sessions.FirstOrDefault(s => s.Status == SimulationSessionStatus.Active);
+            var completedSession = assignment.Sessions.OrderByDescending(s => s.StartedAtUtc).FirstOrDefault(s => s.AssessmentResult != null);
+            var scenario = assignment.JobAssessmentConfiguration.ScenarioVersion.SimulationScenario;
+
+            assessmentDto = new HireSphere.Application.DTOs.WorkSim.AssessmentAssignmentDto
+            {
+                AssignmentId = assignment.Id,
+                JobApplicationId = assignment.JobApplicationId,
+                JobTitle = application.JobPosting.Title,
+                CompanyName = application.Company.Name,
+                ScenarioId = scenario.Id,
+                ScenarioTitle = scenario.Title,
+                ScenarioCategory = scenario.Category,
+                ScenarioDescription = scenario.Description,
+                EstimatedDurationMinutes = scenario.EstimatedDurationMinutes,
+                IsRequired = assignment.JobAssessmentConfiguration.IsRequired,
+                MaxAllowedAttempts = assignment.JobAssessmentConfiguration.MaxAllowedAttempts,
+                AssignedAtUtc = assignment.AssignedAtUtc,
+                DeadlineUtc = assignment.DeadlineUtc,
+                Status = assignment.Status.ToString(),
+                ReminderSentAtUtc = assignment.ReminderSentAtUtc,
+                CancelledAtUtc = assignment.CancelledAtUtc,
+                CancellationReason = assignment.CancellationReason,
+                ResentCount = assignment.ResentCount,
+                LastResentAtUtc = assignment.LastResentAtUtc,
+                ActiveSessionId = activeSession?.Id ?? completedSession?.Id,
+                ResultId = completedSession?.AssessmentResult?.Id,
+                TotalScore = completedSession?.AssessmentResult?.TotalScore,
+                CompletedAtUtc = assignment.CompletedAtUtc
+            };
+        }
+
         return new CandidateApplicationDetailDto(
             application.Id,
             application.JobPostingId,
@@ -234,7 +334,8 @@ public class ApplicationService : IApplicationService
             application.SubmittedAtUtc,
             application.StageUpdatedAtUtc,
             application.CandidateCoverNote,
-            timeline);
+            timeline,
+            assessmentDto);
     }
 
     public async Task<CandidateApplicationDetailDto> WithdrawApplicationAsync(Guid applicationId, Guid userId, CancellationToken ct = default)
@@ -387,6 +488,49 @@ public class ApplicationService : IApplicationService
                 h.CreatedAtUtc))
             .ToList();
 
+        var assignment = await _context.AssessmentAssignments
+            .Include(a => a.JobAssessmentConfiguration)
+                .ThenInclude(c => c.ScenarioVersion)
+                    .ThenInclude(v => v.SimulationScenario)
+            .Include(a => a.Sessions)
+                .ThenInclude(s => s.AssessmentResult)
+            .FirstOrDefaultAsync(a => a.JobApplicationId == application.Id, ct);
+
+        HireSphere.Application.DTOs.WorkSim.AssessmentAssignmentDto? assessmentDto = null;
+        if (assignment != null)
+        {
+            var activeSession = assignment.Sessions.FirstOrDefault(s => s.Status == SimulationSessionStatus.Active);
+            var completedSession = assignment.Sessions.OrderByDescending(s => s.StartedAtUtc).FirstOrDefault(s => s.AssessmentResult != null);
+            var scenario = assignment.JobAssessmentConfiguration.ScenarioVersion.SimulationScenario;
+
+            assessmentDto = new HireSphere.Application.DTOs.WorkSim.AssessmentAssignmentDto
+            {
+                AssignmentId = assignment.Id,
+                JobApplicationId = assignment.JobApplicationId,
+                JobTitle = application.JobPosting.Title,
+                CompanyName = application.JobPosting.Company?.Name ?? "",
+                ScenarioId = scenario.Id,
+                ScenarioTitle = scenario.Title,
+                ScenarioCategory = scenario.Category,
+                ScenarioDescription = scenario.Description,
+                EstimatedDurationMinutes = scenario.EstimatedDurationMinutes,
+                IsRequired = assignment.JobAssessmentConfiguration.IsRequired,
+                MaxAllowedAttempts = assignment.JobAssessmentConfiguration.MaxAllowedAttempts,
+                AssignedAtUtc = assignment.AssignedAtUtc,
+                DeadlineUtc = assignment.DeadlineUtc,
+                Status = assignment.Status.ToString(),
+                ReminderSentAtUtc = assignment.ReminderSentAtUtc,
+                CancelledAtUtc = assignment.CancelledAtUtc,
+                CancellationReason = assignment.CancellationReason,
+                ResentCount = assignment.ResentCount,
+                LastResentAtUtc = assignment.LastResentAtUtc,
+                ActiveSessionId = activeSession?.Id ?? completedSession?.Id,
+                ResultId = completedSession?.AssessmentResult?.Id,
+                TotalScore = completedSession?.AssessmentResult?.TotalScore,
+                CompletedAtUtc = assignment.CompletedAtUtc
+            };
+        }
+
         var profile = application.CandidateProfile;
 
         return new CompanyApplicationDetailDto(
@@ -409,7 +553,8 @@ public class ApplicationService : IApplicationService
             application.CandidateCoverNote,
             timeline,
             application.CandidateDocumentId,
-            application.CandidateDocument?.OriginalFileName);
+            application.CandidateDocument?.OriginalFileName,
+            assessmentDto);
     }
 
     public async Task<CompanyApplicationDetailDto> UpdateApplicationStageAsync(Guid companyId, Guid applicationId, Guid userId, UpdateApplicationStageRequest request, CancellationToken ct = default)

@@ -183,6 +183,28 @@ export const workSimApi = {
     api.delete(`/companies/${companyId}/jobs/${jobId}/assessments`),
   getApplicationAssessmentResult: (companyId: string, applicationId: string) =>
     api.get<import('../types/worksim').AssessmentResult>(`/companies/${companyId}/applications/${applicationId}/assessment-result`).then(r => r.data),
+  getAssignmentDetails: (assignmentId: string) =>
+    api.get<import('../types/worksim').AssessmentAssignment>(`/candidate/simulations/assignments/${assignmentId}`).then(r => r.data),
+  getCompanyTracking: (companyId: string, statusFilter?: string, jobPostingId?: string) =>
+    api.get<import('../types/worksim').CompanyAssessmentTrackingItem[]>(`/companies/${companyId}/assessments/tracking`, {
+      params: { statusFilter: statusFilter || undefined, jobPostingId: jobPostingId || undefined },
+    }).then(r => r.data),
+  resendInvitation: (companyId: string, assignmentId: string) =>
+    api.post<{ success: boolean; message: string }>(`/companies/${companyId}/assessments/${assignmentId}/resend`).then(r => r.data),
+  cancelInvitation: (companyId: string, assignmentId: string, reason?: string) =>
+    api.post<{ success: boolean; message: string }>(`/companies/${companyId}/assessments/${assignmentId}/cancel`, { reason }).then(r => r.data),
+};
+
+// In-App Notifications API
+export const notificationsApi = {
+  getNotifications: (limit: number = 30) =>
+    api.get<import('../types/worksim').InAppNotification[]>('/notifications', { params: { limit } }).then(r => r.data),
+  getUnreadCount: () =>
+    api.get<import('../types/worksim').UnreadNotificationCount>('/notifications/unread-count').then(r => r.data),
+  markAsRead: (id: string) =>
+    api.post(`/notifications/${id}/read`).then(r => r.data),
+  markAllAsRead: () =>
+    api.post('/notifications/read-all').then(r => r.data),
 };
 
 
