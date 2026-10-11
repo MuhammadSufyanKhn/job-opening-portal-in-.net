@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Search, 
   MapPin, 
@@ -10,14 +10,24 @@ import {
   ChevronLeft, 
   ChevronRight,
   ArrowRight,
-  Building2
+  Building2,
+  Bookmark,
+  CheckCircle2
 } from 'lucide-react';
-import { jobsApi } from '../services/api';
+import { jobsApi, candidateSavedJobsApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import type { PublicJobPostingSummary, JobCategory } from '../types/recruitment';
 
 export const Jobs: React.FC = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, isCandidate } = useAuth();
+
   const [jobs, setJobs] = useState<PublicJobPostingSummary[]>([]);
   const [categories, setCategories] = useState<JobCategory[]>([]);
+  const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
+  const [savingJobId, setSavingJobId] = useState<string | null>(null);
+  const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,13 +37,17 @@ export const Jobs: React.FC = () => {
   const [categoryId, setCategoryId] = useState<string>('');
   const [workplaceType, setWorkplaceType] = useState<string>('');
   const [employmentType, setEmploymentType] = useState<string>('');
+  const [viewSavedOnly, setViewSavedOnly] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     loadCategories();
-  }, []);
+    if (isCandidate) {
+      loadSavedJobIds();
+    }
+  }, [isCandidate]);
 
   useEffect(() => {
     loadJobs();
@@ -45,6 +59,15 @@ export const Jobs: React.FC = () => {
       setCategories(data);
     } catch (err) {
       console.error('Failed to load categories', err);
+    }
+  };
+
+  const loadSavedJobIds = async () => {
+    try {
+      const savedList = await candidateSavedJobsApi.getSavedJobs();
+      setSavedJobIds(new Set(savedList.map(s => s.jobId)));
+    } catch {
+      // Gracefully ignore if not candidate or table empty
     }
   };
 
@@ -79,6 +102,47 @@ export const Jobs: React.FC = () => {
     loadJobs();
   };
 
+  const handleToggleSave = async (jobId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      navigate('/login?redirect=/jobs');
+      return;
+    }
+
+    if (!isCandidate) {
+      setFeedbackMsg('Job bookmarking is available for candidate accounts.');
+      setTimeout(() => setFeedbackMsg(null), 3000);
+      return;
+    }
+
+    setSavingJobId(jobId);
+    const isCurrentlySaved = savedJobIds.has(jobId);
+
+    try {
+      if (isCurrentlySaved) {
+        await candidateSavedJobsApi.unsaveJob(jobId);
+        setSavedJobIds(prev => {
+          const next = new Set(prev);
+          next.delete(jobId);
+          return next;
+        });
+        setFeedbackMsg('Job removed from your saved bookmarks.');
+      } else {
+        await candidateSavedJobsApi.saveJob(jobId);
+        setSavedJobIds(prev => new Set(prev).add(jobId));
+        setFeedbackMsg('Job saved to your bookmarks.');
+      }
+      setTimeout(() => setFeedbackMsg(null), 3000);
+    } catch {
+      setFeedbackMsg('Unable to update bookmark status.');
+      setTimeout(() => setFeedbackMsg(null), 3000);
+    } finally {
+      setSavingJobId(null);
+    }
+  };
+
   const getWorkplaceBadge = (type: any) => {
     const map: Record<string, { label: string; color: string }> = {
       '0': { label: 'On-Site', color: 'badge-outline' },
@@ -107,30 +171,41 @@ export const Jobs: React.FC = () => {
     return map[String(type)] || 'Full-Time';
   };
 
+  const displayedJobs = viewSavedOnly
+    ? jobs.filter(j => savedJobIds.has(j.id))
+    : jobs;
+
   return (
-    <div className="container" style={{ padding: '2rem 1rem' }}>
+    <div className="container" style={{ padding: '2rem 1rem 5rem' }}>
       {/* Page Header */}
       <div style={{ marginBottom: '2.5rem', textAlign: 'center' }}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '0.75rem', letterSpacing: '-0.025em' }}>
           Explore Open <span style={{ color: 'var(--color-primary)' }}>Opportunities</span>
         </h1>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '1.125rem', maxWidth: '640px', margin: '0 auto' }}>
-          Discover verified vacancies from approved employers with transparent qualifications and direct application tracking.
+          Discover verified vacancies with transparent qualification criteria, direct CV matching, and real-time application tracking.
         </p>
       </div>
 
+      {feedbackMsg && (
+        <div className="alert alert-success" style={{ maxWidth: '700px', margin: '0 auto 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <CheckCircle2 size={16} />
+          <span>{feedbackMsg}</span>
+        </div>
+      )}
+
       {/* Search & Filter Bar */}
-      <form onSubmit={handleSearchSubmit} className="card" style={{ padding: '1.25rem', marginBottom: '2rem' }}>
+      <form onSubmit={handleSearchSubmit} className="card" style={{ padding: '1.25rem', marginBottom: '1.75rem' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', alignItems: 'end' }}>
           <div>
-            <label className="form-label" style={{ fontSize: '0.85rem' }}>Job Title or Keyword</label>
+            <label className="form-label" style={{ fontSize: '0.85rem' }}>Job Title, Keyword, or Skill</label>
             <div style={{ position: 'relative' }}>
               <Search size={18} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
               <input 
                 type="text" 
                 className="input" 
                 style={{ paddingLeft: '2.5rem' }}
-                placeholder="e.g. .NET Architect, React, AI" 
+                placeholder="e.g. .NET, React, Docker, Python" 
                 value={search} 
                 onChange={(e) => setSearch(e.target.value)} 
               />
@@ -181,7 +256,7 @@ export const Jobs: React.FC = () => {
           </div>
 
           <div>
-            <label className="form-label" style={{ fontSize: '0.85rem' }}>Employment</label>
+            <label className="form-label" style={{ fontSize: '0.85rem' }}>Employment Type</label>
             <select 
               className="input" 
               value={employmentType} 
@@ -195,11 +270,33 @@ export const Jobs: React.FC = () => {
             </select>
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-            <Filter size={18} />
-            Filter
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button type="submit" className="btn btn-primary" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
+              <Filter size={16} /> Filter
+            </button>
+          </div>
         </div>
+
+        {/* Candidate Tab Filter (All vs Saved) */}
+        {isCandidate && (
+          <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button
+              type="button"
+              onClick={() => setViewSavedOnly(false)}
+              className={`btn btn-sm ${!viewSavedOnly ? 'btn-primary' : 'btn-outline'}`}
+            >
+              All Openings ({totalCount})
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewSavedOnly(true)}
+              className={`btn btn-sm ${viewSavedOnly ? 'btn-primary' : 'btn-outline'}`}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+            >
+              <Bookmark size={14} /> Saved Bookmarks ({savedJobIds.size})
+            </button>
+          </div>
+        )}
       </form>
 
       {/* Results Section */}
@@ -213,16 +310,20 @@ export const Jobs: React.FC = () => {
           <p style={{ color: 'var(--color-danger)', marginBottom: '1rem' }}>{error}</p>
           <button className="btn btn-outline" onClick={loadJobs}>Try Again</button>
         </div>
-      ) : jobs.length === 0 ? (
+      ) : displayedJobs.length === 0 ? (
         <div className="card" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
           <Briefcase size={48} style={{ color: 'var(--color-text-muted)', margin: '0 auto 1rem' }} />
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>No Vacancies Found</h3>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+            {viewSavedOnly ? 'No Saved Vacancies Found' : 'No Vacancies Found'}
+          </h3>
           <p style={{ color: 'var(--color-text-muted)', maxWidth: '400px', margin: '0 auto 1.5rem' }}>
-            No published jobs match your selected filter criteria. Try broadening your keywords or resetting filters.
+            {viewSavedOnly
+              ? 'You have not saved any jobs yet, or saved vacancies are no longer published.'
+              : 'No published jobs match your selected filter criteria. Try broadening your keywords or resetting filters.'}
           </p>
           <button 
             className="btn btn-outline" 
-            onClick={() => { setSearch(''); setLocation(''); setCategoryId(''); setWorkplaceType(''); setEmploymentType(''); setPage(1); }}
+            onClick={() => { setSearch(''); setLocation(''); setCategoryId(''); setWorkplaceType(''); setEmploymentType(''); setViewSavedOnly(false); setPage(1); }}
           >
             Reset All Filters
           </button>
@@ -231,103 +332,148 @@ export const Jobs: React.FC = () => {
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-              Showing <span style={{ color: 'var(--color-text-main)', fontWeight: 600 }}>{jobs.length}</span> of <span style={{ color: 'var(--color-text-main)', fontWeight: 600 }}>{totalCount}</span> verified vacancies
+              Showing <span style={{ color: 'var(--color-text-main)', fontWeight: 600 }}>{displayedJobs.length}</span> verified vacancies
             </p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
-            {jobs.map((job) => (
-              <div 
-                key={job.id} 
-                className="card" 
-                style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  justifyContent: 'space-between',
-                  padding: '1.5rem',
-                  transition: 'transform 0.2s ease, border-color 0.2s ease',
-                  cursor: 'pointer'
-                }}
-              >
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-                      <div style={{ 
-                        width: '36px', 
-                        height: '36px', 
-                        borderRadius: '8px', 
-                        backgroundColor: 'var(--color-surface-hover)', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center',
-                        color: 'var(--color-primary)'
-                      }}>
-                        <Building2 size={20} />
+            {displayedJobs.map((job) => {
+              const isSaved = savedJobIds.has(job.id);
+              return (
+                <div 
+                  key={job.id} 
+                  className="card" 
+                  style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    justifyContent: 'space-between',
+                    padding: '1.5rem',
+                    transition: 'transform 0.2s ease, border-color 0.2s ease',
+                    position: 'relative'
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                        <div style={{ 
+                          width: '36px', 
+                          height: '36px', 
+                          borderRadius: '8px', 
+                          backgroundColor: 'var(--color-surface-hover)', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          color: 'var(--color-primary)'
+                        }}>
+                          <Building2 size={20} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
+                            {job.companyName}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--color-primary)' }}>
+                            {job.categoryName}
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
-                          {job.companyName}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--color-primary)' }}>
-                          {job.categoryName}
-                        </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        {getWorkplaceBadge(job.workplaceType)}
+                        {/* Bookmark Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => handleToggleSave(job.id, e)}
+                          title={isSaved ? 'Remove bookmark' : 'Save job'}
+                          disabled={savingJobId === job.id}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: isSaved ? '#0284c7' : 'var(--color-text-muted)',
+                            padding: '0.2rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Bookmark size={18} fill={isSaved ? '#0284c7' : 'none'} />
+                        </button>
                       </div>
                     </div>
-                    {getWorkplaceBadge(job.workplaceType)}
-                  </div>
 
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem', lineHeight: 1.3 }}>
-                    <Link to={`/jobs/${job.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-                      {job.title}
-                    </Link>
-                  </h3>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem', lineHeight: 1.3 }}>
+                      <Link to={`/jobs/${job.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                        {job.title}
+                      </Link>
+                    </h3>
 
-                  <p style={{ 
-                    color: 'var(--color-text-muted)', 
-                    fontSize: '0.875rem', 
-                    lineHeight: 1.5,
-                    marginBottom: '1rem',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden'
-                  }}>
-                    {job.summary}
-                  </p>
+                    <p style={{ 
+                      color: 'var(--color-text-muted)', 
+                      fontSize: '0.875rem', 
+                      lineHeight: 1.5,
+                      marginBottom: '1rem',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}>
+                      {job.summary}
+                    </p>
 
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '1.25rem' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <MapPin size={14} /> {job.location}
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <Briefcase size={14} /> {getEmploymentBadge(job.employmentType)}
-                    </span>
-                    {job.salaryMin != null && job.salaryMax != null && (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--color-emerald)' }}>
-                        <DollarSign size={14} /> {job.salaryCurrency} {job.salaryMin.toLocaleString()} - {job.salaryMax.toLocaleString()}
-                      </span>
+                    {/* Top Required Skills Tags */}
+                    {job.topSkills && job.topSkills.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '1rem' }}>
+                        {job.topSkills.map((skill, sIdx) => (
+                          <span
+                            key={sIdx}
+                            style={{
+                              fontSize: '0.72rem',
+                              padding: '0.15rem 0.5rem',
+                              backgroundColor: 'rgba(238, 246, 255, 0.8)',
+                              color: '#0369a1',
+                              borderRadius: 'var(--radius-sm)',
+                              border: '1px solid rgba(186, 230, 253, 0.6)'
+                            }}
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
                     )}
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '1.25rem' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <MapPin size={14} /> {job.location}
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <Briefcase size={14} /> {getEmploymentBadge(job.employmentType)}
+                      </span>
+                      {job.salaryMin != null && job.salaryMax != null && (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--color-emerald)' }}>
+                          <DollarSign size={14} /> {job.salaryCurrency} {job.salaryMin.toLocaleString()} - {job.salaryMax.toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <Calendar size={13} /> {job.publishedAtUtc ? new Date(job.publishedAtUtc).toLocaleDateString() : 'Recent'}
+                    </span>
+                    <Link 
+                      to={`/jobs/${job.id}`} 
+                      className="btn btn-outline" 
+                      style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                    >
+                      View Details <ArrowRight size={14} />
+                    </Link>
                   </div>
                 </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <Calendar size={13} /> {job.publishedAtUtc ? new Date(job.publishedAtUtc).toLocaleDateString() : 'Recent'}
-                  </span>
-                  <Link 
-                    to={`/jobs/${job.id}`} 
-                    className="btn btn-outline" 
-                    style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-                  >
-                    View Details <ArrowRight size={14} />
-                  </Link>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
+          {!viewSavedOnly && totalPages > 1 && (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2rem' }}>
               <button 
                 className="btn btn-outline" 

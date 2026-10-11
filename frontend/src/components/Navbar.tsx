@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Building2, UserCircle, Shield, LogOut, Briefcase, Users, FileText, Terminal } from 'lucide-react';
+import { Building2, UserCircle, Shield, LogOut, Briefcase, Users, FileText, Terminal, TrendingUp } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 
 export const Navbar: React.FC = () => {
@@ -28,6 +28,10 @@ export const Navbar: React.FC = () => {
             <>
               {isCandidate && (
                 <>
+                  <Link to="/candidate/dashboard" className="nav-link">
+                    <TrendingUp size={17} />
+                    <span>Dashboard</span>
+                  </Link>
                   <Link to="/candidate/applications" className="nav-link">
                     <FileText size={17} />
                     <span>My Applications</span>
@@ -56,6 +60,10 @@ export const Navbar: React.FC = () => {
                   <Link to="/company/applications" className="nav-link">
                     <Users size={17} />
                     <span>Applicants</span>
+                  </Link>
+                  <Link to="/company/analytics" className="nav-link">
+                    <TrendingUp size={17} />
+                    <span>Analytics</span>
                   </Link>
                   <Link to="/company/dashboard" className="nav-link">
                     <Building2 size={17} />

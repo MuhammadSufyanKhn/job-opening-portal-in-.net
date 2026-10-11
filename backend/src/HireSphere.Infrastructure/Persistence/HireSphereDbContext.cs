@@ -26,6 +26,7 @@ public class HireSphereDbContext : DbContext, IApplicationDbContext
     public DbSet<JobRequirement> JobRequirements => Set<JobRequirement>();
     public DbSet<JobDescriptionVersion> JobDescriptionVersions => Set<JobDescriptionVersion>();
     public DbSet<CandidateDocument> CandidateDocuments => Set<CandidateDocument>();
+    public DbSet<CandidateSavedJob> CandidateSavedJobs => Set<CandidateSavedJob>();
     public DbSet<JobApplication> JobApplications => Set<JobApplication>();
     public DbSet<ApplicationStatusHistory> ApplicationStatusHistories => Set<ApplicationStatusHistory>();
     public DbSet<CandidateNote> CandidateNotes => Set<CandidateNote>();

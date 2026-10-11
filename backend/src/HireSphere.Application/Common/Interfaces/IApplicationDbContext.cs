@@ -20,6 +20,7 @@ public interface IApplicationDbContext
     DbSet<JobRequirement> JobRequirements { get; }
     DbSet<JobDescriptionVersion> JobDescriptionVersions { get; }
     DbSet<CandidateDocument> CandidateDocuments { get; }
+    DbSet<CandidateSavedJob> CandidateSavedJobs { get; }
     DbSet<JobApplication> JobApplications { get; }
     DbSet<ApplicationStatusHistory> ApplicationStatusHistories { get; }
     DbSet<CandidateNote> CandidateNotes { get; }

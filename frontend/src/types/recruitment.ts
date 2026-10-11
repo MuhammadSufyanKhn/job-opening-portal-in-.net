@@ -97,6 +97,7 @@ export interface PublicJobPostingSummary {
   salaryCurrency: string;
   publishedAtUtc?: string;
   expiresAtUtc?: string;
+  topSkills?: string[];
 }
 
 export interface PublicJobPostingDetail extends PublicJobPostingSummary {

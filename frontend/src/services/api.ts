@@ -245,5 +245,59 @@ export const notificationsApi = {
     api.post('/notifications/read-all').then(r => r.data),
 };
 
+// Recruitment Analytics & Reporting API
+export const analyticsApi = {
+  getCompanyAnalytics: (companyId: string, params?: import('../types/analytics').DateRangeFilter) =>
+    api.get<import('../types/analytics').CompanyRecruitmentOverview>(`/companies/${companyId}/analytics`, { params }).then(r => r.data),
+  getJobAnalytics: (companyId: string, jobId: string, params?: import('../types/analytics').DateRangeFilter) =>
+    api.get<import('../types/analytics').JobDetailAnalytics>(`/companies/${companyId}/analytics/jobs/${jobId}`, { params }).then(r => r.data),
+  downloadCompanyAnalyticsCsv: async (companyId: string, params?: import('../types/analytics').DateRangeFilter) => {
+    const response = await api.get(`/companies/${companyId}/analytics/export-csv`, {
+      params,
+      responseType: 'blob',
+    });
+    const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    let fileName = `hiresphere_recruitment_report_${new Date().toISOString().slice(0, 10)}.csv`;
+    const disposition = response.headers['content-disposition'];
+    if (disposition && disposition.indexOf('filename=') !== -1) {
+      const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (match && match[1]) {
+        fileName = match[1].replace(/['"]/g, '');
+      }
+    }
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
+  getPlatformAnalytics: (params?: import('../types/analytics').DateRangeFilter) =>
+    api.get<import('../types/analytics').PlatformAnalyticsOverview>('/admin/dashboard/analytics', { params }).then(r => r.data),
+};
+
+// Candidate Dashboard API
+export const candidateDashboardApi = {
+  getDashboard: () =>
+    api.get<import('../types/candidate').CandidateDashboard>('/candidate/dashboard').then(r => r.data),
+  getCvSuggestions: () =>
+    api.get<import('../types/candidate').ExtractedCvSuggestions>('/candidate/cv-suggestions').then(r => r.data),
+};
+
+// Candidate Saved Jobs API
+export const candidateSavedJobsApi = {
+  getSavedJobs: () =>
+    api.get<import('../types/candidate').SavedJobSummary[]>('/candidate/saved-jobs').then(r => r.data),
+  saveJob: (jobId: string) =>
+    api.post<import('../types/candidate').SavedJobSummary>(`/candidate/saved-jobs/${jobId}`).then(r => r.data),
+  unsaveJob: (jobId: string) =>
+    api.delete(`/candidate/saved-jobs/${jobId}`).then(r => r.data),
+  checkSavedStatus: (jobId: string) =>
+    api.get<{ jobId: string; isSaved: boolean }>(`/candidate/saved-jobs/${jobId}/status`).then(r => r.data),
+};
+
+
 
 

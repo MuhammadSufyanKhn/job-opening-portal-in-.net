@@ -44,7 +44,14 @@ public class JobMarketplaceService : IJobMarketplaceService
             query = query.Where(j => j.Title.ToLower().Contains(search)
                                      || j.Summary.ToLower().Contains(search)
                                      || j.Description.ToLower().Contains(search)
-                                     || j.Company.Name.ToLower().Contains(search));
+                                     || j.Company.Name.ToLower().Contains(search)
+                                     || j.Requirements.Any(r => r.RequirementText.ToLower().Contains(search)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Skill))
+        {
+            var skill = request.Skill.Trim().ToLower();
+            query = query.Where(j => j.Requirements.Any(r => r.RequirementCategory == RequirementCategory.Skill && r.RequirementText.ToLower().Contains(skill)));
         }
 
         if (!string.IsNullOrWhiteSpace(request.Location))
@@ -106,7 +113,13 @@ public class JobMarketplaceService : IJobMarketplaceService
                 j.SalaryMax,
                 j.SalaryCurrency,
                 j.PublishedAtUtc,
-                j.ExpiresAtUtc))
+                j.ExpiresAtUtc,
+                j.Requirements
+                    .Where(r => r.RequirementCategory == RequirementCategory.Skill)
+                    .OrderBy(r => r.DisplayOrder)
+                    .Select(r => r.RequirementText)
+                    .Take(4)
+                    .ToList()))
             .ToListAsync(ct);
 
         int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);

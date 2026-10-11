@@ -13,9 +13,10 @@ import {
   Send, 
   ShieldCheck,
   Star,
-  Sparkles
+  Sparkles,
+  Bookmark
 } from 'lucide-react';
-import { jobsApi, candidateApplicationsApi, candidateDocumentsApi } from '../services/api';
+import { jobsApi, candidateApplicationsApi, candidateDocumentsApi, candidateSavedJobsApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import type { PublicJobPostingDetail, JobRequirement } from '../types/recruitment';
 import type { CandidateDocumentSummary } from '../types/document';
@@ -28,6 +29,14 @@ export const JobDetail: React.FC = () => {
   const [job, setJob] = useState<PublicJobPostingDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Saved job bookmark state
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSavingBookmark, setIsSavingBookmark] = useState(false);
+  const [bookmarkFeedback, setBookmarkFeedback] = useState<string | null>(null);
+
+  // Existing application check
+  const [existingApplication, setExistingApplication] = useState<any | null>(null);
 
   // Apply modal state
   const [showApplyModal, setShowApplyModal] = useState(false);
@@ -42,8 +51,49 @@ export const JobDetail: React.FC = () => {
   useEffect(() => {
     if (id) {
       loadJob(id);
+      if (isCandidate) {
+        checkCandidateStatus(id);
+      }
     }
-  }, [id]);
+  }, [id, isCandidate]);
+
+  const checkCandidateStatus = async (jobId: string) => {
+    try {
+      const [savedRes, myApps] = await Promise.all([
+        candidateSavedJobsApi.checkSavedStatus(jobId).catch(() => ({ isSaved: false })),
+        candidateApplicationsApi.getMyApplications().catch(() => [])
+      ]);
+      setIsSaved(savedRes.isSaved);
+      const app = myApps.find((a: any) => a.jobPostingId === jobId);
+      if (app) {
+        setExistingApplication(app);
+      }
+    } catch {
+      // Ignore background check failure
+    }
+  };
+
+  const handleToggleSaveJob = async () => {
+    if (!id || !isCandidate) return;
+    setIsSavingBookmark(true);
+    try {
+      if (isSaved) {
+        await candidateSavedJobsApi.unsaveJob(id);
+        setIsSaved(false);
+        setBookmarkFeedback('Job removed from saved bookmarks.');
+      } else {
+        await candidateSavedJobsApi.saveJob(id);
+        setIsSaved(true);
+        setBookmarkFeedback('Job saved to your bookmarks.');
+      }
+      setTimeout(() => setBookmarkFeedback(null), 3000);
+    } catch {
+      setBookmarkFeedback('Failed to update bookmark.');
+      setTimeout(() => setBookmarkFeedback(null), 3000);
+    } finally {
+      setIsSavingBookmark(false);
+    }
+  };
 
   const loadJob = async (jobId: string) => {
     setLoading(true);
@@ -217,6 +267,12 @@ export const JobDetail: React.FC = () => {
 
           {/* Action CTA */}
           <div>
+            {bookmarkFeedback && (
+              <div style={{ marginBottom: '0.75rem', fontSize: '0.85rem', color: '#0369a1', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <CheckCircle2 size={15} />
+                <span>{bookmarkFeedback}</span>
+              </div>
+            )}
             {isExpired ? (
               <div className="alert alert-warning" style={{ margin: 0, padding: '0.65rem 1rem' }}>
                 <Clock size={18} /> Application deadline expired
@@ -229,13 +285,37 @@ export const JobDetail: React.FC = () => {
                 Sign In to Apply
               </button>
             ) : isCandidate ? (
-              <button 
-                onClick={handleOpenApplyModal} 
-                className="btn btn-primary btn-lg"
-                style={{ boxShadow: '0 4px 14px rgba(99, 102, 241, 0.4)' }}
-              >
-                <Send size={18} /> Apply for this Role
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={handleToggleSaveJob}
+                  className={`btn btn-lg ${isSaved ? 'btn-primary' : 'btn-outline'}`}
+                  title={isSaved ? 'Remove Bookmark' : 'Save Job to Bookmarks'}
+                  disabled={isSavingBookmark}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                  <Bookmark size={18} fill={isSaved ? 'currentColor' : 'none'} />
+                  <span>{isSaved ? 'Saved' : 'Save Job'}</span>
+                </button>
+
+                {existingApplication ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 1.15rem', backgroundColor: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: 'var(--radius-sm)' }}>
+                    <CheckCircle2 size={18} className="text-emerald" />
+                    <div>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', display: 'block' }}>Already Applied</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Status: {String(existingApplication.currentStage)}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={handleOpenApplyModal} 
+                    className="btn btn-primary btn-lg"
+                    style={{ boxShadow: '0 4px 14px rgba(99, 102, 241, 0.4)' }}
+                  >
+                    <Send size={18} /> Apply for this Role
+                  </button>
+                )}
+              </div>
             ) : (
               <div style={{ textAlign: 'right', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                 <span>Signed in as Employer / Admin</span>
@@ -471,6 +551,16 @@ export const JobDetail: React.FC = () => {
                       </Link>
                     </div>
                   )}
+
+                  {/* Transparent Match Advisory Banner */}
+                  <div style={{ marginTop: '0.75rem', padding: '0.85rem 1rem', backgroundColor: 'rgba(238, 246, 255, 0.9)', border: '1px solid rgba(186, 230, 253, 0.9)', borderRadius: 'var(--radius-sm)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem', color: '#0369a1', fontWeight: 600, fontSize: '0.85rem' }}>
+                      <Sparkles size={16} /> Transparent CV-to-Job Qualification Matching
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                      When a CV is attached, HireSphere compares your extracted technical qualifications against this vacancy's requirements. Match scores are advisory estimates to guide interview preparation. <strong>They do not cause automated rejection, and hiring managers review every application.</strong>
+                    </p>
+                  </div>
                 </div>
 
                 <div className="form-group" style={{ marginBottom: '1.5rem' }}>

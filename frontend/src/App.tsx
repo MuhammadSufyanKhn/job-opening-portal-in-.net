@@ -6,6 +6,7 @@ import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { RegisterCandidate } from './pages/RegisterCandidate';
 import { RegisterCompany } from './pages/RegisterCompany';
+import { CandidateDashboard } from './pages/CandidateDashboard';
 import { CandidateProfile } from './pages/CandidateProfile';
 import { CompanyDashboard } from './pages/CompanyDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
@@ -24,6 +25,7 @@ import { CandidateSimulations } from './pages/CandidateSimulations';
 import { SimulationWorkspace } from './pages/SimulationWorkspace';
 import { SimulationResult } from './pages/SimulationResult';
 import { NotificationCenter } from './pages/NotificationCenter';
+import { CompanyAnalytics } from './pages/CompanyAnalytics';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; requiredRole?: string }> = ({
   children,
@@ -70,6 +72,18 @@ export const App: React.FC = () => {
               <Route path="/jobs/:id" element={<JobDetail />} />
 
               {/* Candidate Protected Routes */}
+              <Route
+                path="/candidate"
+                element={<Navigate to="/candidate/dashboard" replace />}
+              />
+              <Route
+                path="/candidate/dashboard"
+                element={
+                  <ProtectedRoute requiredRole="Candidate">
+                    <CandidateDashboard />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/candidate/profile"
                 element={
@@ -157,6 +171,14 @@ export const App: React.FC = () => {
                 element={
                   <ProtectedRoute requiredRole="CompanyMember">
                     <CompanyApplications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/company/analytics"
+                element={
+                  <ProtectedRoute requiredRole="CompanyMember">
+                    <CompanyAnalytics />
                   </ProtectedRoute>
                 }
               />

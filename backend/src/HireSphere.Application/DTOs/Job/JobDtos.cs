@@ -127,7 +127,8 @@ public record PublicJobPostingSummaryDto(
     decimal? SalaryMax,
     string SalaryCurrency,
     DateTimeOffset? PublishedAtUtc,
-    DateTimeOffset? ExpiresAtUtc);
+    DateTimeOffset? ExpiresAtUtc,
+    IReadOnlyList<string>? TopSkills = null);
 
 public record PublicJobPostingDetailDto(
     Guid Id,
@@ -158,6 +159,7 @@ public record JobMarketplaceFilterRequest(
     EmploymentType? EmploymentType = null,
     WorkplaceType? WorkplaceType = null,
     int? CategoryId = null,
+    string? Skill = null,
     decimal? SalaryMin = null,
     decimal? SalaryMax = null,
     string? SortBy = "date_desc",

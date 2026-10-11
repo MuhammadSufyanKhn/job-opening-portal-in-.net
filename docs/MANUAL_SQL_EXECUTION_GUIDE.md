@@ -243,6 +243,22 @@ GO
 
 ---
 
+### Script 11: `011_AddCandidateSavedJobs.sql`
+* **Purpose:** Creates `dbo.CandidateSavedJobs` table to support candidate job bookmarking with unique constraints, foreign keys, and indexes.
+* **Objects Modified:** Creates table `dbo.CandidateSavedJobs` with foreign keys to `dbo.CandidateProfiles` and `dbo.JobPostings`, unique index `UQ_CandidateSavedJobs_Candidate_Job` to prevent duplicate bookmarks, and non-clustered index `IX_CandidateSavedJobs_CandidateProfileId_SavedAtUtc`.
+* **Prerequisites:** Scripts `001_CreateCoreIdentityAndTenantSchema.sql` and `002_CreateRecruitmentAndApplicationsSchema.sql` executed.
+* **Expected Order:** Execution Step 12.
+* **Rerun Safety (Idempotency):** Fully idempotent; guarded by `IF NOT EXISTS` table and index checks.
+* **Data Impact:** Additive only.
+* **SSMS Verification Query:**
+  ```sql
+  SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, IS_NULLABLE
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_NAME = 'CandidateSavedJobs';
+  ```
+
+---
+
 ### Seed Script 1: `database/seeds/001_SeedInitialRolesAndAdmin.sql`
 * **Purpose:** Seeds foundational platform roles (`Candidate`, `CompanyMember`, `SuperAdmin`) into the `Roles` table with idempotent checks. Includes an optional, commented bootstrap block for a local development SuperAdmin (`admin@hiresphere.local`).
 * **Objects Modified:** Inserts into `Roles` (and conditionally `Users`, `UserRoles`).

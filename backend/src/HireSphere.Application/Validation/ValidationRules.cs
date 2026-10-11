@@ -93,6 +93,11 @@ public class UpdateCandidateProfileRequestValidator : AbstractValidator<UpdateCa
         RuleFor(x => x.LastName).NotEmpty().MaximumLength(100);
         RuleFor(x => x.Headline).MaximumLength(200);
         RuleFor(x => x.Location).MaximumLength(200);
+        RuleFor(x => x.Summary).MaximumLength(4000);
+        RuleFor(x => x.PhoneNumber).MaximumLength(30);
+        RuleFor(x => x.LinkedInUrl).MaximumLength(500);
+        RuleFor(x => x.GitHubUrl).MaximumLength(500);
+        RuleFor(x => x.PortfolioUrl).MaximumLength(500);
         RuleFor(x => x.YearsOfExperience).GreaterThanOrEqualTo(0).When(x => x.YearsOfExperience.HasValue);
     }
 }

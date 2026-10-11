@@ -40,6 +40,9 @@ export interface CandidateProfile {
   linkedInUrl?: string;
   gitHubUrl?: string;
   portfolioUrl?: string;
+  phoneNumber?: string;
+  completionPercentage?: number;
+  missingFields?: string[];
   updatedAtUtc?: string;
 }
 

@@ -16,6 +16,7 @@ public class CandidateProfile
 
     public ICollection<CandidateDocument> Documents { get; set; } = new List<CandidateDocument>();
     public ICollection<JobApplication> Applications { get; set; } = new List<JobApplication>();
+    public ICollection<CandidateSavedJob> SavedJobs { get; set; } = new List<CandidateSavedJob>();
 }
 
 public class AuditLog

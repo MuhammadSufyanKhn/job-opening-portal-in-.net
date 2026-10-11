@@ -28,7 +28,7 @@ export const Login: React.FC = () => {
       } else if (response.user.roles.includes('CompanyMember')) {
         navigate('/company/dashboard');
       } else {
-        navigate('/candidate/profile');
+        navigate('/candidate/dashboard');
       }
     } catch (err: any) {
       const detail = err.response?.data?.detail || err.response?.data?.title || 'Invalid credentials. Please verify your email and password.';

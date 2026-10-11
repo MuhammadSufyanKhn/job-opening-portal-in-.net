@@ -126,3 +126,25 @@ public class CandidateNoteConfiguration : IEntityTypeConfiguration<CandidateNote
         builder.HasIndex(n => n.JobApplicationId);
     }
 }
+
+public class CandidateSavedJobConfiguration : IEntityTypeConfiguration<CandidateSavedJob>
+{
+    public void Configure(EntityTypeBuilder<CandidateSavedJob> builder)
+    {
+        builder.ToTable("CandidateSavedJobs");
+        builder.HasKey(s => s.Id);
+
+        builder.HasOne(s => s.CandidateProfile)
+            .WithMany(p => p.SavedJobs)
+            .HasForeignKey(s => s.CandidateProfileId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(s => s.JobPosting)
+            .WithMany()
+            .HasForeignKey(s => s.JobPostingId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(s => new { s.CandidateProfileId, s.JobPostingId }).IsUnique();
+        builder.HasIndex(s => new { s.CandidateProfileId, s.SavedAtUtc });
+    }
+}

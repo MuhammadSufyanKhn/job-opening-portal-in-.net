@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { adminDashboardApi } from '../services/api';
+import { adminDashboardApi, analyticsApi } from '../services/api';
 import type { PlatformDashboardStats } from '../types/admin';
+import type { PlatformAnalyticsOverview } from '../types/analytics';
 import { AdminNavigation } from '../components/AdminNavigation';
 import {
   Users,
@@ -17,10 +18,12 @@ import {
   AlertCircle,
   Terminal,
   Award,
+  TrendingUp,
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<PlatformDashboardStats | null>(null);
+  const [platformAnalytics, setPlatformAnalytics] = useState<PlatformAnalyticsOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,8 +35,12 @@ export const AdminDashboard: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await adminDashboardApi.getStats();
+      const [data, analyticsData] = await Promise.all([
+        adminDashboardApi.getStats(),
+        analyticsApi.getPlatformAnalytics({ preset: '30d' }).catch(() => null),
+      ]);
       setStats(data);
+      setPlatformAnalytics(analyticsData);
     } catch {
       setError('Unable to fetch live platform statistics. Please try again.');
     } finally {
@@ -273,6 +280,78 @@ export const AdminDashboard: React.FC = () => {
                   </Link>
                 </div>
               </div>
+
+              {/* Platform Recruitment Inflow & Active Employers Overview */}
+              {platformAnalytics && (
+                <div className="analytics-two-col" style={{ marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+                  <div className="card" style={{ padding: '1.25rem' }}>
+                    <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
+                      <div className="flex-align-gap">
+                        <TrendingUp size={18} className="text-primary" />
+                        <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Platform Application Inflow</h3>
+                      </div>
+                      <span className="badge badge-primary" style={{ fontSize: '0.75rem' }}>
+                        Last 30 Days: {platformAnalytics.applicationsInPeriod}
+                      </span>
+                    </div>
+                    {platformAnalytics.platformActivityTrend.length === 0 ? (
+                      <p className="text-muted" style={{ fontSize: '0.825rem', padding: '2rem 0', textAlign: 'center' }}>
+                        No platform application activity in the last 30 days.
+                      </p>
+                    ) : (
+                      <div className="trend-chart" style={{ height: '120px' }}>
+                        {(() => {
+                          const maxCount = Math.max(...platformAnalytics.platformActivityTrend.map(t => t.applicationsCount), 1);
+                          return platformAnalytics.platformActivityTrend.map(point => {
+                            const heightPct = Math.max(10, (point.applicationsCount / maxCount) * 100);
+                            return (
+                              <div key={point.date} className="trend-bar-column">
+                                <div
+                                  className="trend-bar-rect"
+                                  style={{ height: `${heightPct}%` }}
+                                  title={`${point.date}: ${point.applicationsCount} candidate applications`}
+                                />
+                                <span className="trend-bar-label">{point.date.slice(5)}</span>
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="card" style={{ padding: '1.25rem' }}>
+                    <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
+                      <div className="flex-align-gap">
+                        <Building2 size={18} className="text-warning" />
+                        <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Top Hiring Organizations</h3>
+                      </div>
+                      <span className="text-muted" style={{ fontSize: '0.75rem' }}>By Candidate Volume</span>
+                    </div>
+                    {platformAnalytics.activeCompanies.length === 0 ? (
+                      <p className="text-muted" style={{ fontSize: '0.825rem', padding: '2rem 0', textAlign: 'center' }}>
+                        No verified organizations active yet.
+                      </p>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                        {platformAnalytics.activeCompanies.slice(0, 5).map(co => (
+                          <div key={co.companyId} className="flex-between" style={{ padding: '0.4rem 0', borderBottom: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}>
+                            <span className="font-medium">{co.companyName}</span>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                              <span className="badge badge-status" style={{ fontSize: '0.7rem' }}>
+                                {co.activeJobsCount} active jobs
+                              </span>
+                              <span className="badge badge-purple" style={{ fontSize: '0.7rem' }}>
+                                {co.totalApplicationsCount} applicants
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Recent Platform Administrative Activity */}
               <div className="card-table-wrapper">

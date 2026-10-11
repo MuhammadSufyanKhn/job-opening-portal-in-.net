@@ -14,7 +14,10 @@ public record CandidateProfileDto(
     string? LinkedInUrl,
     string? GitHubUrl,
     string? PortfolioUrl,
-    DateTimeOffset? UpdatedAtUtc);
+    DateTimeOffset? UpdatedAtUtc,
+    string? PhoneNumber = null,
+    int CompletionPercentage = 0,
+    IReadOnlyList<string>? MissingFields = null);
 
 public record UpdateCandidateProfileRequest(
     string FirstName,
@@ -25,4 +28,5 @@ public record UpdateCandidateProfileRequest(
     int? YearsOfExperience,
     string? LinkedInUrl,
     string? GitHubUrl,
-    string? PortfolioUrl);
+    string? PortfolioUrl,
+    string? PhoneNumber = null);

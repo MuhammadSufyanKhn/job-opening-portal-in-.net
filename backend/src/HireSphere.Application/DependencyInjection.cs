@@ -28,6 +28,9 @@ public static class DependencyInjection
         services.AddScoped<IAdminUserService, AdminUserService>();
         services.AddScoped<IAdminJobService, AdminJobService>();
         services.AddScoped<IAdminAuditService, AdminAuditService>();
+        services.AddScoped<IAnalyticsService, AnalyticsService>();
+        services.AddScoped<ICandidateSavedJobsService, CandidateSavedJobsService>();
+        services.AddScoped<ICandidateDashboardService, CandidateDashboardService>();
 
         return services;
     }
