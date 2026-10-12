@@ -53,6 +53,7 @@ public class JobAssessmentConfigurationConfiguration : IEntityTypeConfiguration<
         builder.HasOne(c => c.Company)
             .WithMany()
             .HasForeignKey(c => c.CompanyId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(c => c.JobPosting)
@@ -79,6 +80,7 @@ public class AssessmentAssignmentConfiguration : IEntityTypeConfiguration<Assess
         builder.HasOne(a => a.Company)
             .WithMany()
             .HasForeignKey(a => a.CompanyId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(a => a.JobApplication)

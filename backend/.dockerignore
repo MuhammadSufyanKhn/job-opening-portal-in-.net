@@ -1,0 +1,9 @@
+**/.git
+**/.vs
+**/.idea
+**/*.user
+**/*.suo
+**/bin
+**/obj
+**/TestResults
+**/App_Data/cv_storage

@@ -61,9 +61,7 @@ export const AudiencePillarsSection: React.FC = () => {
                   Manage Your Career Journey with Total Transparency
                 </h3>
                 <p className="pillar-description">
-                  Take ownership of your professional credentials. From secure CV storage with version history 
-                  to explainable match scores and real-time application status updates, HireSphere gives you 
-                  respect and visibility at every stage.
+                  Take ownership of your career journey. With private CV storage, clear skills fit feedback, and real-time application updates, HireSphere gives you clarity at every stage.
                 </p>
 
                 <div className="pillar-feature-items">
@@ -72,9 +70,9 @@ export const AudiencePillarsSection: React.FC = () => {
                       <FileText size={18} className="text-primary" />
                     </div>
                     <div>
-                      <h4 className="feature-name">Secure CV Vault & Document Library</h4>
+                      <h4 className="feature-name">My CVs & Private Documents</h4>
                       <p className="feature-sub">
-                        Upload and manage multiple resume versions in isolated storage. Set defaults and inspect extracted skills and education.
+                        Upload and manage your CVs. Only companies you apply to can see your details.
                       </p>
                     </div>
                   </div>
@@ -84,9 +82,9 @@ export const AudiencePillarsSection: React.FC = () => {
                       <Sparkles size={18} className="text-primary" />
                     </div>
                     <div>
-                      <h4 className="feature-name">Explainable Qualification Match Reports</h4>
+                      <h4 className="feature-name">See How Well You Fit a Job</h4>
                       <p className="feature-sub">
-                        Understand how your declared skills match role requirements before applying. No secret scoring or algorithmic black boxes.
+                        Understand how well your skills match role requirements before applying.
                       </p>
                     </div>
                   </div>
@@ -96,9 +94,9 @@ export const AudiencePillarsSection: React.FC = () => {
                       <TrendingUp size={18} className="text-primary" />
                     </div>
                     <div>
-                      <h4 className="feature-name">Auditable Application Tracking</h4>
+                      <h4 className="feature-name">Always Know Where You Stand</h4>
                       <p className="feature-sub">
-                        Monitor pipeline progress, view assigned WorkSim assessments, access interview details, and withdraw applications easily.
+                        Follow each application from sent to decision, with an update at every step.
                       </p>
                     </div>
                   </div>
@@ -159,7 +157,7 @@ export const AudiencePillarsSection: React.FC = () => {
                       <FileText size={14} className="text-primary" />
                       <span>Default CV: <strong>Software_Engineer_2026.pdf</strong></span>
                     </div>
-                    <span className="callout-skills">Skills: C#, ASP.NET Core, React, SQL Server, Docker</span>
+                    <span className="callout-skills">Skills: Communication, Problem Solving, Product Strategy, Design Systems</span>
                   </div>
                 </div>
               </div>
@@ -178,8 +176,7 @@ export const AudiencePillarsSection: React.FC = () => {
                 </h3>
                 <p className="pillar-description">
                   Replace fragmented spreadsheets and disconnected tools with a structured recruitment workspace. 
-                  Coordinate team evaluations, schedule interviews, track stage velocities, and verify candidate competency 
-                  with WorkSim.
+                  Coordinate team evaluations, schedule interviews, and invite candidates to skills challenges.
                 </p>
 
                 <div className="pillar-feature-items">
@@ -188,9 +185,9 @@ export const AudiencePillarsSection: React.FC = () => {
                       <Layers size={18} className="text-primary" />
                     </div>
                     <div>
-                      <h4 className="feature-name">Kanban Pipeline & Stage Velocity</h4>
+                      <h4 className="feature-name">Applicant Board</h4>
                       <p className="feature-sub">
-                        Move applicants through Applied, Review, WorkSim, Interview, and Offer stages with audit tracking and reason notes.
+                        Move applicants through Applied, Review, Skills challenge, Interview, and Offer stages.
                       </p>
                     </div>
                   </div>
@@ -212,9 +209,9 @@ export const AudiencePillarsSection: React.FC = () => {
                       <BarChart2 size={18} className="text-primary" />
                     </div>
                     <div>
-                      <h4 className="feature-name">Recruitment Analytics & Time-to-Hire</h4>
+                      <h4 className="feature-name">Hiring Insights</h4>
                       <p className="feature-sub">
-                        Inspect funnel drop-offs, application velocity, WorkSim score distributions, and time-in-stage metrics.
+                        Inspect application rates, skills challenge score distributions, and time-to-hire.
                       </p>
                     </div>
                   </div>

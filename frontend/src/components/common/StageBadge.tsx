@@ -9,24 +9,24 @@ interface StageBadgeProps {
 
 const STAGE_CONFIG: Record<string, { label: string; className: string }> = {
   '0': { label: 'Submitted', className: 'badge-outline' },
-  '1': { label: 'Under Review', className: 'badge-purple' },
-  '2': { label: 'Shortlisted', className: 'badge-cyan' },
-  '3': { label: 'Assessment Pending', className: 'badge-amber' },
-  '4': { label: 'Assessment Completed', className: 'badge-cyan' },
-  '5': { label: 'Interview Scheduled', className: 'badge-purple' },
-  '6': { label: 'Offer Extended', className: 'badge-emerald' },
-  '7': { label: 'Hired', className: 'badge-emerald' },
-  '8': { label: 'Rejected', className: 'badge-danger' },
+  '1': { label: 'Under review', className: 'badge-purple b-pur' },
+  '2': { label: 'Shortlisted', className: 'badge-cyan b-cy' },
+  '3': { label: 'Skills challenge to do', className: 'badge-amber b-warn' },
+  '4': { label: 'Skills challenge done', className: 'badge-cyan b-cy' },
+  '5': { label: 'Interview scheduled', className: 'badge-purple b-pur' },
+  '6': { label: 'Offer extended', className: 'badge-emerald b-ok' },
+  '7': { label: 'Hired', className: 'badge-emerald b-ok' },
+  '8': { label: 'Rejected', className: 'badge-danger b-bad' },
   '9': { label: 'Withdrawn', className: 'badge-muted' },
   'Submitted': { label: 'Submitted', className: 'badge-outline' },
-  'UnderReview': { label: 'Under Review', className: 'badge-purple' },
-  'Shortlisted': { label: 'Shortlisted', className: 'badge-cyan' },
-  'AssessmentPending': { label: 'Assessment Pending', className: 'badge-amber' },
-  'AssessmentCompleted': { label: 'Assessment Completed', className: 'badge-cyan' },
-  'InterviewScheduled': { label: 'Interview Scheduled', className: 'badge-purple' },
-  'Offered': { label: 'Offer Extended', className: 'badge-emerald' },
-  'Hired': { label: 'Hired', className: 'badge-emerald' },
-  'Rejected': { label: 'Rejected', className: 'badge-danger' },
+  'UnderReview': { label: 'Under review', className: 'badge-purple b-pur' },
+  'Shortlisted': { label: 'Shortlisted', className: 'badge-cyan b-cy' },
+  'AssessmentPending': { label: 'Skills challenge to do', className: 'badge-amber b-warn' },
+  'AssessmentCompleted': { label: 'Skills challenge done', className: 'badge-cyan b-cy' },
+  'InterviewScheduled': { label: 'Interview scheduled', className: 'badge-purple b-pur' },
+  'Offered': { label: 'Offer extended', className: 'badge-emerald b-ok' },
+  'Hired': { label: 'Hired', className: 'badge-emerald b-ok' },
+  'Rejected': { label: 'Rejected', className: 'badge-danger b-bad' },
   'Withdrawn': { label: 'Withdrawn', className: 'badge-muted' },
 };
 
@@ -41,7 +41,7 @@ export const StageBadge: React.FC<StageBadgeProps> = ({
   return (
     <span 
       className={`badge ${config.className} ${className}`.trim()} 
-      style={{ fontSize: '0.75rem', fontWeight: 600, ...style }}
+      style={style}
     >
       {config.label}
     </span>

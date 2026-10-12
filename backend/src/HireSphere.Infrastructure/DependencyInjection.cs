@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using HireSphere.Application.Common.Interfaces;
 using HireSphere.Infrastructure.Persistence;
@@ -12,19 +13,35 @@ namespace HireSphere.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructureServices(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IHostEnvironment? environment = null)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? "Server=localhost;Database=HireSphereDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True;";
-
-        // Strict discipline: No Database.Migrate() or EnsureCreated()
-        services.AddDbContext<HireSphereDbContext>(options =>
+        var dbProvider = configuration.GetValue<string>("DatabaseProvider");
+        if (string.Equals(dbProvider, "InMemory", StringComparison.OrdinalIgnoreCase))
         {
-            options.UseSqlServer(connectionString, sqlOptions =>
+            var inMemoryDbName = configuration.GetValue<string>("InMemoryDatabaseName") ?? "HireSphereTestDb";
+            services.AddDbContext<HireSphereDbContext>(options =>
             {
-                sqlOptions.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorNumbersToAdd: null);
+                options.UseInMemoryDatabase(inMemoryDbName);
+                options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning));
             });
-        });
+        }
+        else
+        {
+            var connectionString = configuration.GetConnectionString("DefaultConnection")
+                ?? "Server=.\\SQLEXPRESS;Database=HireSphereDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True;";
+
+            // Strict discipline: No Database.Migrate() or EnsureCreated()
+            services.AddDbContext<HireSphereDbContext>(options =>
+            {
+                options.UseSqlServer(connectionString, sqlOptions =>
+                {
+                    sqlOptions.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorNumbersToAdd: null);
+                });
+            });
+        }
 
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<HireSphereDbContext>());
 
@@ -46,6 +63,8 @@ public static class DependencyInjection
         services.AddHostedService<AssessmentDeadlineBackgroundService>();
 
         // JWT Authentication registration
+        var isProduction = environment?.IsProduction() ?? string.Equals(configuration["ASPNETCORE_ENVIRONMENT"], "Production", StringComparison.OrdinalIgnoreCase);
+
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -53,7 +72,7 @@ public static class DependencyInjection
         })
         .AddJwtBearer(options =>
         {
-            options.RequireHttpsMetadata = false; // set to true in production
+            options.RequireHttpsMetadata = isProduction;
             options.SaveToken = true;
             options.TokenValidationParameters = new TokenValidationParameters
             {

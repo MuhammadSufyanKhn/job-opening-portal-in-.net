@@ -42,7 +42,7 @@ export const SimulationResult: React.FC = () => {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col items-center justify-center space-y-4">
         <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
-        <p className="text-slate-600 text-sm font-medium">Evaluating deterministic scoring rubric...</p>
+        <p className="text-slate-600 text-sm font-medium">Evaluating skills challenge results...</p>
       </div>
     );
   }
@@ -139,7 +139,7 @@ export const SimulationResult: React.FC = () => {
           <div className="space-y-1">
             <p className="font-semibold text-slate-900">HireSphere Decision-Support Policy</p>
             <p>
-              WorkSim assessments evaluate job-specific technical and problem-solving behaviors against transparent, predetermined rubrics. These scores serve as structured decision-support evidence for human recruitment teams and are never used as an automated rejection system.
+              Skills challenges evaluate job-specific problem-solving through practical scenarios. These scores help hiring teams understand your abilities, and a real person always makes the hiring decision.
             </p>
           </div>
         </div>

@@ -310,5 +310,76 @@ GO
 To guarantee that the C# Entity Framework Core model never drifts from the SQL schema:
 1. **Explicit Fluent API Configurations:** Every entity class in `HireSphere.Domain` maps to a dedicated `IEntityTypeConfiguration<T>` class in `HireSphere.Infrastructure`.
 2. **Zero Automated Migration Execution:** The application startup code in `Program.cs` registers the `DbContext` with `options.UseSqlServer(connectionString)` but contains **no calls to `Database.Migrate()` or `Database.EnsureCreated()`**.
-3. **Database Drift Integration Test:** In Phase 10, an automated xUnit integration test will compare the EF Core model metadata against the SQL Server schema views (`INFORMATION_SCHEMA.COLUMNS`, `sys.indexes`) to programmatically verify zero drift.
+3. **Database Drift Integration Test:** An automated xUnit integration test compares the EF Core model metadata against the SQL Server schema views (`INFORMATION_SCHEMA.COLUMNS`, `sys.indexes`) to programmatically verify zero drift.
+
+---
+
+## 5. Production Maintenance & Operational Procedures
+
+### Supported SQL Server Versions
+* **Recommended:** Microsoft SQL Server 2022 (Standard, Enterprise, or Developer Edition)
+* **Minimum Supported:** Microsoft SQL Server 2019 (v15.0) or SQL Server Express 2019/2022
+* **Cloud Database:** Azure SQL Database (General Purpose or Business Critical tier)
+* **Required Database Collation:** `Latin1_General_100_CI_AS_SC_UTF8`
+
+### Connection String Configuration
+In production environments, never commit connection strings to source control. Set the connection string via the `ConnectionStrings__DefaultConnection` environment variable:
+
+* **SQL Server Authentication (Production VM / Container):**
+  ```
+  Server=sql.internal.example.com,1433;Database=HireSphereDb;User Id=hiresphere_app;Password=YourComplexPassword123!;Encrypt=True;TrustServerCertificate=False;MultipleActiveResultSets=True;
+  ```
+* **Azure SQL Database:**
+  ```
+  Server=tcp:hiresphere-prod.database.windows.net,1433;Database=HireSphereDb;User ID=cloudadmin;Password=YourComplexPassword123!;Encrypt=True;TrustServerCertificate=False;MultipleActiveResultSets=True;
+  ```
+* **Local Development / SSMS Testing:**
+  ```
+  Server=.\SQLEXPRESS;Database=HireSphereDb;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;
+  ```
+
+### Database Backup Procedure (SSMS / T-SQL)
+Before applying new SQL scripts or deploying application updates, take a full database backup:
+
+```sql
+BACKUP DATABASE [HireSphereDb]
+TO DISK = N'C:\SQLBackups\HireSphereDb_Full_' + REPLACE(CONVERT(NVARCHAR(20), GETDATE(), 120), ':', '-') + '.bak'
+WITH FORMAT, INIT,
+NAME = N'HireSphereDb-Full Backup',
+SKIP, NOREWIND, NOUNLOAD, STATS = 10, CHECKSUM;
+GO
+```
+
+### Database Restoration Procedure (SSMS / T-SQL)
+To restore a backup file to a recovery or staging environment:
+
+```sql
+USE [master];
+ALTER DATABASE [HireSphereDb] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+GO
+
+RESTORE DATABASE [HireSphereDb]
+FROM DISK = N'C:\SQLBackups\HireSphereDb_BackupFile.bak'
+WITH FILE = 1, NOUNLOAD, STATS = 10, REPLACE;
+GO
+
+ALTER DATABASE [HireSphereDb] SET MULTI_USER;
+GO
+```
+
+### Database Schema Verification
+After executing scripts `001` through `012`, execute this query in SSMS to verify the full complement of 38 tables:
+
+```sql
+USE [HireSphereDb];
+GO
+
+SELECT
+    t.name AS TableName,
+    p.rows AS [RowCount]
+FROM sys.tables t
+INNER JOIN sys.partitions p ON t.object_id = p.object_id AND p.index_id IN (0, 1)
+ORDER BY t.name;
+```
+
 

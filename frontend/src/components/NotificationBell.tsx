@@ -179,10 +179,7 @@ export const NotificationBell: React.FC = () => {
                   onClick={() => handleMarkAsRead(n.id, n.actionUrl)}
                   className={`notification-item ${!n.isRead ? 'unread' : ''}`}
                 >
-                  <div
-                    className="notification-item-icon"
-                    style={{ background: n.isRead ? '#f1f5f9' : '#e0f2fe' }}
-                  >
+                  <div className="notification-item-icon">
                     {getNotificationIcon(n.notificationType)}
                   </div>
 

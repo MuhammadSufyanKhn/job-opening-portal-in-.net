@@ -57,7 +57,7 @@ export const CompanyApplications: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // View Mode: Board (Kanban) or Table
+  // View Mode: Board or Table
   const [viewMode, setViewMode] = useState<'board' | 'table'>('board');
   const [pipelineBoard, setPipelineBoard] = useState<PipelineBoard | null>(null);
   const [loadingBoard, setLoadingBoard] = useState(false);
@@ -498,9 +498,9 @@ export const CompanyApplications: React.FC = () => {
               onClick={() => setViewMode('board')}
               className={`btn btn-xs ${viewMode === 'board' ? 'btn-primary' : 'btn-ghost'}`}
               style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.65rem' }}
-              title="Kanban Board View"
+              title="Applicant Board View"
             >
-              <LayoutGrid size={14} /> Pipeline Board
+              <LayoutGrid size={14} /> Applicant Board
             </button>
             <button
               onClick={() => setViewMode('table')}
@@ -643,7 +643,7 @@ export const CompanyApplications: React.FC = () => {
             </div>
           )}
 
-          {/* VIEW MODE 1: KANBAN PIPELINE BOARD */}
+          {/* VIEW MODE 1: APPLICANT BOARD */}
           {viewMode === 'board' && (
             <div>
               {loadingBoard ? (
@@ -759,7 +759,7 @@ export const CompanyApplications: React.FC = () => {
                               {/* Badges Ribbon (Match & WorkSim) */}
                               <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: '0.2rem' }}>
                                 {card.matchEvidenceIndex != null && (
-                                  <span className="badge badge-purple" style={{ fontSize: '0.68rem', fontWeight: 700 }} title="Explainable CV-to-job match evidence index">
+                                  <span className="badge badge-purple" style={{ fontSize: '0.68rem', fontWeight: 700 }} title="Skills fit match score">
                                     <Sparkles size={10} style={{ marginRight: '0.2rem' }} /> {card.matchEvidenceIndex.toFixed(0)}% Match
                                   </span>
                                 )}
@@ -1307,14 +1307,14 @@ export const CompanyApplications: React.FC = () => {
                   </div>
                 )}
 
-                {/* TAB 2: EXPLAINABLE CV MATCH REPORT */}
+                {/* TAB 2: SKILLS FIT REPORT */}
                 {reviewTab === 'match' && (
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <Sparkles size={18} className="text-primary" />
                         <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>
-                          Explainable CV-to-Job Matching Report
+                          Skills Fit Report
                         </h4>
                       </div>
 
@@ -1334,7 +1334,7 @@ export const CompanyApplications: React.FC = () => {
                       <div style={{ textAlign: 'center', padding: '2.5rem 0' }}>
                         <div className="spinner" style={{ width: '28px', height: '28px', margin: '0 auto 0.75rem' }} />
                         <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                          Extracting text and computing deterministic match evidence...
+                          Analyzing candidate CV against role requirements...
                         </p>
                       </div>
                     ) : matchReportError ? (
@@ -1357,7 +1357,7 @@ export const CompanyApplications: React.FC = () => {
                         }}>
                           <div>
                             <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>
-                              Overall Evidence Index
+                              Overall Skills Match
                             </span>
                             <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--primary-color)', lineHeight: 1.2 }}>
                               {matchReport.overallEvidenceIndex.toFixed(1)}%
@@ -1380,7 +1380,7 @@ export const CompanyApplications: React.FC = () => {
                         <div className="info-banner" style={{ marginBottom: '1rem', fontSize: '0.78rem' }}>
                           <ShieldCheck size={18} />
                           <div>
-                            <strong>Deterministic Decision Support:</strong> Index reflects explicit technical criteria found in the candidate CV. Absence of a keyword is not proof of lack of capability.
+                            <strong>Skills Fit Guide:</strong> This score reflects matching skills found in the candidate CV. It is a guide to assist human recruiters, not an automated decision.
                           </div>
                         </div>
 

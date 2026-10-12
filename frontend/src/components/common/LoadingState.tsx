@@ -15,8 +15,8 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
       role="status" 
       aria-live="polite"
     >
-      <div className="spinner" aria-hidden="true" style={{ width: '2rem', height: '2rem' }} />
-      <p style={{ marginTop: '0.75rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+      <div className="spinner" aria-hidden="true" />
+      <p className="loading-message">
         {message}
       </p>
     </div>

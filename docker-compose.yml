@@ -1,0 +1,64 @@
+# =============================================================================
+# HireSphere Production & Local Verification Docker Compose Manifest
+# =============================================================================
+# Note: SQL Server is managed manually in SSMS and is expected to run on the
+# host machine (accessed via host.docker.internal:1433) or external server.
+#
+# Before running `docker compose up -d`, copy .env.example to .env and configure
+# DATABASE_CONNECTION_STRING and JWT_SECRET_KEY.
+# =============================================================================
+
+services:
+  hiresphere-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hiresphere-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=5000
+      - ConnectionStrings__DefaultConnection=${DATABASE_CONNECTION_STRING:-Server=host.docker.internal,1433;Database=HireSphereDb;User Id=sa;Password=YourPassword123!;TrustServerCertificate=True;}
+      - Jwt__SecretKey=${JWT_SECRET_KEY:-HireSphere_Production_Super_Secret_Jwt_Signing_Key_2026_At_Least_32_Bytes!}
+      - Jwt__Issuer=HireSphere
+      - Jwt__Audience=HireSphereApp
+      - Cors__AllowedOrigins__0=http://localhost
+      - Cors__AllowedOrigins__1=http://localhost:80
+      - Cors__AllowedOrigins__2=http://localhost:5173
+      - CvStorage__LocalStoragePath=/app/cv_storage
+      - Email__SmtpHost=${SMTP_HOST:-}
+      - Email__SmtpPort=${SMTP_PORT:-587}
+      - Email__SmtpUser=${SMTP_USER:-}
+      - Email__SmtpPassword=${SMTP_PASSWORD:-}
+      - Email__SenderEmail=${SENDER_EMAIL:-no-reply@hiresphere.com}
+      - Email__SenderName=HireSphere Platform
+    volumes:
+      # Persistent named volume ensures private candidate CV files survive container restarts
+      - hiresphere_cv_data:/app/cv_storage
+    extra_hosts:
+      # Allows backend container to connect to host machine SQL Server instance
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  hiresphere-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hiresphere-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      hiresphere-backend:
+        condition: service_healthy
+
+volumes:
+  hiresphere_cv_data:
+    driver: local

@@ -482,4 +482,129 @@ public class SecurityHardeningTests
         public Task LogAsync(string action, string targetResource, string targetResourceId, Guid? companyId = null, object? metadata = null, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
     }
+
+    // --- Production Readiness & Configuration Validation Tests ---
+
+    private static Microsoft.Extensions.Configuration.IConfiguration CreateTestConfig(Dictionary<string, string?> values)
+    {
+        var mock = new Moq.Mock<Microsoft.Extensions.Configuration.IConfiguration>();
+        mock.Setup(c => c[Moq.It.IsAny<string>()])
+            .Returns<string>(k => values.TryGetValue(k, out var v) ? v : null);
+
+        var connSecMock = new Moq.Mock<Microsoft.Extensions.Configuration.IConfigurationSection>();
+        connSecMock.Setup(s => s["DefaultConnection"])
+            .Returns(values.TryGetValue("ConnectionStrings:DefaultConnection", out var cs) ? cs : null);
+
+        mock.Setup(c => c.GetSection("ConnectionStrings")).Returns(connSecMock.Object);
+        return mock.Object;
+    }
+
+    [Fact]
+    public void ProductionConfigurationValidator_WhenJwtKeyIsMissing_ThrowsInvalidOperationException()
+    {
+        var config = CreateTestConfig(new Dictionary<string, string?>
+        {
+            ["ConnectionStrings:DefaultConnection"] = "Server=tcp:sql.prod.database.windows.net;Database=HireSphereDb;",
+        });
+
+        var act = () => HireSphere.Infrastructure.Configuration.ProductionConfigurationValidator.Validate(config, new[] { "https://app.hiresphere.com" });
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Jwt:SecretKey is missing*");
+    }
+
+    [Fact]
+    public void ProductionConfigurationValidator_WhenJwtKeyIsTooShort_ThrowsInvalidOperationException()
+    {
+        var config = CreateTestConfig(new Dictionary<string, string?>
+        {
+            ["Jwt:SecretKey"] = "short-key-less-than-32-chars",
+            ["ConnectionStrings:DefaultConnection"] = "Server=tcp:sql.prod.database.windows.net;Database=HireSphereDb;",
+        });
+
+        var act = () => HireSphere.Infrastructure.Configuration.ProductionConfigurationValidator.Validate(config, new[] { "https://app.hiresphere.com" });
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Minimum required length is 32 characters*");
+    }
+
+    [Fact]
+    public void ProductionConfigurationValidator_WhenJwtKeyIsDevelopmentDefault_ThrowsInvalidOperationException()
+    {
+        var config = CreateTestConfig(new Dictionary<string, string?>
+        {
+            ["Jwt:SecretKey"] = "HireSphere_Development_Super_Secret_Key_For_Jwt_HMAC_SHA256_Signatures_2026!",
+            ["ConnectionStrings:DefaultConnection"] = "Server=tcp:sql.prod.database.windows.net;Database=HireSphereDb;",
+        });
+
+        var act = () => HireSphere.Infrastructure.Configuration.ProductionConfigurationValidator.Validate(config, new[] { "https://app.hiresphere.com" });
+        act.Should().Throw<InvalidOperationException>().WithMessage("*default development JWT signing key was detected*");
+    }
+
+    [Fact]
+    public void ProductionConfigurationValidator_WhenDbConnectionStringIsMissing_ThrowsInvalidOperationException()
+    {
+        var config = CreateTestConfig(new Dictionary<string, string?>
+        {
+            ["Jwt:SecretKey"] = "A_Production_Grade_Secret_Key_That_Has_More_Than_32_Characters_Secure!",
+        });
+
+        var act = () => HireSphere.Infrastructure.Configuration.ProductionConfigurationValidator.Validate(config, new[] { "https://app.hiresphere.com" });
+        act.Should().Throw<InvalidOperationException>().WithMessage("*ConnectionStrings:DefaultConnection is missing*");
+    }
+
+    [Fact]
+    public void ProductionConfigurationValidator_WhenCorsAllowedOriginsIsEmpty_ThrowsInvalidOperationException()
+    {
+        var config = CreateTestConfig(new Dictionary<string, string?>
+        {
+            ["Jwt:SecretKey"] = "A_Production_Grade_Secret_Key_That_Has_More_Than_32_Characters_Secure!",
+            ["ConnectionStrings:DefaultConnection"] = "Server=tcp:sql.prod.database.windows.net;Database=HireSphereDb;",
+        });
+
+        var act = () => HireSphere.Infrastructure.Configuration.ProductionConfigurationValidator.Validate(config, Array.Empty<string>());
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Cors:AllowedOrigins is empty*");
+    }
+
+    [Fact]
+    public void ProductionConfigurationValidator_WhenCorsAllowedOriginsContainsWildcard_ThrowsInvalidOperationException()
+    {
+        var config = CreateTestConfig(new Dictionary<string, string?>
+        {
+            ["Jwt:SecretKey"] = "A_Production_Grade_Secret_Key_That_Has_More_Than_32_Characters_Secure!",
+            ["ConnectionStrings:DefaultConnection"] = "Server=tcp:sql.prod.database.windows.net;Database=HireSphereDb;",
+        });
+
+        var act = () => HireSphere.Infrastructure.Configuration.ProductionConfigurationValidator.Validate(config, new[] { "*" });
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Wildcard origin ('*') is prohibited in production*");
+    }
+
+    [Fact]
+    public void ProductionConfigurationValidator_WhenConfigurationIsValid_SucceedsWithoutException()
+    {
+        var config = CreateTestConfig(new Dictionary<string, string?>
+        {
+            ["Jwt:SecretKey"] = "A_Production_Grade_Secret_Key_That_Has_More_Than_32_Characters_Secure!",
+            ["ConnectionStrings:DefaultConnection"] = "Server=tcp:sql.prod.database.windows.net;Database=HireSphereDb;User Id=sa;Password=SecurePassword123!;",
+        });
+
+        var act = () => HireSphere.Infrastructure.Configuration.ProductionConfigurationValidator.Validate(config, new[] { "https://app.hiresphere.com" });
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public async Task LocalCvStorageService_WhenAttemptingPathTraversal_ThrowsOrRejectsAccess()
+    {
+        var config = CreateTestConfig(new Dictionary<string, string?>
+        {
+            ["CvStorage:LocalStoragePath"] = Path.Combine(Path.GetTempPath(), "hiresphere_test_cvs_" + Guid.NewGuid().ToString("N"))
+        });
+
+        var storage = new HireSphere.Infrastructure.Services.LocalCvStorageService(
+            config,
+            NullLogger<HireSphere.Infrastructure.Services.LocalCvStorageService>.Instance);
+
+        // Path traversal attempts
+        var stream1 = await storage.GetFileStreamAsync("../../../windows/system32/cmd.exe");
+        stream1.Should().BeNull();
+
+        var exists = await storage.FileExistsAsync("..\\..\\secret.txt");
+        exists.Should().BeFalse();
+    }
 }

@@ -10,23 +10,23 @@ import {
 export const TrustPrinciplesSection: React.FC = () => {
   const principles = [
     {
-      title: 'Human-in-the-Loop Hiring Decisions',
-      description: 'HireSphere never makes automated rejection or hiring decisions. All candidate transitions and offers require human recruiter evaluation and oversight.',
+      title: 'A real person decides',
+      description: 'HireSphere never makes automated rejection or hiring decisions. All candidate transitions and offers are decided by a real hiring person.',
       icon: UserCheck
     },
     {
-      title: 'Explainable, Auditable Qualification Matching',
-      description: 'Our matching engine evaluates declared qualifications against published requirements deterministically. We do not use opaque, hallucinating AI black boxes.',
+      title: 'See how well you fit a job',
+      description: 'Our matching helps you understand how well your skills match requirements before applying. Real people make the decisions.',
       icon: Eye
     },
     {
-      title: 'Strict Candidate Document Protection',
-      description: 'Uploaded CVs and resumes are stored in isolated private file vaults with file signature verification and anti-sniffing download protections. They are never crawled or shared.',
+      title: 'Your CV stays private',
+      description: 'Uploaded CVs and resumes are stored securely. Only the companies you apply to can see them. They are never crawled or shared.',
       icon: FileLock2
     },
     {
-      title: 'Multi-Tenant Organizational Isolation',
-      description: 'Company vacancies, private applicant reviews, recruiter notes, and interview details are protected by strict server-side authorization boundaries.',
+      title: "Your company's information is private to your team",
+      description: 'Company vacancies, private applicant reviews, recruiter notes, and interview details are protected and private to your team.',
       icon: ShieldCheck
     }
   ];

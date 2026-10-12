@@ -507,58 +507,58 @@ export const JobDetail: React.FC = () => {
                   </div>
                 )}
 
-                <div className="info-banner" style={{ marginBottom: '1.25rem' }}>
-                  <ShieldCheck size={20} />
-                  <div>
-                    <strong>Profile-First Application</strong>
-                    <p style={{ marginTop: '0.2rem', fontSize: '0.8rem', lineHeight: 1.4 }}>
-                      Your verified candidate profile, skills, and contact information will be transmitted with this application. An immutable snapshot of the vacancy description (v{1}) will be locked to this submission.
-                    </p>
+                <div className="box" style={{ marginBottom: '1.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
+                    <ShieldCheck size={18} className="text-primary" />
+                    <span>Applying with your profile</span>
                   </div>
+                  <p style={{ marginTop: '0.25rem', fontSize: '0.85rem', color: 'var(--muted)', lineHeight: 1.45 }}>
+                    Your candidate profile, skills, and selected CV will be sent directly to the company's hiring team.
+                  </p>
                 </div>
 
                 {/* CV Document Selection */}
                 <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-                  <label htmlFor="cvSelect" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                    <span style={{ fontWeight: 600 }}>Attached CV Document</span>
-                    <Link to="/candidate/documents" target="_blank" style={{ fontSize: '0.75rem', color: 'var(--primary-color)', textDecoration: 'none' }}>
-                      Manage CV Library ↗
+                  <label htmlFor="cvSelect" className="form-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>Attached CV</span>
+                    <Link to="/candidate/documents" target="_blank" style={{ fontSize: '0.8rem', color: 'var(--accent)' }}>
+                      Manage CVs ↗
                     </Link>
                   </label>
                   {loadingDocs ? (
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Loading your uploaded CVs...</div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>Loading your CVs...</div>
                   ) : candidateDocs.length > 0 ? (
                     <select
                       id="cvSelect"
-                      className="input-standard"
+                      className="form-input"
                       value={selectedDocId}
                       onChange={(e) => setSelectedDocId(e.target.value)}
                     >
                       {candidateDocs.map((doc) => (
                         <option key={doc.id} value={doc.id}>
-                          {doc.originalFileName} (v{doc.versionNumber}){doc.isDefault ? ' — Primary CV' : ''}
+                          {doc.originalFileName} {doc.isDefault ? ' — Default CV' : ''}
                         </option>
                       ))}
-                      <option value="">No CV (Apply with Profile Only)</option>
+                      <option value="">Apply without CV (Profile only)</option>
                     </select>
                   ) : (
-                    <div style={{ padding: '0.75rem', background: 'var(--surface-color)', border: '1px dashed var(--border-color)', borderRadius: '8px', fontSize: '0.825rem' }}>
-                      <p style={{ margin: '0 0 0.5rem 0', color: 'var(--text-secondary)' }}>
-                        You haven't uploaded a CV yet. Attaching a CV allows employers to perform automated, explainable qualification matching.
+                    <div className="box" style={{ padding: '0.85rem', fontSize: '0.85rem' }}>
+                      <p style={{ margin: '0 0 0.5rem 0', color: 'var(--muted)' }}>
+                        You haven't uploaded a CV yet. Adding a CV helps companies see how your skills match the role.
                       </p>
-                      <Link to="/candidate/documents" className="btn btn-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.65rem' }}>
-                        Upload a CV in Library
+                      <Link to="/candidate/documents" className="btn sm">
+                        Upload a CV
                       </Link>
                     </div>
                   )}
 
-                  {/* Transparent Match Advisory Banner */}
-                  <div style={{ marginTop: '0.75rem', padding: '0.85rem 1rem', backgroundColor: 'rgba(238, 246, 255, 0.9)', border: '1px solid rgba(186, 230, 253, 0.9)', borderRadius: 'var(--radius-sm)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem', color: '#0369a1', fontWeight: 600, fontSize: '0.85rem' }}>
-                      <Sparkles size={16} /> Transparent CV-to-Job Qualification Matching
+                  {/* See Fit Advisory Banner */}
+                  <div className="box" style={{ marginTop: '0.75rem', background: 'var(--soft)', borderColor: '#C9D8FF' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem', color: 'var(--accent-d)', fontWeight: 600, fontSize: '0.85rem' }}>
+                      <Sparkles size={16} /> See how well you fit
                     </div>
-                    <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-                      When a CV is attached, HireSphere compares your extracted technical qualifications against this vacancy's requirements. Match scores are advisory estimates to guide interview preparation. <strong>They do not cause automated rejection, and hiring managers review every application.</strong>
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--muted)', lineHeight: 1.45 }}>
+                      When you attach a CV, we show how your skills match the job requirements. A real person reviews every application, and no decisions are made automatically.
                     </p>
                   </div>
                 </div>

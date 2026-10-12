@@ -23,6 +23,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 *.local
+.env
+.env.*
+!.env.example
+!.env.production.example
 .env.local
 .env.*.local
 
@@ -32,3 +36,6 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 .DS_Store
+
+## Reference Assets
+design-reference/

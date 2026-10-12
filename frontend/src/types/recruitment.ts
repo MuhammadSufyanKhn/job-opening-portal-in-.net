@@ -217,7 +217,7 @@ export interface UpdateInterviewRequest {
   status: number;
 }
 
-// --- Pipeline Board (Kanban) ---
+// --- Applicant Board ---
 export interface PipelineBoardCard {
   id: string;
   jobPostingId: string;

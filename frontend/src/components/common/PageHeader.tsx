@@ -16,15 +16,15 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   className = ''
 }) => {
   return (
-    <header className={`portal-header ${className}`.trim()}>
+    <header className={`ph ${className}`.trim()}>
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.35rem' }}>
-          {icon && <div style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center' }}>{icon}</div>}
-          <h1 className="portal-title" style={{ margin: 0 }}>{title}</h1>
+        <div className="ph-title-wrap">
+          {icon && <div className="ph-icon">{icon}</div>}
+          <h1 className="ph-title">{title}</h1>
         </div>
-        {subtitle && <p className="portal-subtitle">{subtitle}</p>}
+        {subtitle && <p className="ph-subtitle">{subtitle}</p>}
       </div>
-      {actions && <div className="portal-actions">{actions}</div>}
+      {actions && <div className="ph-actions row">{actions}</div>}
     </header>
   );
 };

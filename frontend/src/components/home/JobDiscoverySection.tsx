@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Briefcase, 
-  MapPin, 
-  DollarSign, 
-  Building2, 
-  ArrowRight
-} from 'lucide-react';
+import { MapPin, ArrowRight } from 'lucide-react';
 import { jobsApi } from '../../services/api';
 import type { PublicJobPostingSummary } from '../../types/recruitment';
 
@@ -14,20 +8,21 @@ export const JobDiscoverySection: React.FC = () => {
   const [jobs, setJobs] = useState<PublicJobPostingSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('All');
 
   useEffect(() => {
     let isMounted = true;
     const fetchRecentJobs = async () => {
       try {
         setLoading(true);
-        const res = await jobsApi.searchJobs({ page: 1, pageSize: 4 });
+        const res = await jobsApi.searchJobs({ page: 1, pageSize: 6 });
         if (isMounted) {
           setJobs(res.items || []);
           setError(null);
         }
-      } catch (err: any) {
+      } catch {
         if (isMounted) {
-          setError('Unable to load live vacancies at this moment.');
+          setError('Unable to load openings right now.');
         }
       } finally {
         if (isMounted) {
@@ -42,17 +37,17 @@ export const JobDiscoverySection: React.FC = () => {
 
   const formatEmploymentType = (type: number | string) => {
     const map: Record<string, string> = {
-      '0': 'Full-Time',
-      '1': 'Part-Time',
+      '0': 'Full-time',
+      '1': 'Part-time',
       '2': 'Contract',
       '3': 'Internship',
       '4': 'Temporary',
-      'FullTime': 'Full-Time',
-      'PartTime': 'Part-Time',
+      'FullTime': 'Full-time',
+      'PartTime': 'Part-time',
       'Contract': 'Contract',
       'Internship': 'Internship'
     };
-    return map[String(type)] || 'Full-Time';
+    return map[String(type)] || 'Full-time';
   };
 
   const formatWorkplaceType = (type: number | string) => {
@@ -67,139 +62,149 @@ export const JobDiscoverySection: React.FC = () => {
     return map[String(type)] || 'Flexible';
   };
 
-  const formatSalary = (min?: number | null, max?: number | null, currency = 'USD') => {
-    if (!min && !max) return null;
+  const formatSalary = (min?: number | null, max?: number | null) => {
+    if (!min && !max) return 'Competitive';
     const formatNum = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(0)}k` : `${n}`;
-    if (min && max) return `$${formatNum(min)} - $${formatNum(max)} ${currency}`;
-    if (min) return `From $${formatNum(min)} ${currency}`;
-    if (max) return `Up to $${formatNum(max)} ${currency}`;
-    return null;
+    if (min && max) return `$${formatNum(min)} – $${formatNum(max)}`;
+    if (min) return `From $${formatNum(min)}`;
+    if (max) return `Up to $${formatNum(max)}`;
+    return 'Competitive';
   };
 
+  const isRecent = (publishedAt?: string | null) => {
+    if (!publishedAt) return false;
+    const diffDays = (Date.now() - new Date(publishedAt).getTime()) / (1000 * 3600 * 24);
+    return diffDays <= 3;
+  };
+
+  const colorClasses = ['m3', 'm4', 'm1', 'm2', 'm5', 'm6'];
+
+  const filteredJobs = jobs.filter((j) => {
+    if (activeTab === 'All') return true;
+    if (activeTab === 'Remote') {
+      const mode = formatWorkplaceType(j.workplaceType);
+      return mode === 'Remote' || (j.location && j.location.toLowerCase().includes('remote'));
+    }
+    const emp = formatEmploymentType(j.employmentType);
+    return emp.toLowerCase() === activeTab.toLowerCase();
+  });
+
   return (
-    <section className="home-section bg-surface-subtle" id="jobs-preview" aria-labelledby="jobs-heading">
-      <div className="home-container">
-        <div className="section-header-row">
+    <section className="s white" id="jobs" aria-labelledby="latest-jobs-heading">
+      <div className="container">
+        <div className="head">
           <div>
-            <div className="section-eyebrow">
-              <Briefcase size={14} className="text-primary" />
-              <span>Job Discovery Marketplace</span>
-            </div>
-            <h2 id="jobs-heading" className="section-title">
-              Featured Opportunities from Verified Employers
-            </h2>
-            <p className="section-subtitle">
-              Every opening includes transparent qualification criteria and structured hiring expectations.
-            </p>
+            <h2 id="latest-jobs-heading">Latest jobs</h2>
+            <p>Fresh openings from companies that are hiring now.</p>
           </div>
-          <Link to="/jobs" className="btn btn-outline btn-sm desktop-only-flex">
-            <span>Explore All Vacancies</span>
-            <ArrowRight size={14} />
-          </Link>
+
+          <div className="seg" role="tablist" aria-label="Job filter tabs">
+            {['All', 'Remote', 'Full-time', 'Part-time', 'Internship'].map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                className="chip"
+                role="tab"
+                aria-selected={activeTab === tab}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Loading State */}
+        {/* Loading Skeletons */}
         {loading && (
-          <div className="jobs-preview-grid" aria-label="Loading opportunities">
+          <div className="jobs">
             {[1, 2, 3, 4].map((n) => (
-              <div key={n} className="job-card-skeleton">
-                <div className="skeleton-line skeleton-title" />
-                <div className="skeleton-line skeleton-sub" />
-                <div className="skeleton-line skeleton-chips" />
-                <div className="skeleton-line skeleton-btn" />
+              <div key={n} className="card job" style={{ opacity: 0.7 }}>
+                <div className="row" style={{ gap: '12px', flexWrap: 'nowrap' }}>
+                  <span className="mark m1" style={{ opacity: 0.3 }}>·</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ height: '16px', background: 'var(--line)', borderRadius: '4px', width: '60%' }} />
+                    <div style={{ height: '12px', background: 'var(--line)', borderRadius: '4px', width: '40%', marginTop: '6px' }} />
+                  </div>
+                </div>
+                <div style={{ height: '20px', background: 'var(--line)', borderRadius: '4px', width: '80%', margin: '10px 0' }} />
+                <div className="foot">
+                  <div style={{ height: '16px', background: 'var(--line)', borderRadius: '4px', width: '30%' }} />
+                  <div style={{ height: '28px', background: 'var(--line)', borderRadius: '6px', width: '70px' }} />
+                </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Loaded Jobs List */}
-        {!loading && jobs.length > 0 && (
-          <div className="jobs-preview-grid">
-            {jobs.map((job) => {
-              const salaryText = formatSalary(job.salaryMin, job.salaryMax, job.salaryCurrency);
+        {/* Jobs List */}
+        {!loading && filteredJobs.length > 0 && (
+          <div className="jobs">
+            {filteredJobs.map((job, idx) => {
+              const colorClass = colorClasses[idx % colorClasses.length];
+              const mode = formatWorkplaceType(job.workplaceType);
+              const type = formatEmploymentType(job.employmentType);
+              const salary = formatSalary(job.salaryMin, job.salaryMax);
+              const newBadge = isRecent(job.publishedAtUtc);
+
               return (
-                <div key={job.id} className="job-preview-card">
-                  <div className="job-card-header">
-                    <div className="job-company-icon">
-                      {job.companyLogoUrl ? (
-                        <img src={job.companyLogoUrl} alt={job.companyName} className="company-logo-img" />
-                      ) : (
-                        <Building2 size={20} className="text-primary" />
-                      )}
+                <article key={job.id} className="card job">
+                  <div className="row" style={{ gap: '12px', flexWrap: 'nowrap' }}>
+                    <span className={`mark ${colorClass}`}>
+                      {job.companyName ? job.companyName.charAt(0) : 'H'}
+                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <b style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {job.companyName}
+                      </b>
+                      <div className="muted" style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span className="ic"><MapPin size={14} /></span>
+                        <span>{job.location || 'Remote'}</span>
+                      </div>
                     </div>
-                    <div className="job-header-meta">
-                      <span className="job-company-name">{job.companyName}</span>
-                      <span className="job-category-tag">{job.categoryName || 'Engineering'}</span>
-                    </div>
+                    {newBadge && <span className="badge b-ok">New</span>}
                   </div>
 
-                  <h3 className="job-card-title">
-                    <Link to={`/jobs/${job.id}`}>{job.title}</Link>
+                  <h3>
+                    <Link to={`/jobs/${job.id}`}>
+                      {job.title}
+                    </Link>
                   </h3>
 
-                  <div className="job-card-tags">
-                    <span className="job-tag">
-                      <MapPin size={12} />
-                      <span>{job.location || 'Remote'}</span>
-                    </span>
-                    <span className="job-tag">{formatWorkplaceType(job.workplaceType)}</span>
-                    <span className="job-tag">{formatEmploymentType(job.employmentType)}</span>
-                    {salaryText && (
-                      <span className="job-tag job-tag-salary">
-                        <DollarSign size={12} />
-                        <span>{salaryText}</span>
+                  <div className="tags">
+                    <span className="tag o">{type}</span>
+                    <span className="tag o">{mode === 'Remote' ? 'Work from anywhere' : mode}</span>
+                  </div>
+
+                  <div className="foot">
+                    <span className="pay">{salary}</span>
+                    <div className="row" style={{ gap: '8px' }}>
+                      <span className="muted" style={{ fontSize: '13px' }}>
+                        {job.publishedAtUtc ? new Date(job.publishedAtUtc).toLocaleDateString() : 'Recent'}
                       </span>
-                    )}
-                  </div>
-
-                  {job.topSkills && job.topSkills.length > 0 && (
-                    <div className="job-skills-row">
-                      {job.topSkills.slice(0, 3).map((skill, i) => (
-                        <span key={i} className="skill-pill">{skill}</span>
-                      ))}
+                      <Link to={`/jobs/${job.id}`} className="btn sm primary">
+                        Apply
+                      </Link>
                     </div>
-                  )}
-
-                  <div className="job-card-footer">
-                    <Link to={`/jobs/${job.id}`} className="job-view-link">
-                      <span>View Role Details</span>
-                      <ArrowRight size={14} />
-                    </Link>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
         )}
 
-        {/* Empty / Fallback State */}
-        {!loading && jobs.length === 0 && (
-          <div className="jobs-empty-state-card">
-            <div className="empty-icon-box">
-              <Briefcase size={28} className="text-primary" />
-            </div>
-            <h3>Discover Verified Roles on HireSphere</h3>
-            <p>
-              {error || 'Explore our comprehensive marketplace of technical, operational, and leadership vacancies. Each position includes clear job requirements and structured review stages.'}
+        {/* Empty / Error state */}
+        {!loading && filteredJobs.length === 0 && (
+          <div className="card panel" style={{ textAlign: 'center', margin: '20px 0' }}>
+            <p className="muted">
+              {error || 'No jobs in this group right now.'}
             </p>
-            <div className="empty-actions">
-              <Link to="/jobs" className="btn btn-primary">
-                <span>Browse All Jobs</span>
-                <ArrowRight size={14} />
-              </Link>
-              <Link to="/register-company" className="btn btn-outline">
-                <Building2 size={16} />
-                <span>Post an Opening</span>
-              </Link>
-            </div>
           </div>
         )}
 
-        {/* Mobile View All Button */}
-        <div className="section-footer-mobile">
-          <Link to="/jobs" className="btn btn-outline btn-block">
-            <span>Explore All Vacancies in Marketplace</span>
-            <ArrowRight size={14} />
+        <div className="center">
+          <Link to="/jobs" className="btn lg">
+            <span>Browse all jobs</span>
+            <ArrowRight size={18} />
           </Link>
         </div>
       </div>

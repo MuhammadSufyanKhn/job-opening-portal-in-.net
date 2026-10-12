@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Xunit;
 using HireSphere.Domain.Entities;
@@ -97,5 +98,24 @@ public class InfrastructureServiceTests
         token1.Should().NotBe(token2);
         hash1.Should().NotBeNullOrWhiteSpace();
         hash1.Should().NotBe(token1);
+    }
+
+    [Fact]
+    public void HireSphereDbContext_ModelValidation_HasNoWarning10622()
+    {
+        var options = new Microsoft.EntityFrameworkCore.DbContextOptionsBuilder<HireSphere.Infrastructure.Persistence.HireSphereDbContext>()
+            .UseInMemoryDatabase("TestValidationDb")
+            .ConfigureWarnings(w => w.Throw(Microsoft.EntityFrameworkCore.Diagnostics.CoreEventId.PossibleIncorrectRequiredNavigationWithQueryFilterInteractionWarning))
+            .Options;
+
+        using var context = new HireSphere.Infrastructure.Persistence.HireSphereDbContext(options);
+        try
+        {
+            var _ = context.Model;
+        }
+        catch (System.InvalidOperationException ex)
+        {
+            Assert.Fail($"Warning 10622 triggered: {ex.Message}");
+        }
     }
 }

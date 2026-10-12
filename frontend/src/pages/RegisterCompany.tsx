@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { authApi } from '../services/api';
-import { Building2, Mail, Lock, User, Globe, AlertCircle, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Briefcase, AlertCircle, ShieldCheck, ArrowRight } from 'lucide-react';
 
 export const RegisterCompany: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -47,190 +46,170 @@ export const RegisterCompany: React.FC = () => {
 
   return (
     <div className="auth-page">
-      <motion.div
-        className="auth-card auth-card-wide"
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
-      >
-        <div className="auth-header">
-          <h2>Register Your Organization</h2>
-          <p>Establish your company workspace on HireSphere for evidence-backed recruiting</p>
+      <div className="auth-card" style={{ maxWidth: '520px' }}>
+        {/* Brand at top */}
+        <div className="auth-brand">
+          <Link to="/" className="brand">
+            <i aria-hidden="true"><Briefcase size={16} /></i>
+            <span>HireSphere</span>
+          </Link>
         </div>
 
-        <div className="info-banner">
-          <ShieldCheck size={20} className="text-primary" />
-          <span>New organizations enter an administrative review queue (Pending Approval) to ensure platform security and job seeker trust.</span>
+        <div className="auth-header">
+          <h1>Create your company account</h1>
+          <p>Post jobs and find the right people for your team.</p>
+        </div>
+
+        {/* Reassurance banner */}
+        <div className="auth-reassurance" style={{ marginBottom: '20px' }}>
+          <ShieldCheck size={18} />
+          <span>We check every company before its jobs go live, to keep scams out.</span>
         </div>
 
         {error && (
-          <div className="alert alert-error">
+          <div className="form-error" style={{ marginBottom: '16px', padding: '10px 12px', background: 'var(--bad-bg)', borderRadius: '8px' }}>
             <AlertCircle size={18} />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="auth-form">
-          <h3 className="section-title">Organization Information</h3>
+          <div className="form-group">
+            <label htmlFor="companyName" className="form-label">Company name</label>
+            <input
+              id="companyName"
+              name="companyName"
+              type="text"
+              className="form-input"
+              value={formData.companyName}
+              onChange={handleChange}
+              placeholder="e.g. Apex Cloud Systems"
+              required
+            />
+          </div>
 
-          <div className="form-row">
+          <div className="g2">
             <div className="form-group">
-              <label htmlFor="companyName">Company Name</label>
-              <div className="input-icon-wrapper">
-                <Building2 size={18} className="input-icon" />
-                <input
-                  id="companyName"
-                  name="companyName"
-                  type="text"
-                  value={formData.companyName}
-                  onChange={handleChange}
-                  placeholder="e.g. Acme Corporation"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="industry">Industry Sector</label>
+              <label htmlFor="industry" className="form-label">Industry</label>
               <input
                 id="industry"
                 name="industry"
                 type="text"
-                className="input-standard"
+                className="form-input"
                 value={formData.industry}
                 onChange={handleChange}
-                placeholder="e.g. Technology, Finance, Health"
+                placeholder="e.g. Software, Logistics"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="websiteUrl" className="form-label">Website</label>
+              <input
+                id="websiteUrl"
+                name="websiteUrl"
+                type="text"
+                className="form-input"
+                value={formData.websiteUrl}
+                onChange={handleChange}
+                placeholder="https://example.com"
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="contactEmail" className="form-label">Company contact email</label>
+            <input
+              id="contactEmail"
+              name="contactEmail"
+              type="email"
+              className="form-input"
+              value={formData.contactEmail}
+              onChange={handleChange}
+              placeholder="contact@company.com"
+              required
+            />
+          </div>
+
+          <div className="g2">
+            <div className="form-group">
+              <label htmlFor="ownerFirstName" className="form-label">Your first name</label>
+              <input
+                id="ownerFirstName"
+                name="ownerFirstName"
+                type="text"
+                className="form-input"
+                value={formData.ownerFirstName}
+                onChange={handleChange}
+                placeholder="Sana"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="ownerLastName" className="form-label">Your last name</label>
+              <input
+                id="ownerLastName"
+                name="ownerLastName"
+                type="text"
+                className="form-input"
+                value={formData.ownerLastName}
+                onChange={handleChange}
+                placeholder="Malik"
                 required
               />
             </div>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="contactEmail">General Contact Email</label>
-              <div className="input-icon-wrapper">
-                <Mail size={18} className="input-icon" />
-                <input
-                  id="contactEmail"
-                  name="contactEmail"
-                  type="email"
-                  value={formData.contactEmail}
-                  onChange={handleChange}
-                  placeholder="careers@acme.com"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="websiteUrl">Website URL</label>
-              <div className="input-icon-wrapper">
-                <Globe size={18} className="input-icon" />
-                <input
-                  id="websiteUrl"
-                  name="websiteUrl"
-                  type="url"
-                  value={formData.websiteUrl}
-                  onChange={handleChange}
-                  placeholder="https://acme.com"
-                />
-              </div>
-            </div>
-          </div>
-
           <div className="form-group">
-            <label htmlFor="description">About the Organization</label>
-            <textarea
-              id="description"
-              name="description"
-              rows={2}
-              className="textarea-standard"
-              value={formData.description}
+            <label htmlFor="ownerEmail" className="form-label">Your sign-in email</label>
+            <input
+              id="ownerEmail"
+              name="ownerEmail"
+              type="email"
+              className="form-input"
+              value={formData.ownerEmail}
               onChange={handleChange}
-              placeholder="Brief description of your business mission and culture..."
+              placeholder="sana@company.com"
+              required
             />
           </div>
 
-          <h3 className="section-title" style={{ marginTop: '1.5rem' }}>Primary Account Administrator (Owner)</h3>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="ownerFirstName">Owner First Name</label>
-              <div className="input-icon-wrapper">
-                <User size={18} className="input-icon" />
-                <input
-                  id="ownerFirstName"
-                  name="ownerFirstName"
-                  type="text"
-                  value={formData.ownerFirstName}
-                  onChange={handleChange}
-                  placeholder="Jane"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="ownerLastName">Owner Last Name</label>
-              <div className="input-icon-wrapper">
-                <User size={18} className="input-icon" />
-                <input
-                  id="ownerLastName"
-                  name="ownerLastName"
-                  type="text"
-                  value={formData.ownerLastName}
-                  onChange={handleChange}
-                  placeholder="Smith"
-                  required
-                />
-              </div>
-            </div>
+          <div className="form-group">
+            <label htmlFor="ownerPassword" className="form-label">Password</label>
+            <input
+              id="ownerPassword"
+              name="ownerPassword"
+              type="password"
+              className="form-input"
+              value={formData.ownerPassword}
+              onChange={handleChange}
+              placeholder="Create a secure password"
+              required
+            />
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="ownerEmail">Owner Work Email</label>
-              <div className="input-icon-wrapper">
-                <Mail size={18} className="input-icon" />
-                <input
-                  id="ownerEmail"
-                  name="ownerEmail"
-                  type="email"
-                  value={formData.ownerEmail}
-                  onChange={handleChange}
-                  placeholder="jane.smith@acme.com"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="ownerPassword">Owner Password</label>
-              <div className="input-icon-wrapper">
-                <Lock size={18} className="input-icon" />
-                <input
-                  id="ownerPassword"
-                  name="ownerPassword"
-                  type="password"
-                  value={formData.ownerPassword}
-                  onChange={handleChange}
-                  placeholder="Secure password (8+ chars)"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-
-          <button type="submit" className="btn btn-primary btn-block" disabled={isSubmitting}>
-            {isSubmitting ? 'Registering Organization...' : 'Submit Organization for Verification'}
+          <button 
+            type="submit" 
+            className="btn primary lg btn-block" 
+            disabled={isSubmitting}
+            style={{ marginTop: '8px' }}
+          >
+            <span>{isSubmitting ? 'Creating account...' : 'Create your company account'}</span>
             {!isSubmitting && <ArrowRight size={18} />}
           </button>
         </form>
 
         <div className="auth-footer">
-          <p>Already an employer on HireSphere? <Link to="/login" className="link-subtle">Sign in here</Link></p>
+          <p>Already have an account? <Link to="/login">Sign in</Link></p>
+          <div style={{ marginTop: '10px' }}>
+            <span className="muted" style={{ fontSize: '13.5px' }}>Looking for a job? </span>
+            <Link to="/register-candidate" style={{ fontSize: '13.5px' }}>Create your free profile</Link>
+          </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };
+
+export default RegisterCompany;

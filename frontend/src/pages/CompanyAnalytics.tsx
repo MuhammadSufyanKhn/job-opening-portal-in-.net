@@ -535,7 +535,7 @@ export const CompanyAnalytics: React.FC = () => {
               {overview.workSimMetrics.criteriaPerformance.length > 0 && (
                 <div style={{ marginTop: '1.25rem' }}>
                   <h4 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                    Evaluated Simulation Competencies (Rubric Performance)
+                    Evaluated Skills Challenge Competencies
                   </h4>
                   {overview.workSimMetrics.criteriaPerformance.map(crit => (
                     <div key={crit.criterionName} style={{ marginBottom: '0.65rem' }}>
@@ -558,15 +558,15 @@ export const CompanyAnalytics: React.FC = () => {
                 style={{
                   marginTop: '1.25rem',
                   padding: '0.75rem 1rem',
-                  backgroundColor: '#f8fafc',
-                  borderLeft: '3px solid #94a3b8',
-                  borderRadius: '4px',
+                  backgroundColor: 'var(--bg)',
+                  borderLeft: '3px solid var(--accent)',
+                  borderRadius: 'var(--r-sm)',
                   fontSize: '0.775rem',
                   color: 'var(--text-muted)',
                   lineHeight: 1.4,
                 }}
               >
-                <strong>Responsible AI & Evaluation Notice:</strong> WorkSim simulations measure task execution against rubric criteria. Scores reflect scenario exercise outputs and do not represent psychometric claims or automated hiring decisions.
+                <strong>Skills Challenge Notice:</strong> Skills challenges measure task execution on realistic job scenarios. Scores serve as a helpful guide for your hiring team, and real people always make the final decisions.
               </div>
             </div>
 

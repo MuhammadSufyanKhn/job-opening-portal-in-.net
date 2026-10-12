@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { authApi } from '../services/api';
-import { User, Mail, Lock, Briefcase, MapPin, AlertCircle, ArrowRight } from 'lucide-react';
+import { Briefcase, AlertCircle, ArrowRight } from 'lucide-react';
 
 export const RegisterCandidate: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -32,7 +31,7 @@ export const RegisterCandidate: React.FC = () => {
     try {
       const response = await authApi.registerCandidate(formData);
       login(response);
-      navigate('/candidate/profile');
+      navigate('/candidate/dashboard');
     } catch (err: any) {
       const detail = err.response?.data?.detail || err.response?.data?.title || 'Registration failed. Please check your information.';
       setError(detail);
@@ -43,131 +42,133 @@ export const RegisterCandidate: React.FC = () => {
 
   return (
     <div className="auth-page">
-      <motion.div
-        className="auth-card"
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
-      >
+      <div className="auth-card">
+        {/* Brand at top */}
+        <div className="auth-brand">
+          <Link to="/" className="brand">
+            <i aria-hidden="true"><Briefcase size={16} /></i>
+            <span>HireSphere</span>
+          </Link>
+        </div>
+
         <div className="auth-header">
-          <h2>Create Candidate Account</h2>
-          <p>Join HireSphere to discover vacancies and participate in WorkSim simulations</p>
+          <h1>Create your free profile</h1>
+          <p>Search, apply and track jobs with verified companies.</p>
         </div>
 
         {error && (
-          <div className="alert alert-error">
+          <div className="form-error" style={{ marginBottom: '16px', padding: '10px 12px', background: 'var(--bad-bg)', borderRadius: '8px' }}>
             <AlertCircle size={18} />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-row">
+          <div className="g2">
             <div className="form-group">
-              <label htmlFor="firstName">First Name</label>
-              <div className="input-icon-wrapper">
-                <User size={18} className="input-icon" />
-                <input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  placeholder="John"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="lastName">Last Name</label>
-              <div className="input-icon-wrapper">
-                <User size={18} className="input-icon" />
-                <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  placeholder="Doe"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="email">Email Address</label>
-            <div className="input-icon-wrapper">
-              <Mail size={18} className="input-icon" />
+              <label htmlFor="firstName" className="form-label">First name</label>
               <input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
+                id="firstName"
+                name="firstName"
+                type="text"
+                className="form-input"
+                value={formData.firstName}
                 onChange={handleChange}
-                placeholder="john.doe@example.com"
+                placeholder="Ayesha"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="lastName" className="form-label">Last name</label>
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                className="form-input"
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Khan"
                 required
               />
             </div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password (8+ chars, upper, lower, number)</label>
-            <div className="input-icon-wrapper">
-              <Lock size={18} className="input-icon" />
-              <input
-                id="password"
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Create a strong password"
-                required
-              />
-            </div>
+            <label htmlFor="email" className="form-label">Email address</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              className="form-input"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="name@example.com"
+              required
+            />
           </div>
 
           <div className="form-group">
-            <label htmlFor="headline">Professional Headline (Optional)</label>
-            <div className="input-icon-wrapper">
-              <Briefcase size={18} className="input-icon" />
-              <input
-                id="headline"
-                name="headline"
-                type="text"
-                value={formData.headline}
-                onChange={handleChange}
-                placeholder="e.g. Full-Stack .NET Developer | Cloud Enthusiast"
-              />
-            </div>
+            <label htmlFor="password" className="form-label">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              className="form-input"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Create a secure password"
+              required
+            />
           </div>
 
           <div className="form-group">
-            <label htmlFor="location">Location (Optional)</label>
-            <div className="input-icon-wrapper">
-              <MapPin size={18} className="input-icon" />
-              <input
-                id="location"
-                name="location"
-                type="text"
-                value={formData.location}
-                onChange={handleChange}
-                placeholder="e.g. London, UK or Remote"
-              />
-            </div>
+            <label htmlFor="headline" className="form-label">Professional headline</label>
+            <input
+              id="headline"
+              name="headline"
+              type="text"
+              className="form-input"
+              value={formData.headline}
+              onChange={handleChange}
+              placeholder="e.g. Product Designer or Full Stack Engineer"
+            />
           </div>
 
-          <button type="submit" className="btn btn-primary btn-block" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating Profile...' : 'Complete Registration'}
+          <div className="form-group">
+            <label htmlFor="location" className="form-label">City or country</label>
+            <input
+              id="location"
+              name="location"
+              type="text"
+              className="form-input"
+              value={formData.location}
+              onChange={handleChange}
+              placeholder="e.g. Lahore, PK or Remote"
+            />
+          </div>
+
+          <button 
+            type="submit" 
+            className="btn primary lg btn-block" 
+            disabled={isSubmitting}
+            style={{ marginTop: '8px' }}
+          >
+            <span>{isSubmitting ? 'Creating profile...' : 'Create your free profile'}</span>
             {!isSubmitting && <ArrowRight size={18} />}
           </button>
         </form>
 
         <div className="auth-footer">
-          <p>Already have an account? <Link to="/login" className="link-subtle">Sign in here</Link></p>
+          <p>Already have an account? <Link to="/login">Sign in</Link></p>
+          <div style={{ marginTop: '10px' }}>
+            <span className="muted" style={{ fontSize: '13.5px' }}>Hiring for your team? </span>
+            <Link to="/register-company" style={{ fontSize: '13.5px' }}>Create your company account</Link>
+          </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };
+
+export default RegisterCandidate;

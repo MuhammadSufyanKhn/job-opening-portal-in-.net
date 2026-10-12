@@ -44,6 +44,7 @@ public class JobPostingConfiguration : IEntityTypeConfiguration<JobPosting>
         builder.HasOne(p => p.Company)
             .WithMany(c => c.JobPostings)
             .HasForeignKey(p => p.CompanyId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(p => p.JobCategory)

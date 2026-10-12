@@ -302,14 +302,14 @@ export const SimulationWorkspace: React.FC = () => {
                 </div>
                 <p className="text-xs text-slate-500">
                   {selectedAction.requiresRationale
-                    ? 'This consequential decision requires an operational rationale to be scored by the evaluation rubric.'
-                    : 'Optional: Document your reasoning to add supporting evidence to your evaluation scorecard.'}
+                    ? 'This key decision requires a brief explanation for the hiring team to review.'
+                    : 'Optional: Document your reasoning to provide more context to the hiring team.'}
                 </p>
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                  Technical Reasoning / Operational Rationale {selectedAction.requiresRationale && <span className="text-blue-600">*</span>}
+                  Your Reasoning & Explanation {selectedAction.requiresRationale && <span className="text-blue-600">*</span>}
                 </label>
                 <textarea
                   rows={3}
@@ -432,7 +432,7 @@ export const SimulationWorkspace: React.FC = () => {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-blue-600" />
-                Investigation Evidence Vault ({state.unlockedEvidence.length})
+                Scenario Clues & Documents ({state.unlockedEvidence.length})
               </h3>
               <span className="text-[10px] text-blue-600 font-semibold">Inspecting Artifacts</span>
             </div>

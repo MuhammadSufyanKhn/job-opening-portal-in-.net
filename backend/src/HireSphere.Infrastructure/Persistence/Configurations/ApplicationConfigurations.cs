@@ -47,6 +47,7 @@ public class JobApplicationConfiguration : IEntityTypeConfiguration<JobApplicati
         builder.HasOne(a => a.Company)
             .WithMany(c => c.JobApplications)
             .HasForeignKey(a => a.CompanyId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(a => a.JobPosting)
@@ -93,6 +94,7 @@ public class ApplicationStatusHistoryConfiguration : IEntityTypeConfiguration<Ap
         builder.HasOne(h => h.ChangedByUser)
             .WithMany()
             .HasForeignKey(h => h.ChangedByUserId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(h => new { h.JobApplicationId, h.CreatedAtUtc });
@@ -111,6 +113,7 @@ public class CandidateNoteConfiguration : IEntityTypeConfiguration<CandidateNote
         builder.HasOne(n => n.Company)
             .WithMany()
             .HasForeignKey(n => n.CompanyId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(n => n.JobApplication)
@@ -121,6 +124,7 @@ public class CandidateNoteConfiguration : IEntityTypeConfiguration<CandidateNote
         builder.HasOne(n => n.AuthorUser)
             .WithMany()
             .HasForeignKey(n => n.AuthorUserId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(n => n.JobApplicationId);
@@ -161,6 +165,7 @@ public class InterviewScheduleConfiguration : IEntityTypeConfiguration<Interview
         builder.HasOne(i => i.Company)
             .WithMany()
             .HasForeignKey(i => i.CompanyId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(i => i.JobApplication)

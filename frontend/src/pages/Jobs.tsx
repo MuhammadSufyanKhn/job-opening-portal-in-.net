@@ -1,46 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Search, 
   MapPin, 
-  Briefcase, 
-  DollarSign, 
-  Filter, 
-  Calendar, 
+  Bookmark, 
   ChevronLeft, 
   ChevronRight,
-  ArrowRight,
-  Building2,
-  Bookmark,
-  CheckCircle2
+  Terminal,
+  ArrowRight
 } from 'lucide-react';
 import { jobsApi, candidateSavedJobsApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import type { PublicJobPostingSummary, JobCategory } from '../types/recruitment';
+import { Footer } from '../components/Footer';
 
 export const Jobs: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isAuthenticated, isCandidate } = useAuth();
 
   const [jobs, setJobs] = useState<PublicJobPostingSummary[]>([]);
   const [categories, setCategories] = useState<JobCategory[]>([]);
   const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
-  const [savingJobId, setSavingJobId] = useState<string | null>(null);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filters
-  const [search, setSearch] = useState('');
-  const [location, setLocation] = useState('');
-  const [categoryId, setCategoryId] = useState<string>('');
-  const [workplaceType, setWorkplaceType] = useState<string>('');
-  const [employmentType, setEmploymentType] = useState<string>('');
-  const [viewSavedOnly, setViewSavedOnly] = useState(false);
+  // Filters & State
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+  const [location, setLocation] = useState(searchParams.get('location') || '');
+  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get('category') || 'All');
+  const [workplaceType, setWorkplaceType] = useState<string>(searchParams.get('mode') || '');
+  const [employmentType, setEmploymentType] = useState<string>(searchParams.get('type') || '');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+
+  // Selected job for right-hand preview panel
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
   useEffect(() => {
     loadCategories();
@@ -51,14 +49,14 @@ export const Jobs: React.FC = () => {
 
   useEffect(() => {
     loadJobs();
-  }, [page, categoryId, workplaceType, employmentType]);
+  }, [page, selectedCategory, workplaceType, employmentType]);
 
   const loadCategories = async () => {
     try {
       const data = await jobsApi.getCategories();
       setCategories(data);
-    } catch (err) {
-      console.error('Failed to load categories', err);
+    } catch {
+      // Gracefully ignore error
     }
   };
 
@@ -67,7 +65,7 @@ export const Jobs: React.FC = () => {
       const savedList = await candidateSavedJobsApi.getSavedJobs();
       setSavedJobIds(new Set(savedList.map(s => s.jobId)));
     } catch {
-      // Gracefully ignore if not candidate or table empty
+      // Gracefully ignore
     }
   };
 
@@ -77,20 +75,46 @@ export const Jobs: React.FC = () => {
     try {
       const params: any = {
         page,
-        pageSize: 9,
+        pageSize: 10,
       };
       if (search.trim()) params.search = search.trim();
       if (location.trim()) params.location = location.trim();
-      if (categoryId) params.categoryId = parseInt(categoryId, 10);
-      if (workplaceType !== '') params.workplaceType = parseInt(workplaceType, 10);
-      if (employmentType !== '') params.employmentType = parseInt(employmentType, 10);
+      
+      if (selectedCategory && selectedCategory !== 'All') {
+        const catObj = categories.find(c => c.name.toLowerCase() === selectedCategory.toLowerCase());
+        if (catObj) {
+          params.categoryId = catObj.id;
+        } else {
+          params.search = params.search ? `${params.search} ${selectedCategory}` : selectedCategory;
+        }
+      }
+
+      if (workplaceType !== '') {
+        const workplaceMap: Record<string, number> = { 'On-site': 0, 'Hybrid': 1, 'Remote': 2 };
+        if (workplaceMap[workplaceType] !== undefined) {
+          params.workplaceType = workplaceMap[workplaceType];
+        }
+      }
+
+      if (employmentType !== '') {
+        const empMap: Record<string, number> = { 'Full-time': 0, 'Part-time': 1, 'Contract': 2, 'Internship': 3 };
+        if (empMap[employmentType] !== undefined) {
+          params.employmentType = empMap[employmentType];
+        }
+      }
 
       const res = await jobsApi.searchJobs(params);
-      setJobs(res.items);
-      setTotalPages(res.totalPages);
-      setTotalCount(res.totalCount);
+      setJobs(res.items || []);
+      setTotalPages(res.totalPages || 1);
+      setTotalCount(res.totalCount || 0);
+
+      if (res.items && res.items.length > 0) {
+        setSelectedJobId(prev => prev && res.items.some(j => j.id === prev) ? prev : res.items[0].id);
+      } else {
+        setSelectedJobId(null);
+      }
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to load vacancies from server.');
+      setError(err.response?.data?.detail || 'Unable to load openings at this time.');
     } finally {
       setLoading(false);
     }
@@ -117,9 +141,7 @@ export const Jobs: React.FC = () => {
       return;
     }
 
-    setSavingJobId(jobId);
     const isCurrentlySaved = savedJobIds.has(jobId);
-
     try {
       if (isCurrentlySaved) {
         await candidateSavedJobsApi.unsaveJob(jobId);
@@ -128,376 +150,347 @@ export const Jobs: React.FC = () => {
           next.delete(jobId);
           return next;
         });
-        setFeedbackMsg('Job removed from your saved bookmarks.');
+        setFeedbackMsg('Removed from saved jobs.');
       } else {
         await candidateSavedJobsApi.saveJob(jobId);
         setSavedJobIds(prev => new Set(prev).add(jobId));
-        setFeedbackMsg('Job saved to your bookmarks.');
+        setFeedbackMsg('Saved to your bookmarks.');
       }
-      setTimeout(() => setFeedbackMsg(null), 3000);
+      setTimeout(() => setFeedbackMsg(null), 2500);
     } catch {
-      setFeedbackMsg('Unable to update bookmark status.');
-      setTimeout(() => setFeedbackMsg(null), 3000);
-    } finally {
-      setSavingJobId(null);
+      setFeedbackMsg('Unable to update bookmark.');
+      setTimeout(() => setFeedbackMsg(null), 2500);
     }
   };
 
-  const getWorkplaceBadge = (type: any) => {
-    const map: Record<string, { label: string; color: string }> = {
-      '0': { label: 'On-Site', color: 'badge-outline' },
-      '1': { label: 'Hybrid', color: 'badge-cyan' },
-      '2': { label: 'Remote', color: 'badge-emerald' },
-      'OnSite': { label: 'On-Site', color: 'badge-outline' },
-      'Hybrid': { label: 'Hybrid', color: 'badge-cyan' },
-      'Remote': { label: 'Remote', color: 'badge-emerald' },
-    };
-    const key = String(type);
-    const item = map[key] || { label: 'Standard', color: 'badge-outline' };
-    return <span className={`badge ${item.color}`}>{item.label}</span>;
-  };
-
-  const getEmploymentBadge = (type: any) => {
+  const formatEmploymentType = (type: any) => {
     const map: Record<string, string> = {
-      '0': 'Full-Time',
-      '1': 'Part-Time',
+      '0': 'Full-time',
+      '1': 'Part-time',
       '2': 'Contract',
       '3': 'Internship',
-      'FullTime': 'Full-Time',
-      'PartTime': 'Part-Time',
+      'FullTime': 'Full-time',
+      'PartTime': 'Part-time',
       'Contract': 'Contract',
       'Internship': 'Internship',
     };
-    return map[String(type)] || 'Full-Time';
+    return map[String(type)] || 'Full-time';
   };
 
-  const displayedJobs = viewSavedOnly
-    ? jobs.filter(j => savedJobIds.has(j.id))
-    : jobs;
+  const formatWorkplaceType = (type: any) => {
+    const map: Record<string, string> = {
+      '0': 'On-site',
+      '1': 'Hybrid',
+      '2': 'Remote',
+      'OnSite': 'On-site',
+      'Hybrid': 'Hybrid',
+      'Remote': 'Remote',
+    };
+    return map[String(type)] || 'On-site';
+  };
+
+  const formatSalary = (min?: number | null, max?: number | null, curr = 'USD') => {
+    if (!min && !max) return 'Competitive';
+    const num = (n: number) => n >= 1000 ? `${Math.round(n / 1000)}k` : `${n}`;
+    if (min && max) return `$${num(min)} – $${num(max)} ${curr}`;
+    if (min) return `From $${num(min)} ${curr}`;
+    if (max) return `Up to $${num(max)} ${curr}`;
+    return 'Competitive';
+  };
+
+  const colorClasses = ['m1', 'm2', 'm4', 'm3', 'm5', 'm6'];
+
+  const selectedJob = jobs.find(j => j.id === selectedJobId) || jobs[0];
+
+  const popularCats = ['All', 'Engineering', 'Design', 'Data', 'Marketing', 'Operations'];
 
   return (
-    <div className="container" style={{ padding: '2rem 1rem 5rem' }}>
-      {/* Page Header */}
-      <div style={{ marginBottom: '2.5rem', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '0.75rem', letterSpacing: '-0.025em' }}>
-          Explore Open <span style={{ color: 'var(--color-primary)' }}>Opportunities</span>
-        </h1>
-        <p style={{ color: 'var(--color-text-muted)', fontSize: '1.125rem', maxWidth: '640px', margin: '0 auto' }}>
-          Discover verified vacancies with transparent qualification criteria, direct CV matching, and real-time application tracking.
-        </p>
+    <div>
+      {/* Header Band */}
+      <div className="jhead">
+        <div className="container">
+          <h1>Find your next role</h1>
+          <p className="muted">
+            {totalCount > 0 ? `${totalCount} open roles from verified companies.` : 'Browse verified roles from checked companies.'}
+          </p>
+
+          <form onSubmit={handleSearchSubmit} className="search" role="search">
+            <div className="f">
+              <span className="ic"><Search size={18} /></span>
+              <input
+                type="search"
+                aria-label="Job title, skill or company"
+                placeholder="Job title, skill or company"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <div className="sep" aria-hidden="true" />
+            <div className="f">
+              <span className="ic"><MapPin size={18} /></span>
+              <input
+                type="search"
+                aria-label="Location"
+                placeholder="City or Remote"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+              />
+            </div>
+            <button type="submit" className="btn primary">
+              <span>Search</span>
+              <Search size={16} />
+            </button>
+          </form>
+        </div>
       </div>
 
       {feedbackMsg && (
-        <div className="alert alert-success" style={{ maxWidth: '700px', margin: '0 auto 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <CheckCircle2 size={16} />
-          <span>{feedbackMsg}</span>
+        <div className="toast" role="status">
+          {feedbackMsg}
         </div>
       )}
 
-      {/* Search & Filter Bar */}
-      <form onSubmit={handleSearchSubmit} className="card" style={{ padding: '1.25rem', marginBottom: '1.75rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', alignItems: 'end' }}>
-          <div>
-            <label className="form-label" style={{ fontSize: '0.85rem' }}>Job Title, Keyword, or Skill</label>
-            <div style={{ position: 'relative' }}>
-              <Search size={18} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-              <input 
-                type="text" 
-                className="input" 
-                style={{ paddingLeft: '2.5rem' }}
-                placeholder="e.g. .NET, React, Docker, Python" 
-                value={search} 
-                onChange={(e) => setSearch(e.target.value)} 
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="form-label" style={{ fontSize: '0.85rem' }}>Location</label>
-            <div style={{ position: 'relative' }}>
-              <MapPin size={18} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-              <input 
-                type="text" 
-                className="input" 
-                style={{ paddingLeft: '2.5rem' }}
-                placeholder="City or Remote" 
-                value={location} 
-                onChange={(e) => setLocation(e.target.value)} 
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="form-label" style={{ fontSize: '0.85rem' }}>Category</label>
-            <select 
-              className="input" 
-              value={categoryId} 
-              onChange={(e) => { setCategoryId(e.target.value); setPage(1); }}
-            >
-              <option value="">All Categories</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="form-label" style={{ fontSize: '0.85rem' }}>Workplace</label>
-            <select 
-              className="input" 
-              value={workplaceType} 
-              onChange={(e) => { setWorkplaceType(e.target.value); setPage(1); }}
-            >
-              <option value="">All Arrangements</option>
-              <option value="2">Remote</option>
-              <option value="1">Hybrid</option>
-              <option value="0">On-Site</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="form-label" style={{ fontSize: '0.85rem' }}>Employment Type</label>
-            <select 
-              className="input" 
-              value={employmentType} 
-              onChange={(e) => { setEmploymentType(e.target.value); setPage(1); }}
-            >
-              <option value="">All Types</option>
-              <option value="0">Full-Time</option>
-              <option value="1">Part-Time</option>
-              <option value="2">Contract</option>
-              <option value="3">Internship</option>
-            </select>
-          </div>
-
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button type="submit" className="btn btn-primary" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
-              <Filter size={16} /> Filter
-            </button>
-          </div>
-        </div>
-
-        {/* Candidate Tab Filter (All vs Saved) */}
-        {isCandidate && (
-          <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      {/* Filters Strip */}
+      <div className="container">
+        <div className="filters" role="group" aria-label="Filters">
+          {popularCats.map((cat) => (
             <button
+              key={cat}
               type="button"
-              onClick={() => setViewSavedOnly(false)}
-              className={`btn btn-sm ${!viewSavedOnly ? 'btn-primary' : 'btn-outline'}`}
+              className="chip"
+              aria-pressed={selectedCategory === cat}
+              onClick={() => { setSelectedCategory(cat); setPage(1); }}
             >
-              All Openings ({totalCount})
+              {cat}
             </button>
-            <button
-              type="button"
-              onClick={() => setViewSavedOnly(true)}
-              className={`btn btn-sm ${viewSavedOnly ? 'btn-primary' : 'btn-outline'}`}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-            >
-              <Bookmark size={14} /> Saved Bookmarks ({savedJobIds.size})
-            </button>
-          </div>
-        )}
-      </form>
+          ))}
 
-      {/* Results Section */}
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '4rem 1rem' }}>
-          <div className="spinner" style={{ width: '40px', height: '40px', margin: '0 auto 1rem' }} />
-          <p style={{ color: 'var(--color-text-muted)' }}>Searching live job marketplace...</p>
-        </div>
-      ) : error ? (
-        <div className="card" style={{ padding: '2rem', textAlign: 'center', borderColor: 'var(--color-danger)' }}>
-          <p style={{ color: 'var(--color-danger)', marginBottom: '1rem' }}>{error}</p>
-          <button className="btn btn-outline" onClick={loadJobs}>Try Again</button>
-        </div>
-      ) : displayedJobs.length === 0 ? (
-        <div className="card" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
-          <Briefcase size={48} style={{ color: 'var(--color-text-muted)', margin: '0 auto 1rem' }} />
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>
-            {viewSavedOnly ? 'No Saved Vacancies Found' : 'No Vacancies Found'}
-          </h3>
-          <p style={{ color: 'var(--color-text-muted)', maxWidth: '400px', margin: '0 auto 1.5rem' }}>
-            {viewSavedOnly
-              ? 'You have not saved any jobs yet, or saved vacancies are no longer published.'
-              : 'No published jobs match your selected filter criteria. Try broadening your keywords or resetting filters.'}
-          </p>
-          <button 
-            className="btn btn-outline" 
-            onClick={() => { setSearch(''); setLocation(''); setCategoryId(''); setWorkplaceType(''); setEmploymentType(''); setViewSavedOnly(false); setPage(1); }}
+          <select
+            value={workplaceType}
+            onChange={(e) => { setWorkplaceType(e.target.value); setPage(1); }}
+            aria-label="Work style"
           >
-            Reset All Filters
-          </button>
+            <option value="">Any work style</option>
+            <option value="Remote">Remote</option>
+            <option value="Hybrid">Hybrid</option>
+            <option value="On-site">On-site</option>
+          </select>
+
+          <select
+            value={employmentType}
+            onChange={(e) => { setEmploymentType(e.target.value); setPage(1); }}
+            aria-label="Job type"
+          >
+            <option value="">Any job type</option>
+            <option value="Full-time">Full-time</option>
+            <option value="Part-time">Part-time</option>
+            <option value="Contract">Contract</option>
+            <option value="Internship">Internship</option>
+          </select>
+
+          <span className="count">{totalCount} roles</span>
         </div>
-      ) : (
-        <>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-              Showing <span style={{ color: 'var(--color-text-main)', fontWeight: 600 }}>{displayedJobs.length}</span> verified vacancies
-            </p>
+
+        {/* Two-Pane Board: List on Left, Detail Preview on Right */}
+        <div className="board">
+          {/* Left Column: Job Cards List */}
+          <div>
+            <div className="list">
+              {loading ? (
+                <div className="loading-state">
+                  <div className="spinner" />
+                  <p className="loading-message">Loading roles...</p>
+                </div>
+              ) : jobs.length === 0 ? (
+                <div className="card panel" style={{ textAlign: 'center' }}>
+                  <b>No roles match those filters.</b>
+                  <p className="muted" style={{ margin: '6px 0 14px' }}>
+                    {error || 'Try removing a filter or searching a broader term.'}
+                  </p>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => {
+                      setSearch('');
+                      setLocation('');
+                      setSelectedCategory('All');
+                      setWorkplaceType('');
+                      setEmploymentType('');
+                      setPage(1);
+                    }}
+                  >
+                    Clear filters
+                  </button>
+                </div>
+              ) : (
+                jobs.map((job, idx) => {
+                  const isSelected = job.id === selectedJobId;
+                  const colorClass = colorClasses[idx % colorClasses.length];
+                  const mode = formatWorkplaceType(job.workplaceType);
+                  const type = formatEmploymentType(job.employmentType);
+                  const pay = formatSalary(job.salaryMin, job.salaryMax, job.salaryCurrency);
+                  const hasChallenge = !!(job as any).hasWorkSimAssessment;
+
+                  return (
+                    <button
+                      key={job.id}
+                      type="button"
+                      className="jb"
+                      aria-selected={isSelected}
+                      onClick={() => {
+                        setSelectedJobId(job.id);
+                        if (window.innerWidth <= 1000) {
+                          navigate(`/jobs/${job.id}`);
+                        }
+                      }}
+                    >
+                      <span className={`mark ${colorClass}`}>
+                        {job.companyName ? job.companyName.charAt(0) : 'H'}
+                      </span>
+                      <div>
+                        <h3>{job.title}</h3>
+                        <div className="co">
+                          {job.companyName} · {job.location || 'Remote'}
+                        </div>
+                        <div className="tags" style={{ marginTop: '10px' }}>
+                          <span className="tag">{mode}</span>
+                          <span className="tag o">{type}</span>
+                          <span className="tag o">{pay}</span>
+                          {hasChallenge && (
+                            <span className="badge b-pur nodot">Skills challenge</span>
+                          )}
+                        </div>
+                      </div>
+                      <span className="when">
+                        {job.publishedAtUtc ? new Date(job.publishedAtUtc).toLocaleDateString() : 'Recent'}
+                      </span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="pgbar">
+                <span>Showing page {page} of {totalPages} ({totalCount} total)</span>
+                <div className="pager">
+                  <button
+                    type="button"
+                    disabled={page <= 1}
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    const pageNum = i + 1;
+                    return (
+                      <button
+                        key={pageNum}
+                        type="button"
+                        className={page === pageNum ? 'on' : ''}
+                        onClick={() => setPage(pageNum)}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    disabled={page >= totalPages}
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    aria-label="Next page"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
-            {displayedJobs.map((job) => {
-              const isSaved = savedJobIds.has(job.id);
-              return (
-                <div 
-                  key={job.id} 
-                  className="card" 
-                  style={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    justifyContent: 'space-between',
-                    padding: '1.5rem',
-                    transition: 'transform 0.2s ease, border-color 0.2s ease',
-                    position: 'relative'
-                  }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-                        <div style={{ 
-                          width: '36px', 
-                          height: '36px', 
-                          borderRadius: '8px', 
-                          backgroundColor: 'var(--color-surface-hover)', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center',
-                          color: 'var(--color-primary)'
-                        }}>
-                          <Building2 size={20} />
-                        </div>
-                        <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
-                            {job.companyName}
-                          </div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--color-primary)' }}>
-                            {job.categoryName}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        {getWorkplaceBadge(job.workplaceType)}
-                        {/* Bookmark Button */}
-                        <button
-                          type="button"
-                          onClick={(e) => handleToggleSave(job.id, e)}
-                          title={isSaved ? 'Remove bookmark' : 'Save job'}
-                          disabled={savingJobId === job.id}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            color: isSaved ? '#0284c7' : 'var(--color-text-muted)',
-                            padding: '0.2rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <Bookmark size={18} fill={isSaved ? '#0284c7' : 'none'} />
-                        </button>
-                      </div>
-                    </div>
-
-                    <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem', lineHeight: 1.3 }}>
-                      <Link to={`/jobs/${job.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-                        {job.title}
-                      </Link>
-                    </h3>
-
-                    <p style={{ 
-                      color: 'var(--color-text-muted)', 
-                      fontSize: '0.875rem', 
-                      lineHeight: 1.5,
-                      marginBottom: '1rem',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden'
-                    }}>
-                      {job.summary}
-                    </p>
-
-                    {/* Top Required Skills Tags */}
-                    {job.topSkills && job.topSkills.length > 0 && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '1rem' }}>
-                        {job.topSkills.map((skill, sIdx) => (
-                          <span
-                            key={sIdx}
-                            style={{
-                              fontSize: '0.72rem',
-                              padding: '0.15rem 0.5rem',
-                              backgroundColor: 'rgba(238, 246, 255, 0.8)',
-                              color: '#0369a1',
-                              borderRadius: 'var(--radius-sm)',
-                              border: '1px solid rgba(186, 230, 253, 0.6)'
-                            }}
-                          >
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '1.25rem' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <MapPin size={14} /> {job.location}
-                      </span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <Briefcase size={14} /> {getEmploymentBadge(job.employmentType)}
-                      </span>
-                      {job.salaryMin != null && job.salaryMax != null && (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--color-emerald)' }}>
-                          <DollarSign size={14} /> {job.salaryCurrency} {job.salaryMin.toLocaleString()} - {job.salaryMax.toLocaleString()}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <Calendar size={13} /> {job.publishedAtUtc ? new Date(job.publishedAtUtc).toLocaleDateString() : 'Recent'}
-                    </span>
-                    <Link 
-                      to={`/jobs/${job.id}`} 
-                      className="btn btn-outline" 
-                      style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-                    >
-                      View Details <ArrowRight size={14} />
-                    </Link>
+          {/* Right Column: Sticky Detail Panel */}
+          {selectedJob && jobs.length > 0 && (
+            <article className="card detail" aria-live="polite">
+              <div className="row" style={{ flexWrap: 'nowrap', gap: '14px' }}>
+                <span className="mark m1" style={{ width: '52px', height: '52px', fontSize: '18px' }}>
+                  {selectedJob.companyName ? selectedJob.companyName.charAt(0) : 'H'}
+                </span>
+                <div>
+                  <h2>{selectedJob.title}</h2>
+                  <div className="muted">
+                    {selectedJob.companyName} · {selectedJob.location || 'Remote'} · posted {selectedJob.publishedAtUtc ? new Date(selectedJob.publishedAtUtc).toLocaleDateString() : 'Recent'}
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              </div>
 
-          {/* Pagination */}
-          {!viewSavedOnly && totalPages > 1 && (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2rem' }}>
-              <button 
-                className="btn btn-outline" 
-                disabled={page <= 1} 
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-              >
-                <ChevronLeft size={16} /> Previous
-              </button>
-              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
-                Page {page} of {totalPages}
-              </span>
-              <button 
-                className="btn btn-outline" 
-                disabled={page >= totalPages} 
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-              >
-                Next <ChevronRight size={16} />
-              </button>
-            </div>
+              <dl className="facts">
+                <div>
+                  <dt>Salary</dt>
+                  <dd>{formatSalary(selectedJob.salaryMin, selectedJob.salaryMax, selectedJob.salaryCurrency)}</dd>
+                </div>
+                <div>
+                  <dt>Work style</dt>
+                  <dd>{formatWorkplaceType(selectedJob.workplaceType)}</dd>
+                </div>
+                <div>
+                  <dt>Job type</dt>
+                  <dd>{formatEmploymentType(selectedJob.employmentType)}</dd>
+                </div>
+              </dl>
+
+              {(selectedJob as any).hasWorkSimAssessment && (
+                <div className="box" style={{ marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Terminal size={16} className="text-primary" />
+                  <span>This role includes a <b>skills challenge</b> after review.</span>
+                </div>
+              )}
+
+              <h4>About the role</h4>
+              <p className="desc">
+                {selectedJob.summary || 'Join our team to make a meaningful impact. Explore the full requirements and submit your application.'}
+              </p>
+
+              {selectedJob.topSkills && selectedJob.topSkills.length > 0 && (
+                <>
+                  <h4>Key skills</h4>
+                  <div className="tags" style={{ margin: '8px 0 16px' }}>
+                    {selectedJob.topSkills.map((sk, i) => (
+                      <span key={i} className="tag">{sk}</span>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              <div className="box" style={{ marginTop: '20px', background: '#F5F8FF', borderColor: '#C9D8FF' }}>
+                <b>See how well you fit</b>
+                <div className="muted" style={{ fontSize: '14px', marginTop: '4px' }}>
+                  View full requirements, verify your skills match, and submit your private CV.
+                </div>
+              </div>
+
+              <div className="row" style={{ marginTop: '22px' }}>
+                <Link to={`/jobs/${selectedJob.id}`} className="btn primary">
+                  <span>View full job details</span>
+                  <ArrowRight size={16} />
+                </Link>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={(e) => handleToggleSave(selectedJob.id, e)}
+                >
+                  <Bookmark size={16} fill={savedJobIds.has(selectedJob.id) ? 'currentColor' : 'none'} />
+                  <span>{savedJobIds.has(selectedJob.id) ? 'Saved' : 'Save job'}</span>
+                </button>
+              </div>
+            </article>
           )}
-        </>
-      )}
+        </div>
+      </div>
+
+      <Footer />
     </div>
   );
 };
+
+export default Jobs;

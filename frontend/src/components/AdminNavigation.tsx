@@ -1,48 +1,55 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Users, Briefcase, ShieldCheck } from 'lucide-react';
+import { Layers, Building2, Users, Briefcase, ShieldCheck } from 'lucide-react';
 
-export const AdminNavigation: React.FC = () => {
+interface AdminNavigationProps {
+  pendingCompanyCount?: number;
+}
+
+export const AdminNavigation: React.FC<AdminNavigationProps> = ({ pendingCompanyCount }) => {
   return (
-    <nav className="admin-nav-tabs" aria-label="Admin Navigation">
+    <nav className="admin-tabs" aria-label="Admin navigation">
       <NavLink
         to="/admin/dashboard"
-        className={({ isActive }) => `admin-tab-link ${isActive ? 'active' : ''}`}
+        className={({ isActive }) => (isActive ? 'active' : '')}
       >
-        <LayoutDashboard size={18} />
-        <span>Platform Overview</span>
+        <Layers size={17} />
+        <span>Platform overview</span>
       </NavLink>
 
       <NavLink
         to="/admin/companies"
-        className={({ isActive }) => `admin-tab-link ${isActive ? 'active' : ''}`}
+        className={({ isActive }) => (isActive ? 'active' : '')}
       >
-        <Building2 size={18} />
-        <span>Company Verification</span>
+        <Building2 size={17} />
+        <span>Company verification</span>
+        {pendingCompanyCount !== undefined && pendingCompanyCount > 0 ? (
+          <span className="badge b-warn nodot">{pendingCompanyCount}</span>
+        ) : null}
       </NavLink>
 
       <NavLink
         to="/admin/users"
-        className={({ isActive }) => `admin-tab-link ${isActive ? 'active' : ''}`}
+        className={({ isActive }) => (isActive ? 'active' : '')}
       >
-        <Users size={18} />
-        <span>User Accounts</span>
+        <Users size={17} />
+        <span>User accounts</span>
       </NavLink>
 
       <NavLink
         to="/admin/jobs"
-        className={({ isActive }) => `admin-tab-link ${isActive ? 'active' : ''}`}
+        className={({ isActive }) => (isActive ? 'active' : '')}
       >
-        <Briefcase size={18} />
-        <span>Job Moderation</span>
+        <Briefcase size={17} />
+        <span>Job moderation</span>
       </NavLink>
 
       <NavLink
         to="/admin/audit"
-        className={({ isActive }) => `admin-tab-link ${isActive ? 'active' : ''}`}
+        className={({ isActive }) => (isActive ? 'active' : '')}
       >
-        <ShieldCheck size={18} />
-        <span>Audit Trail</span>
+        <ShieldCheck size={17} />
+        <span>Audit trail</span>
       </NavLink>
     </nav>
   );

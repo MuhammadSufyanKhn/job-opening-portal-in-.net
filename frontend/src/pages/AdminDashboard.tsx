@@ -156,10 +156,10 @@ export const AdminDashboard: React.FC = () => {
             <div className="stats-grid" style={{ marginBottom: '2.5rem' }}>
               <div className="stat-card">
                 <div className="stat-header">
-                  <span className="stat-label">WorkSim Simulation Invitations</span>
+                  <span className="stat-label">Skills Challenge Invitations</span>
                   <span className="stat-value">{stats.workSimTotalAssignments}</span>
                   <span className="stat-subtext">
-                    {stats.workSimCompletedAssessments} completed assessments
+                    {stats.workSimCompletedAssessments} completed challenges
                   </span>
                 </div>
                 <div className="stat-icon-wrapper bg-primary-soft text-primary">
@@ -169,14 +169,14 @@ export const AdminDashboard: React.FC = () => {
 
               <div className="stat-card">
                 <div className="stat-header">
-                  <span className="stat-label">WorkSim Assessment Average</span>
+                  <span className="stat-label">Skills Challenge Average</span>
                   <span className="stat-value">
                     {stats.workSimAverageScore !== null
                       ? `${Math.round(stats.workSimAverageScore)}%`
                       : 'N/A'}
                   </span>
                   <span className="stat-subtext">
-                    Based on evaluated simulation submissions
+                    Based on completed challenge submissions
                   </span>
                 </div>
                 <div className="stat-icon-wrapper bg-success-soft text-emerald">

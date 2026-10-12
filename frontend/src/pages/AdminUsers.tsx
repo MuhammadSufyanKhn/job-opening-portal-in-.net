@@ -489,7 +489,7 @@ export const AdminUsers: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
                 <ShieldAlert size={24} className="text-warning" />
                 <p className="text-muted text-sm" style={{ margin: 0 }}>
-                  Suspending <strong>{suspendingUser.fullName}</strong> ({suspendingUser.email}) will immediately revoke active session tokens via server-side validation and block all API access until reactivated.
+                  Suspending <strong>{suspendingUser.fullName}</strong> ({suspendingUser.email}) will immediately revoke active sessions and block account access until reactivated.
                 </p>
               </div>
 

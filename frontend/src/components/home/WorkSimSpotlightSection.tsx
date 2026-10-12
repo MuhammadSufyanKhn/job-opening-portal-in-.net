@@ -18,19 +18,19 @@ export const WorkSimSpotlightSection: React.FC = () => {
     {
       title: 'Roll Back to Last Stable Release (v2.4.0)',
       rationale: 'Mitigates live user impact immediately while root-cause analysis proceeds in staging.',
-      rubricFeedback: 'Optimal incident containment choice: prioritizes uptime and prevents compounding errors.',
+      feedback: 'Optimal incident containment choice: prioritizes uptime and prevents compounding errors.',
       scoreDelta: '+35 pts (Incident Severity Containment)'
     },
     {
       title: 'Scale Out Web Worker Nodes by 200%',
       rationale: 'Absorbs concurrent request spikes temporarily to prevent queue saturation.',
-      rubricFeedback: 'Acceptable partial mitigation, but does not address underlying memory leak or socket exhaustion.',
+      feedback: 'Acceptable partial mitigation, but does not address underlying memory leak or socket exhaustion.',
       scoreDelta: '+20 pts (Operational Triage)'
     },
     {
       title: 'Restart Database Primary Node Without Failover',
       rationale: 'Attempts hard reset of saturated connection pools.',
-      rubricFeedback: 'Sub-optimal: causes immediate service interruption and data write interruption without standby failover.',
+      feedback: 'Sub-optimal: causes immediate service interruption and data write interruption without standby failover.',
       scoreDelta: '+5 pts (High Risk Maneuver)'
     }
   ];
@@ -74,7 +74,7 @@ export const WorkSimSpotlightSection: React.FC = () => {
                   <Sliders size={18} className="text-primary" />
                 </div>
                 <div>
-                  <h3 className="feature-card-title">Explainable Decision Rationales</h3>
+                  <h3 className="feature-card-title">Clear Decision Explanations</h3>
                   <p className="feature-card-desc">
                     Candidates explain the reasoning behind their choices. Hiring teams see both the chosen strategy and the judgment behind it.
                   </p>
@@ -86,9 +86,9 @@ export const WorkSimSpotlightSection: React.FC = () => {
                   <ShieldCheck size={18} className="text-primary" />
                 </div>
                 <div>
-                  <h3 className="feature-card-title">Deterministic Rubrics, Zero AI Bias</h3>
+                  <h3 className="feature-card-title">Structured Criteria, Zero Hidden Bias</h3>
                   <p className="feature-card-desc">
-                    Evaluations are computed against structured criteria defined by senior engineers and hiring leads—never opaque, uncontrolled AI models.
+                    Evaluations are computed against structured criteria defined by experienced hiring leads.
                   </p>
                 </div>
               </div>
@@ -171,20 +171,20 @@ export const WorkSimSpotlightSection: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Rubric Evaluation Feedback */}
+                {/* Skills Challenge Feedback */}
                 <div className="sim-evaluation-result">
                   <div className="eval-header">
                     <div className="eval-title">
                       <Award size={16} className="text-warning" />
-                      <span>Deterministic Rubric Assessment</span>
+                      <span>Skills Challenge Assessment</span>
                     </div>
                     <span className="eval-delta">{demoActions[selectedDemoAction].scoreDelta}</span>
                   </div>
                   <p className="eval-text">
-                    {demoActions[selectedDemoAction].rubricFeedback}
+                    {demoActions[selectedDemoAction].feedback}
                   </p>
                   <div className="eval-note">
-                    *Illustrative demo reflecting HireSphere's server-side WorkSim scoring engine.
+                    *Illustrative demo reflecting HireSphere's skills challenge scoring.
                   </div>
                 </div>
               </div>

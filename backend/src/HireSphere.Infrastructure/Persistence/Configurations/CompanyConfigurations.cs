@@ -54,11 +54,13 @@ public class CompanyMemberConfiguration : IEntityTypeConfiguration<CompanyMember
         builder.HasOne(cm => cm.Company)
             .WithMany(c => c.Members)
             .HasForeignKey(cm => cm.CompanyId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(cm => cm.User)
             .WithMany(u => u.CompanyMembers)
             .HasForeignKey(cm => cm.UserId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasIndex(cm => new { cm.CompanyId, cm.UserId }).IsUnique();
@@ -87,11 +89,13 @@ public class CompanyInvitationConfiguration : IEntityTypeConfiguration<CompanyIn
         builder.HasOne(ci => ci.Company)
             .WithMany(c => c.Invitations)
             .HasForeignKey(ci => ci.CompanyId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(ci => ci.InvitedByUser)
             .WithMany()
             .HasForeignKey(ci => ci.InvitedByUserId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasIndex(ci => new { ci.CompanyId, ci.InvitedEmail });
@@ -116,6 +120,7 @@ public class CandidateProfileConfiguration : IEntityTypeConfiguration<CandidateP
         builder.HasOne(cp => cp.User)
             .WithOne(u => u.CandidateProfile)
             .HasForeignKey<CandidateProfile>(cp => cp.UserId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(cp => cp.UserId).IsUnique();

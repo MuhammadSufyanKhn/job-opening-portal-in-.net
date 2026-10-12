@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
   Search, 
@@ -6,18 +6,32 @@ import {
   ArrowRight, 
   Building2, 
   CheckCircle2, 
-  Terminal, 
-  Briefcase, 
-  FileCheck, 
-  Users,
-  Sparkles
+  Bookmark,
+  Zap,
+  Clock
 } from 'lucide-react';
+import { jobsApi } from '../../services/api';
+import type { PublicJobPostingSummary } from '../../types/recruitment';
 
 export const HeroSection: React.FC = () => {
   const navigate = useNavigate();
   const [keyword, setKeyword] = useState('');
   const [location, setLocation] = useState('');
-  const [activePreviewTab, setActivePreviewTab] = useState<'jobs' | 'worksim' | 'pipeline'>('jobs');
+  const [recentJobs, setRecentJobs] = useState<PublicJobPostingSummary[]>([]);
+
+  useEffect(() => {
+    const fetchRecent = async () => {
+      try {
+        const res = await jobsApi.searchJobs({ pageSize: 3 });
+        if (res && res.items && res.items.length > 0) {
+          setRecentJobs(res.items);
+        }
+      } catch {
+        // Fall back gracefully to static samples
+      }
+    };
+    fetchRecent();
+  }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,260 +46,176 @@ export const HeroSection: React.FC = () => {
     navigate(`/jobs?search=${encodeURIComponent(term)}`);
   };
 
+  const sampleJobs = [
+    {
+      id: 'sample-1',
+      title: 'Customer Support Lead',
+      company: 'Harbor Logistics',
+      location: 'Remote',
+      type: 'Full-time',
+      salary: '$30k – $40k',
+      colorClass: 'm3',
+      match: '92% match',
+    },
+    {
+      id: 'sample-2',
+      title: 'Product Designer',
+      company: 'Northwind',
+      location: 'Karachi',
+      type: 'Full-time',
+      salary: '$60k – $80k',
+      colorClass: 'm4',
+      match: undefined,
+    },
+    {
+      id: 'sample-3',
+      title: 'Senior Full Stack Developer',
+      company: 'Apex Cloud Systems',
+      location: 'London',
+      type: 'Full-time',
+      salary: '$110k – $135k',
+      colorClass: 'm1',
+      match: undefined,
+    },
+  ];
+
   return (
-    <section className="home-hero" aria-labelledby="hero-heading">
-      <div className="home-container">
-        <div className="hero-grid">
-          {/* Left Column: Messaging & Search */}
-          <div className="hero-text-col">
-            <div className="hero-badge">
-              <Sparkles size={14} className="hero-badge-icon" />
-              <span>Evidence-Driven Recruitment Technology</span>
+    <section className="hero" aria-labelledby="hero-heading">
+      <div className="container">
+        {/* Left Column: Messaging & Search */}
+        <div>
+          <span className="eyebrow">
+            <span className="ic"><CheckCircle2 size={16} /></span>
+            <span>Free for jobseekers and companies</span>
+          </span>
+
+          <h1 id="hero-heading">
+            Find a job you'll love, or the person your team needs.
+          </h1>
+
+          <p className="lead">
+            Browse over 1,200 open jobs from verified companies. Apply in minutes and always know where you stand.
+          </p>
+
+          {/* Search Card */}
+          <form onSubmit={handleSearchSubmit} className="search" role="search">
+            <div className="f">
+              <span className="ic"><Search size={18} /></span>
+              <input
+                type="search"
+                aria-label="Job title or keyword"
+                placeholder="Job title or keyword"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+              />
             </div>
+            <div className="sep" aria-hidden="true" />
+            <div className="f">
+              <span className="ic"><MapPin size={18} /></span>
+              <input
+                type="search"
+                aria-label="City or Remote"
+                placeholder="City or Remote"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+              />
+            </div>
+            <button type="submit" className="btn primary">
+              <span>Search jobs</span>
+              <ArrowRight size={16} />
+            </button>
+          </form>
 
-            <h1 id="hero-heading" className="hero-headline">
-              Where Real Capability Meets <span className="hero-headline-highlight">Great Careers</span>
-            </h1>
-
-            <p className="hero-description">
-              HireSphere unites job discovery, transparent qualification matching, and realistic 
-              <strong> WorkSim</strong> job simulations in one platform—empowering candidates to prove 
-              practical skill and employers to hire with confidence.
-            </p>
-
-            {/* Public Job Search Bar */}
-            <form onSubmit={handleSearchSubmit} className="hero-search-box" role="search">
-              <div className="hero-search-input-group">
-                <Search size={18} className="search-icon" aria-hidden="true" />
-                <input
-                  type="text"
-                  placeholder="Job title, skill, or keyword..."
-                  value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
-                  className="hero-search-field"
-                  aria-label="Job title, skill, or keyword"
-                />
-              </div>
-
-              <div className="hero-search-divider" aria-hidden="true" />
-
-              <div className="hero-search-input-group">
-                <MapPin size={18} className="search-icon" aria-hidden="true" />
-                <input
-                  type="text"
-                  placeholder="City, state, or 'Remote'..."
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="hero-search-field"
-                  aria-label="Location or remote"
-                />
-              </div>
-
-              <button type="submit" className="hero-search-btn">
-                <span>Find Jobs</span>
-                <ArrowRight size={16} aria-hidden="true" />
+          {/* Popular search chips */}
+          <div className="pop">
+            <span>Popular:</span>
+            {['Remote', 'Customer support', 'Developer', 'Designer', 'Accountant', 'Internship'].map((term) => (
+              <button
+                key={term}
+                type="button"
+                className="chip"
+                onClick={() => handleQuickKeyword(term)}
+              >
+                {term}
               </button>
-            </form>
-
-            {/* Quick Keyword Chips */}
-            <div className="hero-quick-searches" aria-label="Popular searches">
-              <span className="quick-label">Trending:</span>
-              {['Full Stack', '.NET Core', 'React', 'DevOps', 'Data Engineer'].map((term) => (
-                <button
-                  key={term}
-                  type="button"
-                  onClick={() => handleQuickKeyword(term)}
-                  className="quick-chip"
-                >
-                  {term}
-                </button>
-              ))}
-            </div>
-
-            {/* Primary Action Buttons */}
-            <div className="hero-actions">
-              <Link to="/register-candidate" className="btn btn-primary btn-lg">
-                <span>Join as Candidate</span>
-                <ArrowRight size={16} aria-hidden="true" />
-              </Link>
-              <Link to="/register-company" className="btn btn-outline btn-lg">
-                <Building2 size={18} aria-hidden="true" />
-                <span>For Employers</span>
-              </Link>
-            </div>
-
-            {/* Value Trust Bullets */}
-            <div className="hero-trust-row">
-              <div className="trust-item">
-                <CheckCircle2 size={16} className="text-success" aria-hidden="true" />
-                <span>Verified Employers</span>
-              </div>
-              <div className="trust-item">
-                <CheckCircle2 size={16} className="text-success" aria-hidden="true" />
-                <span>No Black-Box Automated Disqualification</span>
-              </div>
-              <div className="trust-item">
-                <CheckCircle2 size={16} className="text-success" aria-hidden="true" />
-                <span>Practical WorkSim Simulations</span>
-              </div>
-            </div>
+            ))}
           </div>
 
-          {/* Right Column: Interactive Product Demonstration Mockup */}
-          <div className="hero-preview-col" aria-label="Interactive HireSphere platform demonstration">
-            <div className="preview-card-window">
-              {/* Window Header / Tabs */}
-              <div className="preview-window-header">
-                <div className="preview-window-dots" aria-hidden="true">
-                  <span className="dot dot-red" />
-                  <span className="dot dot-yellow" />
-                  <span className="dot dot-green" />
-                </div>
-                <div className="preview-tab-pills" role="tablist">
-                  <button
-                    role="tab"
-                    aria-selected={activePreviewTab === 'jobs'}
-                    onClick={() => setActivePreviewTab('jobs')}
-                    className={`preview-tab-btn ${activePreviewTab === 'jobs' ? 'active' : ''}`}
-                  >
-                    <Briefcase size={14} aria-hidden="true" />
-                    <span>Job Marketplace</span>
-                  </button>
-                  <button
-                    role="tab"
-                    aria-selected={activePreviewTab === 'worksim'}
-                    onClick={() => setActivePreviewTab('worksim')}
-                    className={`preview-tab-btn ${activePreviewTab === 'worksim' ? 'active' : ''}`}
-                  >
-                    <Terminal size={14} aria-hidden="true" />
-                    <span>WorkSim Engine</span>
-                  </button>
-                  <button
-                    role="tab"
-                    aria-selected={activePreviewTab === 'pipeline'}
-                    onClick={() => setActivePreviewTab('pipeline')}
-                    className={`preview-tab-btn ${activePreviewTab === 'pipeline' ? 'active' : ''}`}
-                  >
-                    <Users size={14} aria-hidden="true" />
-                    <span>Hiring Pipeline</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Window Content */}
-              <div className="preview-window-body">
-                {activePreviewTab === 'jobs' && (
-                  <div className="preview-view-jobs">
-                    <div className="preview-job-item active-item">
-                      <div className="preview-job-top">
-                        <div className="preview-job-company">
-                          <div className="preview-company-badge">AC</div>
-                          <div>
-                            <div className="preview-job-title">Senior Full Stack Engineer</div>
-                            <div className="preview-company-name">Apex Cloud Systems • London, UK (Hybrid)</div>
-                          </div>
-                        </div>
-                        <span className="preview-tag-match">92% Requirement Match</span>
-                      </div>
-                      <p className="preview-job-desc">
-                        Lead resilient cloud backend services in C#/.NET 10 with interactive React dashboards. Transparent compensation and structured recruitment.
-                      </p>
-                      <div className="preview-job-meta">
-                        <span className="preview-pill">Full-Time</span>
-                        <span className="preview-pill">$110,000 - $135,000 USD</span>
-                        <span className="preview-pill">WorkSim Assigned</span>
-                      </div>
-                    </div>
-
-                    <div className="preview-job-item">
-                      <div className="preview-job-top">
-                        <div className="preview-job-company">
-                          <div className="preview-company-badge bg-emerald">NV</div>
-                          <div>
-                            <div className="preview-job-title">DevOps & Site Reliability Engineer</div>
-                            <div className="preview-company-name">NovaSphere Technologies • Remote</div>
-                          </div>
-                        </div>
-                        <span className="preview-tag-secondary">Verified Role</span>
-                      </div>
-                      <div className="preview-job-meta">
-                        <span className="preview-pill">Remote</span>
-                        <span className="preview-pill">$120,000 - $145,000 USD</span>
-                        <span className="preview-pill">Docker & K8s</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activePreviewTab === 'worksim' && (
-                  <div className="preview-view-worksim">
-                    <div className="preview-worksim-header">
-                      <div className="preview-sim-badge">Scenario: Live Incident Response</div>
-                      <span className="preview-sim-timer">Time Remaining: 24:18</span>
-                    </div>
-                    <div className="preview-sim-task">
-                      <strong>Current Task:</strong> Unexpected database connection pool saturation causing 504 gateway timeouts on payment endpoints.
-                    </div>
-                    <div className="preview-sim-evidence">
-                      <span className="evidence-chip"><FileCheck size={12} /> app_metrics.log</span>
-                      <span className="evidence-chip"><FileCheck size={12} /> connection_pool.json</span>
-                    </div>
-                    <div className="preview-sim-action-box">
-                      <div className="sim-action-label">Candidate Selected Action:</div>
-                      <div className="sim-action-text">
-                        "Increase pool timeout grace threshold to 15s and recycle idle worker instances."
-                      </div>
-                      <div className="sim-rationale-note">
-                        <em>Rationale:</em> Preserves active inflight transactions while shedding orphaned connections safely.
-                      </div>
-                    </div>
-                    <div className="preview-sim-score-bar">
-                      <span>Objective Rubric Evaluation: <strong>88/100 (Proficient)</strong></span>
-                      <span className="score-pill">Deterministic</span>
-                    </div>
-                  </div>
-                )}
-
-                {activePreviewTab === 'pipeline' && (
-                  <div className="preview-view-pipeline">
-                    <div className="pipeline-preview-header">
-                      <span className="pipeline-title">Active Vacancy: Senior Full Stack Engineer</span>
-                      <span className="pipeline-count">14 Applicants</span>
-                    </div>
-                    <div className="pipeline-columns">
-                      <div className="pipeline-col">
-                        <div className="pipeline-col-header">Applied (5)</div>
-                        <div className="pipeline-card">
-                          <div className="candidate-name">David S.</div>
-                          <div className="candidate-sub">CV Match: 88%</div>
-                        </div>
-                      </div>
-                      <div className="pipeline-col">
-                        <div className="pipeline-col-header">WorkSim (3)</div>
-                        <div className="pipeline-card active-card">
-                          <div className="candidate-name">Elena R.</div>
-                          <div className="candidate-sub text-success">Score: 92/100</div>
-                        </div>
-                      </div>
-                      <div className="pipeline-col">
-                        <div className="pipeline-col-header">Interview (2)</div>
-                        <div className="pipeline-card">
-                          <div className="candidate-name">Marcus T.</div>
-                          <div className="candidate-sub">Oct 14, 2:00 PM</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Window Footer */}
-              <div className="preview-window-footer">
-                <span className="footer-label">Live Platform Architecture</span>
-                <span className="footer-note">Clean Architecture • ASP.NET Core • SQL Server • React</span>
-              </div>
-            </div>
+          {/* Action buttons */}
+          <div className="row">
+            <Link to="/jobs" className="btn primary lg">
+              <span>Find a job</span>
+              <ArrowRight size={18} />
+            </Link>
+            <Link to="/register-company" className="btn lg">
+              <Building2 size={18} />
+              <span>I'm hiring</span>
+            </Link>
           </div>
+
+          {/* Reassurance items */}
+          <div className="reassure">
+            <span>
+              <span className="ic"><CheckCircle2 size={18} /></span>
+              Verified companies
+            </span>
+            <span>
+              <span className="ic"><CheckCircle2 size={18} /></span>
+              Private CVs
+            </span>
+            <span>
+              <span className="ic"><CheckCircle2 size={18} /></span>
+              Real people decide
+            </span>
+          </div>
+        </div>
+
+        {/* Right Column: Visual Stack of Cards */}
+        <div className="vis" aria-hidden="true">
+          <div className="float f1">
+            <span className="ic"><Zap size={18} /></span>
+            <span>240 new jobs this week</span>
+          </div>
+          <div className="float f2">
+            <span className="ic"><Clock size={18} /></span>
+            <span>Most companies reply within 48 hours</span>
+          </div>
+
+          {(recentJobs.length > 0 ? recentJobs.slice(0, 3) : sampleJobs).map((job, idx) => {
+            const isReal = 'title' in job && 'companyName' in job;
+            const title = isReal ? (job as PublicJobPostingSummary).title : (job as typeof sampleJobs[0]).title;
+            const company = isReal ? (job as PublicJobPostingSummary).companyName : (job as typeof sampleJobs[0]).company;
+            const loc = isReal ? (job as PublicJobPostingSummary).location || 'Remote' : (job as typeof sampleJobs[0]).location;
+            const type = isReal ? (job as PublicJobPostingSummary).employmentType || 'Full-time' : (job as typeof sampleJobs[0]).type;
+            const salary = isReal
+              ? (job as PublicJobPostingSummary).salaryMin && (job as PublicJobPostingSummary).salaryMax
+                ? `$${Math.round((job as PublicJobPostingSummary).salaryMin! / 1000)}k – $${Math.round((job as PublicJobPostingSummary).salaryMax! / 1000)}k`
+                : 'Competitive'
+              : (job as typeof sampleJobs[0]).salary;
+            const colorClass = ['m4', 'm1', 'm2'][idx % 3];
+
+            return (
+              <div key={job.id || idx} className="card jc">
+                <div className="jc-top">
+                  <span className={`mark ${colorClass}`}>
+                    {company.charAt(0)}
+                  </span>
+                  <div>
+                    <b>{title}</b>
+                    <small>{company} · {loc}</small>
+                  </div>
+                  <span className="save">
+                    <Bookmark size={18} />
+                  </span>
+                </div>
+                <div className="tags">
+                  <span className="tag o">{type}</span>
+                  <span className="tag">{salary}</span>
+                  {idx === 0 && <span className="badge b-ok">92% match</span>}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
