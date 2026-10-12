@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import { authApi } from '../services/api';
 import { Briefcase, AlertCircle, ArrowRight } from 'lucide-react';
+import { PageTransition } from '../components/common/PageTransition';
 
 export const RegisterCandidate: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -16,7 +16,6 @@ export const RegisterCandidate: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,9 +28,11 @@ export const RegisterCandidate: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await authApi.registerCandidate(formData);
-      login(response);
-      navigate('/candidate/dashboard');
+      await authApi.registerCandidate(formData);
+      // Explicitly clear any tokens/session so user is not automatically authenticated
+      localStorage.removeItem('hiresphere_token');
+      localStorage.removeItem('hiresphere_refresh');
+      navigate('/login?registered=true', { state: { registered: true } });
     } catch (err: any) {
       const detail = err.response?.data?.detail || err.response?.data?.title || 'Registration failed. Please check your information.';
       setError(detail);
@@ -41,7 +42,8 @@ export const RegisterCandidate: React.FC = () => {
   };
 
   return (
-    <div className="auth-page">
+    <PageTransition>
+      <div className="auth-page">
       <div className="auth-card">
         {/* Brand at top */}
         <div className="auth-brand">
@@ -168,7 +170,8 @@ export const RegisterCandidate: React.FC = () => {
         </div>
       </div>
     </div>
-  );
+  </PageTransition>
+);
 };
 
 export default RegisterCandidate;

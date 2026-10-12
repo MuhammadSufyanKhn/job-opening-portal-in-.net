@@ -44,7 +44,7 @@ public class CurrentUserService : ICurrentUserService
 
     public bool IsAuthenticated => User?.Identity?.IsAuthenticated ?? false;
 
-    public bool IsSuperAdmin => Roles.Contains(PlatformRoles.SuperAdmin);
+    public bool IsSuperAdmin => Roles.Contains(PlatformRoles.SuperAdmin) || Roles.Contains(PlatformRoles.Admin);
 }
 
 public class AuditService : IAuditService

@@ -1,61 +1,67 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase } from 'lucide-react';
+import { Briefcase, ShieldCheck } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="f" role="contentinfo">
+    <footer className="f" role="contentinfo" style={{ borderTop: '1px solid var(--line)', background: 'var(--surface)', padding: '56px 0 32px 0' }}>
       <div className="container">
-        <div className="fg">
+        <div className="fg" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '36px', marginBottom: '44px' }}>
           {/* Brand Column */}
-          <div>
-            <Link to="/" className="brand">
-              <i aria-hidden="true">
-                <Briefcase size={16} />
+          <div style={{ maxWidth: '300px' }}>
+            <Link to="/" className="brand" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '20px', fontWeight: 800, color: 'var(--ink)', textDecoration: 'none', marginBottom: '14px' }}>
+              <i aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '8px', background: 'var(--accent)', color: '#fff' }}>
+                <Briefcase size={18} />
               </i>
               <span>HireSphere</span>
             </Link>
-            <p>The friendly place to find your next job or your next hire. Free to use.</p>
+            <p className="muted" style={{ fontSize: '14px', lineHeight: 1.6, marginBottom: '16px' }}>
+              The modern recruitment SaaS platform uniting verified company vacancies with objective skills assessment simulations.
+            </p>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--ok)', background: 'var(--ok-bg)', padding: '4px 10px', borderRadius: '100px', fontWeight: 600 }}>
+              <ShieldCheck size={14} />
+              <span>Verified Employers Only</span>
+            </div>
           </div>
 
           {/* Column 2: Jobseekers */}
           <div>
-            <h4>For jobseekers</h4>
-            <ul>
-              <li><Link to="/jobs">Browse jobs</Link></li>
-              <li><Link to="/register-candidate">Create a free profile</Link></li>
-              <li><Link to="/login">Sign in</Link></li>
-              <li><a href="/#market">Salary guide</a></li>
+            <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--ink)', marginBottom: '16px' }}>For jobseekers</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
+              <li><Link to="/jobs" className="muted" style={{ textDecoration: 'none' }}>Find verified jobs</Link></li>
+              <li><Link to="/register-candidate" className="muted" style={{ textDecoration: 'none' }}>Create candidate profile</Link></li>
+              <li><Link to="/how-it-works" className="muted" style={{ textDecoration: 'none' }}>How it works</Link></li>
+              <li><Link to="/login" className="muted" style={{ textDecoration: 'none' }}>Jobseeker sign in</Link></li>
             </ul>
           </div>
 
           {/* Column 3: Employers */}
           <div>
-            <h4>For employers</h4>
-            <ul>
-              <li><Link to="/register-company">Post a job</Link></li>
-              <li><Link to="/register-company">Create a company account</Link></li>
-              <li><Link to="/login">Sign in</Link></li>
-              <li><a href="/#employers">Hiring tips</a></li>
+            <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--ink)', marginBottom: '16px' }}>For employers</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
+              <li><Link to="/for-employers" className="muted" style={{ textDecoration: 'none' }}>Employer overview</Link></li>
+              <li><Link to="/companies" className="muted" style={{ textDecoration: 'none' }}>Company directory</Link></li>
+              <li><Link to="/register-company" className="muted" style={{ textDecoration: 'none' }}>Register organization</Link></li>
+              <li><Link to="/login" className="muted" style={{ textDecoration: 'none' }}>Company workspace sign in</Link></li>
             </ul>
           </div>
 
-          {/* Column 4: Help */}
+          {/* Column 4: Support & Legal */}
           <div>
-            <h4>Help</h4>
-            <ul>
-              <li><a href="/#faq">Questions and answers</a></li>
-              <li><a href="/#faq">Contact us</a></li>
-              <li><a href="#">Privacy</a></li>
-              <li><a href="#">Terms</a></li>
+            <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--ink)', marginBottom: '16px' }}>Support & Policies</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
+              <li><Link to="/help" className="muted" style={{ textDecoration: 'none' }}>Knowledge base & FAQ</Link></li>
+              <li><Link to="/contact" className="muted" style={{ textDecoration: 'none' }}>Contact support desk</Link></li>
+              <li><Link to="/privacy" className="muted" style={{ textDecoration: 'none' }}>Privacy policy</Link></li>
+              <li><Link to="/terms" className="muted" style={{ textDecoration: 'none' }}>Terms of service</Link></li>
             </ul>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="fb">
+        <div className="fb" style={{ paddingTop: '24px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '13px', color: 'var(--muted)' }}>
           <span>© {new Date().getFullYear()} HireSphere. All rights reserved.</span>
-          <span>Verified companies · Private CVs · Real people make the decisions</span>
+          <span>Verified organizations · Private documents · Human-driven evaluations</span>
         </div>
       </div>
     </footer>

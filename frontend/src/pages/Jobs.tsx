@@ -13,6 +13,7 @@ import { jobsApi, candidateSavedJobsApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import type { PublicJobPostingSummary, JobCategory } from '../types/recruitment';
 import { Footer } from '../components/Footer';
+import { PageTransition } from '../components/common/PageTransition';
 
 export const Jobs: React.FC = () => {
   const navigate = useNavigate();
@@ -30,12 +31,25 @@ export const Jobs: React.FC = () => {
   // Filters & State
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [location, setLocation] = useState(searchParams.get('location') || '');
-  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get('category') || 'All');
+  const [selectedCategory, setSelectedCategory] = useState<string>(
+    searchParams.get('categoryId') || searchParams.get('category') || 'All'
+  );
   const [workplaceType, setWorkplaceType] = useState<string>(searchParams.get('mode') || '');
   const [employmentType, setEmploymentType] = useState<string>(searchParams.get('type') || '');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+
+  // Sync state when URL params change
+  useEffect(() => {
+    const s = searchParams.get('search') || '';
+    const l = searchParams.get('location') || '';
+    const c = searchParams.get('categoryId') || searchParams.get('category') || 'All';
+    setSearch(s);
+    setLocation(l);
+    setSelectedCategory(c);
+    setPage(1);
+  }, [searchParams]);
 
   // Selected job for right-hand preview panel
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -81,9 +95,12 @@ export const Jobs: React.FC = () => {
       if (location.trim()) params.location = location.trim();
       
       if (selectedCategory && selectedCategory !== 'All') {
-        const catObj = categories.find(c => c.name.toLowerCase() === selectedCategory.toLowerCase());
+        const catNum = parseInt(selectedCategory, 10);
+        const catObj = categories.find(c => (!isNaN(catNum) && c.id === catNum) || c.name.toLowerCase() === selectedCategory.toLowerCase());
         if (catObj) {
           params.categoryId = catObj.id;
+        } else if (!isNaN(catNum)) {
+          params.categoryId = catNum;
         } else {
           params.search = params.search ? `${params.search} ${selectedCategory}` : selectedCategory;
         }
@@ -205,9 +222,10 @@ export const Jobs: React.FC = () => {
   const popularCats = ['All', 'Engineering', 'Design', 'Data', 'Marketing', 'Operations'];
 
   return (
-    <div>
-      {/* Header Band */}
-      <div className="jhead">
+    <PageTransition>
+      <div>
+        {/* Header Band */}
+        <div className="jhead">
         <div className="container">
           <h1>Find your next role</h1>
           <p className="muted">
@@ -490,6 +508,7 @@ export const Jobs: React.FC = () => {
 
       <Footer />
     </div>
+  </PageTransition>
   );
 };
 

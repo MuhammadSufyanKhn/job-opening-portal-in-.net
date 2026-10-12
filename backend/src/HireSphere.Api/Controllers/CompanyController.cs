@@ -23,6 +23,34 @@ public class CompanyController : ControllerBase
         _currentUserService = currentUserService;
     }
 
+    [HttpGet("featured")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(List<PublicCompanySummaryDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetFeaturedCompanies(
+        [FromQuery] int limit = 8,
+        CancellationToken ct = default)
+    {
+        var clampedLimit = Math.Clamp(limit, 1, 24);
+        var companies = await _companyService.GetPublicFeaturedCompaniesAsync(clampedLimit, ct);
+        return Ok(companies);
+    }
+
+    [HttpGet("directory")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(PublicCompanyDirectoryResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCompanyDirectory(
+        [FromQuery] string? search,
+        [FromQuery] string? industry,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 12,
+        CancellationToken ct = default)
+    {
+        var clampedPage = Math.Max(1, page);
+        var clampedSize = Math.Clamp(pageSize, 1, 50);
+        var result = await _companyService.GetPublicCompanyDirectoryAsync(search, industry, clampedPage, clampedSize, ct);
+        return Ok(result);
+    }
+
     [HttpGet("my")]
     [ProducesResponseType(typeof(List<CompanyDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

@@ -176,9 +176,20 @@ public class JobMarketplaceService : IJobMarketplaceService
 
     public async Task<IReadOnlyList<JobCategoryDto>> GetCategoriesAsync(CancellationToken ct = default)
     {
+        var now = DateTimeOffset.UtcNow;
         return await _context.JobCategories
             .OrderBy(c => c.DisplayOrder)
-            .Select(c => new JobCategoryDto(c.Id, c.Name, c.Slug, c.Description, c.DisplayOrder))
+            .Select(c => new JobCategoryDto(
+                c.Id,
+                c.Name,
+                c.Slug,
+                c.Description,
+                c.DisplayOrder,
+                c.JobPostings.Count(j => j.Status == JobPostingStatus.Published
+                    && !j.IsDeleted
+                    && (j.ExpiresAtUtc == null || j.ExpiresAtUtc > now)
+                    && j.Company.ApprovalStatus == CompanyApprovalStatus.Approved
+                    && !j.Company.IsDeleted)))
             .ToListAsync(ct);
     }
 }

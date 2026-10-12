@@ -4,3 +4,5 @@ export { EmptyState } from './EmptyState';
 export { Modal } from './Modal';
 export { Pagination } from './Pagination';
 export { PageHeader } from './PageHeader';
+export { PageTransition } from './PageTransition';
+export { ScrollReveal } from './ScrollReveal';

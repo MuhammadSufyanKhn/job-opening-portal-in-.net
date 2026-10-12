@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -12,8 +12,10 @@ import {
   TrendingUp, 
   Menu, 
   X,
-  Compass
+  Compass,
+  HelpCircle
 } from 'lucide-react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { NotificationBell } from './NotificationBell';
 import { LABELS } from '../content/labels';
 
@@ -21,8 +23,53 @@ export const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout, isCandidate, isCompanyMember, isSuperAdmin } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const shouldReduceMotion = useReducedMotion();
+  const menuToggleRef = useRef<HTMLButtonElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
-  const closeMobileMenu = () => setMobileMenuOpen(false);
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+    menuToggleRef.current?.focus();
+  };
+
+  // Close on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && mobileMenuOpen) {
+        closeMobileMenu();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileMenuOpen]);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handlePointerDown = (e: PointerEvent) => {
+      if (
+        mobileMenuRef.current && 
+        !mobileMenuRef.current.contains(e.target as Node) &&
+        menuToggleRef.current &&
+        !menuToggleRef.current.contains(e.target as Node)
+      ) {
+        closeMobileMenu();
+      }
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+  }, [mobileMenuOpen]);
+
+  // Lock body scroll only while open and cleanly restore on close or unmount
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [mobileMenuOpen]);
 
   return (
     <header className="navbar">
@@ -35,7 +82,7 @@ export const Navbar: React.FC = () => {
           <span>HireSphere</span>
         </Link>
 
-        {/* Desktop Navigation */}
+        {/* Desktop Navigation Links */}
         <nav className="nav-links desktop-nav" aria-label="Main Navigation">
           {!isAuthenticated ? (
             <>
@@ -45,18 +92,30 @@ export const Navbar: React.FC = () => {
               >
                 Find jobs
               </Link>
-              <a href="/#companies" className="nav-link">
+              <Link 
+                to="/companies" 
+                className={`nav-link ${location.pathname.startsWith('/companies') ? 'active' : ''}`}
+              >
                 Companies
-              </a>
-              <a href="/#employers" className="nav-link">
+              </Link>
+              <Link 
+                to="/for-employers" 
+                className={`nav-link ${location.pathname === '/for-employers' ? 'active' : ''}`}
+              >
                 For employers
-              </a>
-              <a href="/#how-it-works" className="nav-link">
+              </Link>
+              <Link 
+                to="/how-it-works" 
+                className={`nav-link ${location.pathname === '/how-it-works' ? 'active' : ''}`}
+              >
                 How it works
-              </a>
-              <a href="/#faq" className="nav-link">
+              </Link>
+              <Link 
+                to="/help" 
+                className={`nav-link ${location.pathname === '/help' ? 'active' : ''}`}
+              >
                 Help
-              </a>
+              </Link>
             </>
           ) : (
             <>
@@ -174,12 +233,17 @@ export const Navbar: React.FC = () => {
                 <div className="user">
                   <div>
                     {user.fullName}
-                    <small>{user.roles.includes('SuperAdmin') ? 'Super admin' : user.roles.includes('CompanyMember') ? 'Company account' : 'Jobseeker'}</small>
+                    <small>{user.roles.some(r => r.toLowerCase() === 'superadmin' || r.toLowerCase() === 'admin') ? 'Administrator' : user.roles.includes('CompanyMember') ? 'Company account' : 'Jobseeker'}</small>
                   </div>
                   <span className="mark m1" style={{ width: '38px', height: '38px', fontSize: '14px' }}>
                     {user.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                   </span>
                 </div>
+              )}
+              {isCompanyMember && (
+                <Link to="/company/jobs/new" className="btn sm primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span>Post a job</span>
+                </Link>
               )}
               <button 
                 onClick={logout} 
@@ -194,124 +258,159 @@ export const Navbar: React.FC = () => {
           
           {/* Mobile Hamburger Toggle Button */}
           <button
+            ref={menuToggleRef}
             type="button"
             className="menu-btn"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-expanded={mobileMenuOpen}
             aria-label={mobileMenuOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
+            aria-controls="mobile-navigation-drawer"
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
 
-      {/* Accessible Mobile Navigation Drawer */}
-      {mobileMenuOpen && (
-        <div className="mobile-nav-panel" role="dialog" aria-modal="true" aria-label="Mobile Navigation">
-          <div className="mobile-nav-links">
-            <Link to="/jobs" className="mobile-nav-item" onClick={closeMobileMenu}>
-              <Briefcase size={18} />
-              <span>Find jobs</span>
-            </Link>
-
-            {!isAuthenticated ? (
-              <>
-                <a href="/#companies" className="mobile-nav-item" onClick={closeMobileMenu}>
-                  <span>Companies</span>
-                </a>
-                <a href="/#employers" className="mobile-nav-item" onClick={closeMobileMenu}>
-                  <span>For employers</span>
-                </a>
-                <a href="/#how-it-works" className="mobile-nav-item" onClick={closeMobileMenu}>
-                  <span>How it works</span>
-                </a>
-                <a href="/#faq" className="mobile-nav-item" onClick={closeMobileMenu}>
-                  <span>Help</span>
-                </a>
-                <div className="mobile-nav-divider" />
-                <Link to="/login" className="mobile-nav-item" onClick={closeMobileMenu}>
-                  <span>Sign in</span>
-                </Link>
-                <div className="mobile-cta-group">
-                  <Link to="/register-candidate" className="btn btn-outline btn-block" onClick={closeMobileMenu}>
-                    <span>Create your free profile</span>
+      {/* Accessible Animated Mobile Navigation Drawer */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            id="mobile-navigation-drawer"
+            ref={mobileMenuRef}
+            className="mobile-nav-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mobile Navigation"
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -10 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <div className="mobile-nav-links">
+              {!isAuthenticated ? (
+                <>
+                  <Link to="/jobs" className="mobile-nav-item" onClick={closeMobileMenu}>
+                    <Compass size={18} />
+                    <span>Find jobs</span>
                   </Link>
-                  <Link to="/register-company" className="btn btn-primary btn-block" onClick={closeMobileMenu}>
-                    <span>Post a job for free</span>
+                  <Link to="/companies" className="mobile-nav-item" onClick={closeMobileMenu}>
+                    <Building2 size={18} />
+                    <span>Companies</span>
                   </Link>
-                </div>
-              </>
-            ) : (
-              <>
-                {isCandidate && (
-                  <>
-                    <Link to="/candidate/dashboard" className="mobile-nav-item" onClick={closeMobileMenu}>
-                      <TrendingUp size={18} />
-                      <span>Dashboard</span>
-                    </Link>
-                    <Link to="/candidate/applications" className="mobile-nav-item" onClick={closeMobileMenu}>
-                      <FileText size={18} />
-                      <span>Applications</span>
-                    </Link>
-                    <Link to="/candidate/simulations" className="mobile-nav-item" onClick={closeMobileMenu}>
-                      <Briefcase size={18} />
-                      <span>{LABELS.SKILLS_CHALLENGES}</span>
-                    </Link>
-                    <Link to="/candidate/documents" className="mobile-nav-item" onClick={closeMobileMenu}>
-                      <FileText size={18} />
-                      <span>{LABELS.MY_CVS}</span>
-                    </Link>
-                    <Link to="/candidate/profile" className="mobile-nav-item" onClick={closeMobileMenu}>
-                      <UserCircle size={18} />
-                      <span>Profile</span>
-                    </Link>
-                  </>
-                )}
-
-                {isCompanyMember && (
-                  <>
-                    <Link to="/company/dashboard" className="mobile-nav-item" onClick={closeMobileMenu}>
-                      <Building2 size={18} />
-                      <span>Workspace</span>
-                    </Link>
-                    <Link to="/company/jobs" className="mobile-nav-item" onClick={closeMobileMenu}>
-                      <Briefcase size={18} />
-                      <span>Vacancies</span>
-                    </Link>
-                    <Link to="/company/applications" className="mobile-nav-item" onClick={closeMobileMenu}>
-                      <Users size={18} />
-                      <span>Applicants</span>
-                    </Link>
-                    <Link to="/company/analytics" className="mobile-nav-item" onClick={closeMobileMenu}>
-                      <TrendingUp size={18} />
-                      <span>{LABELS.HIRING_INSIGHTS}</span>
-                    </Link>
-                  </>
-                )}
-
-                {isSuperAdmin && (
-                  <Link to="/admin" className="mobile-nav-item" onClick={closeMobileMenu}>
-                    <Shield size={18} />
-                    <span>Admin operations</span>
+                  <Link to="/for-employers" className="mobile-nav-item" onClick={closeMobileMenu}>
+                    <Briefcase size={18} />
+                    <span>For employers</span>
                   </Link>
-                )}
+                  <Link to="/how-it-works" className="mobile-nav-item" onClick={closeMobileMenu}>
+                    <TrendingUp size={18} />
+                    <span>How it works</span>
+                  </Link>
+                  <Link to="/help" className="mobile-nav-item" onClick={closeMobileMenu}>
+                    <HelpCircle size={18} />
+                    <span>Help & FAQ</span>
+                  </Link>
 
-                <div className="mobile-nav-divider" />
-                <div className="mobile-user-row">
-                  <div className="mobile-user-info">
-                    <span className="font-semibold">{user?.fullName}</span>
-                    <span className="text-muted text-xs">{user?.roles.join(', ')}</span>
+                  <div className="mobile-nav-divider" />
+                  
+                  <Link to="/login" className="mobile-nav-item" onClick={closeMobileMenu}>
+                    <span>Sign in</span>
+                  </Link>
+                  <div className="mobile-cta-group">
+                    <Link to="/register-candidate" className="btn btn-outline btn-block" onClick={closeMobileMenu}>
+                      <span>Create free profile</span>
+                    </Link>
+                    <Link to="/register-company" className="btn btn-primary btn-block" onClick={closeMobileMenu}>
+                      <span>Post a job</span>
+                    </Link>
                   </div>
-                  <button onClick={() => { logout(); closeMobileMenu(); }} className="btn sm">
-                    <LogOut size={16} />
-                    <span>Sign out</span>
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+                </>
+              ) : (
+                <>
+                  <Link to="/jobs" className="mobile-nav-item" onClick={closeMobileMenu}>
+                    <Compass size={18} />
+                    <span>Find jobs</span>
+                  </Link>
+                  <Link to="/companies" className="mobile-nav-item" onClick={closeMobileMenu}>
+                    <Building2 size={18} />
+                    <span>Companies</span>
+                  </Link>
+
+                  {isCandidate && (
+                    <>
+                      <Link to="/candidate/dashboard" className="mobile-nav-item" onClick={closeMobileMenu}>
+                        <TrendingUp size={18} />
+                        <span>Dashboard</span>
+                      </Link>
+                      <Link to="/candidate/applications" className="mobile-nav-item" onClick={closeMobileMenu}>
+                        <FileText size={18} />
+                        <span>Applications</span>
+                      </Link>
+                      <Link to="/candidate/simulations" className="mobile-nav-item" onClick={closeMobileMenu}>
+                        <Briefcase size={18} />
+                        <span>{LABELS.SKILLS_CHALLENGES}</span>
+                      </Link>
+                      <Link to="/candidate/documents" className="mobile-nav-item" onClick={closeMobileMenu}>
+                        <FileText size={18} />
+                        <span>{LABELS.MY_CVS}</span>
+                      </Link>
+                      <Link to="/candidate/profile" className="mobile-nav-item" onClick={closeMobileMenu}>
+                        <UserCircle size={18} />
+                        <span>Profile</span>
+                      </Link>
+                    </>
+                  )}
+
+                  {isCompanyMember && (
+                    <>
+                      <Link to="/company/dashboard" className="mobile-nav-item" onClick={closeMobileMenu}>
+                        <Building2 size={18} />
+                        <span>Workspace</span>
+                      </Link>
+                      <Link to="/company/jobs" className="mobile-nav-item" onClick={closeMobileMenu}>
+                        <Briefcase size={18} />
+                        <span>Vacancies</span>
+                      </Link>
+                      <Link to="/company/jobs/new" className="mobile-nav-item" onClick={closeMobileMenu}>
+                        <Briefcase size={18} />
+                        <span>Post a new job</span>
+                      </Link>
+                      <Link to="/company/applications" className="mobile-nav-item" onClick={closeMobileMenu}>
+                        <Users size={18} />
+                        <span>Applicants</span>
+                      </Link>
+                      <Link to="/company/analytics" className="mobile-nav-item" onClick={closeMobileMenu}>
+                        <TrendingUp size={18} />
+                        <span>{LABELS.HIRING_INSIGHTS}</span>
+                      </Link>
+                    </>
+                  )}
+
+                  {isSuperAdmin && (
+                    <Link to="/admin" className="mobile-nav-item" onClick={closeMobileMenu}>
+                      <Shield size={18} />
+                      <span>Admin operations</span>
+                    </Link>
+                  )}
+
+                  <div className="mobile-nav-divider" />
+                  <div className="mobile-user-row">
+                    <div className="mobile-user-info">
+                      <span className="font-semibold">{user?.fullName}</span>
+                      <span className="text-muted text-xs">{user?.roles.join(', ')}</span>
+                    </div>
+                    <button onClick={() => { logout(); closeMobileMenu(); }} className="btn sm">
+                      <LogOut size={16} />
+                      <span>Sign out</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };
+
+export default Navbar;

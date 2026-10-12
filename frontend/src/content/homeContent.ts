@@ -1,39 +1,8 @@
 /**
- * Content definitions for the HireSphere public homepage.
- * Matches design-reference/hiresphere-home-v2.html.
- * 
- * Data honesty rules:
- * - Feature flags for placeholder/sample sections default to false so they stay hidden in production.
- * - Set flags to true when connected to live aggregates/real stories.
+ * Content definitions for HireSphere public pages.
+ * Strictly honest product copy explaining candidate and employer workflows.
+ * No fabricated recruitment data, fake applicants, or invented company lists.
  */
-
-// Production feature flags for preview/sample sections
-export const HOME_FLAGS = {
-  // TODO: replace with real data before launch
-  showStatsStrip: false,
-  // TODO: replace with real data before launch
-  showMarketSection: false,
-  // TODO: replace with real data before launch
-  showTestimonials: false,
-};
-
-export interface HomeCategory {
-  id: string;
-  name: string;
-  count: number;
-  iconName: 'code' | 'pen' | 'trend' | 'briefcase' | 'chart' | 'msg' | 'layers' | 'usercheck';
-}
-
-export const HOME_CATEGORIES: HomeCategory[] = [
-  { id: 'software-engineering', name: 'Software and IT', count: 412, iconName: 'code' },
-  { id: 'design-creative', name: 'Design and creative', count: 168, iconName: 'pen' },
-  { id: 'marketing-content', name: 'Marketing', count: 203, iconName: 'trend' },
-  { id: 'sales-account-management', name: 'Sales', count: 241, iconName: 'briefcase' },
-  { id: 'finance-accounting', name: 'Finance and accounting', count: 134, iconName: 'chart' },
-  { id: 'customer-support-operations', name: 'Customer support', count: 189, iconName: 'msg' },
-  { id: 'operations', name: 'Operations', count: 156, iconName: 'layers' },
-  { id: 'healthcare', name: 'Healthcare', count: 97, iconName: 'usercheck' },
-];
 
 export interface HomeBenefit {
   iconName: 'shield' | 'spark' | 'clock' | 'award' | 'lock' | 'usercheck';
@@ -44,93 +13,82 @@ export interface HomeBenefit {
 export const JOBSEEKER_BENEFITS: HomeBenefit[] = [
   {
     iconName: 'shield',
-    title: 'Real companies only',
-    description: 'Every company is checked before it can post a job, so you only see genuine openings.',
+    title: 'Verified employers',
+    description: 'Every company is vetted by administrators before posting, ensuring genuine opportunities.',
   },
   {
     iconName: 'spark',
-    title: 'See your fit first',
-    description: 'Find out how well your skills match a job before you spend time applying.',
+    title: 'Skill matching evidence',
+    description: 'Understand how your qualifications align with requirements before submitting your profile.',
   },
   {
     iconName: 'clock',
-    title: 'Always know where you stand',
-    description: 'Follow each application from sent to decision, with an update at every step.',
+    title: 'Transparent tracking',
+    description: 'Monitor your application status through each stage: Under Review, Assessment, Interview, and Offer.',
   },
   {
     iconName: 'award',
-    title: 'Show what you can do',
-    description: 'Some jobs invite you to a short, realistic work task, so you can stand out beyond your CV.',
+    title: 'Practical WorkSim trials',
+    description: 'Complete hands-on, realistic task simulations to demonstrate practical abilities beyond your CV.',
   },
   {
     iconName: 'lock',
-    title: 'Your CV stays private',
-    description: 'Only the companies you apply to can see it. It is never public.',
+    title: 'Protected documents',
+    description: 'Your uploaded CV and personal details are visible only to the organizations you choose to apply to.',
   },
   {
     iconName: 'usercheck',
-    title: 'A real person decides',
-    description: 'No automatic rejections. Every application is looked at by a person.',
+    title: 'Human-centered decisions',
+    description: 'Applications are reviewed directly by hiring managers, supported by structured evaluation rubrics.',
   },
 ];
 
 export const EMPLOYER_CHECKLIST: string[] = [
-  'Post a job in minutes, free of charge',
-  'Reach people who are actively looking',
-  'See how well each applicant fits your job',
-  'Invite your best candidates to a short skills challenge',
-  'Share private notes with your hiring team',
-  'Follow every candidate from first look to offer',
-  'Stand out with a verified company badge',
+  'Create and configure your verified company profile',
+  'Publish detailed job postings with customized skill requirements',
+  'Review candidate applications with automated skill matching evidence',
+  'Attach interactive WorkSim assessment scenarios to evaluate practical ability',
+  'Collaborate with team members using private hiring notes and ratings',
+  'Manage candidates across a structured, multi-stage recruitment pipeline',
+  'Schedule interviews and export compliant recruitment analytics',
 ];
 
 export const HOW_IT_WORKS_STEPS = {
   seeker: [
     {
-      title: 'Create your free profile',
-      description: 'Add your details and upload your CV. It takes about five minutes.',
+      stepNumber: 1,
+      title: 'Build your profile & upload CV',
+      description: 'Set up your professional credentials, target roles, and upload your resume for automatic skill extraction.',
     },
     {
-      title: 'Search and apply',
-      description: 'Browse jobs that fit you and apply with one click. We show how well you match.',
+      stepNumber: 2,
+      title: 'Find verified openings & apply',
+      description: 'Search open listings with real-time filters for location, workplace type, and salary range, then apply with one click.',
     },
     {
-      title: 'Track and get hired',
-      description: 'Follow every application, book interviews and hear back from the company.',
+      stepNumber: 3,
+      title: 'Complete WorkSim & track progress',
+      description: 'Engage in realistic role scenarios if requested, monitor application milestones, and schedule interviews.',
     },
   ],
   employer: [
     {
-      title: 'Create your company account',
-      description: 'Tell us about your company. We check every account to keep scams out.',
+      stepNumber: 1,
+      title: 'Register & get verified',
+      description: 'Submit your organization details for administrative verification to establish trust with jobseekers.',
     },
     {
-      title: 'Post your job',
-      description: 'Describe the role and the skills you need. Add a short skills challenge if you like.',
+      stepNumber: 2,
+      title: 'Publish openings with requirements',
+      description: 'Define roles, required skills, and optionally assign WorkSim interactive scenarios to evaluate real performance.',
     },
     {
-      title: 'Review, interview and hire',
-      description: 'See how well each person fits, share notes with your team and make an offer.',
+      stepNumber: 3,
+      title: 'Review, evaluate & hire',
+      description: 'Sort candidates by objective skill alignment, review scenario results, collaborate with colleagues, and extend offers.',
     },
   ],
 };
-
-export interface HiringCompanySample {
-  name: string;
-  openJobs: number;
-  colorClass: string;
-}
-
-export const HIRING_COMPANIES_SAMPLE: HiringCompanySample[] = [
-  { name: 'Apex Cloud Systems', openJobs: 5, colorClass: 'm1' },
-  { name: 'NovaSphere Technologies', openJobs: 8, colorClass: 'm2' },
-  { name: 'Harbor Logistics', openJobs: 3, colorClass: 'm3' },
-  { name: 'Northwind', openJobs: 6, colorClass: 'm4' },
-  { name: 'Meridian Health', openJobs: 4, colorClass: 'm5' },
-  { name: 'Orbit Labs', openJobs: 7, colorClass: 'm6' },
-  { name: 'Kite Commerce', openJobs: 9, colorClass: 'm1' },
-  { name: 'Brightpath Education', openJobs: 2, colorClass: 'm2' },
-];
 
 export interface FaqItem {
   question: string;
@@ -139,84 +97,27 @@ export interface FaqItem {
 
 export const HOME_FAQS: FaqItem[] = [
   {
-    question: 'Is HireSphere really free?',
-    answer: 'Yes. Jobseekers can search, apply and track applications for free, and companies can post jobs and review applicants for free.',
+    question: 'How does HireSphere ensure job postings are genuine?',
+    answer: 'Every company registering on HireSphere must undergo an administrative approval review before any job postings can be published publicly. Postings from unverified or deactivated companies are not displayed.',
   },
   {
-    question: 'Is my CV private?',
-    answer: 'Yes. Your CV is not public and cannot be searched by other companies. A company only sees it when you apply to one of its jobs.',
+    question: 'How is my CV privacy protected?',
+    answer: 'Your uploaded CV and profile information are strictly private. They are never indexed publicly or made searchable across the web. Only hiring members of companies to which you explicitly submit an application have access to review your documents.',
   },
   {
-    question: 'Will a computer reject my application?',
-    answer: 'No. Our match score only helps you and the company understand how your skills fit a job. A real person makes every decision.',
+    question: 'What is a WorkSim skills challenge?',
+    answer: 'WorkSim is an integrated simulation workspace where candidates complete realistic, time-bounded problem-solving scenarios reflecting actual daily tasks for the role. It provides hiring teams with objective evidence of your practical competencies.',
   },
   {
-    question: 'How do you check companies?',
-    answer: 'Every new company is reviewed by our team before its jobs go live. This keeps fake and misleading jobs off the site.',
+    question: 'Does an algorithm automatically reject my application?',
+    answer: 'No. Skill matching percentages and keyword evidence provide informational guidance to both you and the hiring team. Final decisions to advance, interview, or reject applicants are always made manually by human hiring managers.',
   },
   {
-    question: 'What is a skills challenge?',
-    answer: 'It is a short, realistic work task that some companies add to a job, like solving a small problem you would meet in the role. It lets you show your ability, not just your CV.',
+    question: 'Which CV file formats and sizes are supported?',
+    answer: 'You can securely upload documents in PDF (.pdf), Microsoft Word (.docx, .doc), or Plain Text (.txt) formats, up to 10 MB per file.',
   },
   {
-    question: 'Which CV files can I upload?',
-    answer: 'PDF and Word files up to 10 MB.',
-  },
-];
-
-// Placeholder preview data for sections toggleable via flags
-// TODO: replace with real data before launch
-export const STATS_STRIP_DATA = [
-  { value: '1,284', label: 'open jobs right now' },
-  { value: '312', label: 'companies hiring' },
-  { value: '48 hours', label: 'typical reply time' },
-  { value: 'Free', label: 'for everyone' },
-];
-
-// TODO: replace with real data before launch
-export const MARKET_DATA = {
-  inDemand: [
-    { title: 'Software developers', growth: 24 },
-    { title: 'Customer support', growth: 18 },
-    { title: 'Digital marketing', growth: 15 },
-    { title: 'Data analysts', growth: 12 },
-    { title: 'Sales', growth: 9 },
-  ],
-  salaries: [
-    { role: 'Developer', starting: '$28k', experienced: '$75k' },
-    { role: 'Designer', starting: '$22k', experienced: '$60k' },
-    { role: 'Marketer', starting: '$18k', experienced: '$45k' },
-    { role: 'Support', starting: '$14k', experienced: '$32k' },
-    { role: 'Accountant', starting: '$16k', experienced: '$42k' },
-  ],
-  locations: [
-    { city: 'Remote', count: 412 },
-    { city: 'Karachi', count: 238 },
-    { city: 'Lahore', count: 176 },
-    { city: 'Islamabad', count: 98 },
-    { city: 'London', count: 74 },
-    { city: 'Dubai', count: 61 },
-  ],
-};
-
-// TODO: replace with real data before launch
-export const TESTIMONIALS_DATA = [
-  {
-    quote: 'I applied on Monday and had an interview by Friday. Being able to see where my application was made waiting so much easier.',
-    name: 'Ayesha K.',
-    role: 'Product designer',
-    colorClass: 'm4',
-  },
-  {
-    quote: 'We filled our support team in three weeks. Seeing how well each applicant fit saved us hours of reading CVs.',
-    name: 'Sana M.',
-    role: 'Hiring manager',
-    colorClass: 'm1',
-  },
-  {
-    quote: "The skills challenge let me show what I can do. I didn't have a long CV, but I still got the job.",
-    name: 'Daniyal R.',
-    role: 'Junior developer',
-    colorClass: 'm2',
+    question: 'How do employer invitations and team collaboration work?',
+    answer: 'Approved companies can invite team members as Admins, Recruiters, or Hiring Managers. Team members can leave private candidate notes, manage interview schedules, and assign WorkSim assessment scenarios.',
   },
 ];

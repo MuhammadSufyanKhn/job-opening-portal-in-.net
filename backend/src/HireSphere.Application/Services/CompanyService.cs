@@ -15,6 +15,8 @@ public interface ICompanyService
     Task<List<CompanyMemberDto>> GetMembersAsync(Guid companyId, Guid userId, CancellationToken ct = default);
     Task<CompanyMemberDto> InviteMemberAsync(Guid companyId, Guid userId, InviteMemberRequest request, CancellationToken ct = default);
     Task RemoveMemberAsync(Guid companyId, Guid memberId, Guid currentUserId, CancellationToken ct = default);
+    Task<List<PublicCompanySummaryDto>> GetPublicFeaturedCompaniesAsync(int limit = 8, CancellationToken ct = default);
+    Task<PublicCompanyDirectoryResult> GetPublicCompanyDirectoryAsync(string? search, string? industry, int page = 1, int pageSize = 12, CancellationToken ct = default);
 }
 
 public class CompanyService : ICompanyService
@@ -255,6 +257,81 @@ public class CompanyService : ICompanyService
             targetResourceId: memberId.ToString(),
             companyId: companyId,
             cancellationToken: ct);
+    }
+
+    public async Task<List<PublicCompanySummaryDto>> GetPublicFeaturedCompaniesAsync(int limit = 8, CancellationToken ct = default)
+    {
+        var now = DateTimeOffset.UtcNow;
+        return await _context.Companies
+            .Where(c => c.ApprovalStatus == CompanyApprovalStatus.Approved && !c.IsDeleted)
+            .OrderByDescending(c => c.JobPostings.Count(j => j.Status == JobPostingStatus.Published
+                && !j.IsDeleted
+                && (j.ExpiresAtUtc == null || j.ExpiresAtUtc > now)))
+            .ThenBy(c => c.Name)
+            .Take(limit)
+            .Select(c => new PublicCompanySummaryDto(
+                c.Id,
+                c.Name,
+                c.Slug,
+                c.WebsiteUrl,
+                c.LogoUrl,
+                c.Industry,
+                c.CompanySize,
+                c.Description,
+                c.JobPostings.Count(j => j.Status == JobPostingStatus.Published
+                    && !j.IsDeleted
+                    && (j.ExpiresAtUtc == null || j.ExpiresAtUtc > now))
+            ))
+            .ToListAsync(ct);
+    }
+
+    public async Task<PublicCompanyDirectoryResult> GetPublicCompanyDirectoryAsync(string? search, string? industry, int page = 1, int pageSize = 12, CancellationToken ct = default)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var query = _context.Companies
+            .Where(c => c.ApprovalStatus == CompanyApprovalStatus.Approved && !c.IsDeleted);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            query = query.Where(c => c.Name.ToLower().Contains(term)
+                                  || (c.Description != null && c.Description.ToLower().Contains(term))
+                                  || c.Industry.ToLower().Contains(term));
+        }
+
+        if (!string.IsNullOrWhiteSpace(industry))
+        {
+            var ind = industry.Trim().ToLower();
+            query = query.Where(c => c.Industry.ToLower() == ind);
+        }
+
+        var totalCount = await query.CountAsync(ct);
+
+        var items = await query
+            .OrderByDescending(c => c.JobPostings.Count(j => j.Status == JobPostingStatus.Published
+                && !j.IsDeleted
+                && (j.ExpiresAtUtc == null || j.ExpiresAtUtc > now)))
+            .ThenBy(c => c.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(c => new PublicCompanySummaryDto(
+                c.Id,
+                c.Name,
+                c.Slug,
+                c.WebsiteUrl,
+                c.LogoUrl,
+                c.Industry,
+                c.CompanySize,
+                c.Description,
+                c.JobPostings.Count(j => j.Status == JobPostingStatus.Published
+                    && !j.IsDeleted
+                    && (j.ExpiresAtUtc == null || j.ExpiresAtUtc > now))
+            ))
+            .ToListAsync(ct);
+
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        return new PublicCompanyDirectoryResult(items, totalCount, page, pageSize, totalPages);
     }
 
     private static CompanyDto MapToCompanyDto(Company c) => new(

@@ -34,4 +34,6 @@ public static class PlatformRoles
     public const string Candidate = "Candidate";
     public const string CompanyMember = "CompanyMember";
     public const string SuperAdmin = "SuperAdmin";
+    public const string Admin = "Admin";
+    public const string AnyAdmin = "SuperAdmin,Admin";
 }

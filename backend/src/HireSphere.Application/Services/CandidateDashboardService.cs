@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using HireSphere.Application.Common.Interfaces;
 using HireSphere.Application.DTOs.Candidate;
+using HireSphere.Domain.Entities;
 using HireSphere.Domain.Enums;
 using HireSphere.Domain.Exceptions;
 
@@ -38,17 +39,39 @@ public class CandidateDashboardService : ICandidateDashboardService
 
         if (profile == null)
         {
-            throw new NotFoundException("Candidate profile not found for user.");
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
+            if (user == null)
+            {
+                throw new NotFoundException("Candidate user not found.");
+            }
+
+            profile = new CandidateProfile
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                User = user,
+                UpdatedAtUtc = DateTimeOffset.UtcNow
+            };
+            _context.CandidateProfiles.Add(profile);
+            await _context.SaveChangesAsync(ct);
         }
 
         var now = DateTimeOffset.UtcNow;
 
         // 1. Primary CV Summary
-        var primaryCv = await _context.CandidateDocuments
-            .Include(d => d.ExtractionJobs)
-            .FirstOrDefaultAsync(d => d.CandidateProfileId == profile.Id && !d.IsDeleted && d.IsDefault, ct);
+        CandidateDocument? primaryCv = null;
+        try
+        {
+            primaryCv = await _context.CandidateDocuments
+                .Include(d => d.ExtractionJobs)
+                .FirstOrDefaultAsync(d => d.CandidateProfileId == profile.Id && !d.IsDeleted && d.IsDefault, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load primary CV for candidate profile {ProfileId}", profile.Id);
+        }
 
-        var latestExtraction = primaryCv?.ExtractionJobs
+        var latestExtraction = primaryCv?.ExtractionJobs?
             .OrderByDescending(j => j.CreatedAtUtc)
             .FirstOrDefault();
 
@@ -71,8 +94,8 @@ public class CandidateDashboardService : ICandidateDashboardService
 
         // 2. Profile completion calculation
         var (completionPercentage, missingFields) = CandidateProfileService.CalculateProfileCompletion(
-            profile.User.FirstName,
-            profile.User.LastName,
+            profile.User?.FirstName ?? "",
+            profile.User?.LastName ?? "",
             profile.Headline,
             profile.Summary,
             profile.Location,
@@ -83,13 +106,21 @@ public class CandidateDashboardService : ICandidateDashboardService
             hasPrimaryCv: primaryCv != null);
 
         // 3. Applications tracking
-        var applications = await _context.JobApplications
-            .AsNoTracking()
-            .Include(a => a.JobPosting)
-                .ThenInclude(j => j.Company)
-            .Where(a => a.CandidateProfileId == profile.Id)
-            .OrderByDescending(a => a.SubmittedAtUtc)
-            .ToListAsync(ct);
+        List<JobApplication> applications = new();
+        try
+        {
+            applications = await _context.JobApplications
+                .AsNoTracking()
+                .Include(a => a.JobPosting)
+                    .ThenInclude(j => j.Company)
+                .Where(a => a.CandidateProfileId == profile.Id)
+                .OrderByDescending(a => a.SubmittedAtUtc)
+                .ToListAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load job applications for profile {ProfileId}", profile.Id);
+        }
 
         int totalApplications = applications.Count;
         int completedApplications = applications.Count(a =>
@@ -107,27 +138,35 @@ public class CandidateDashboardService : ICandidateDashboardService
             .Select(a => new CandidateDashboardApplicationDto(
                 ApplicationId: a.Id,
                 JobPostingId: a.JobPostingId,
-                JobTitle: a.JobPosting.Title,
-                CompanyName: a.JobPosting.Company.Name,
-                CompanyLogoUrl: a.JobPosting.Company.LogoUrl,
+                JobTitle: a.JobPosting?.Title ?? "Untitled Position",
+                CompanyName: a.JobPosting?.Company?.Name ?? "Company",
+                CompanyLogoUrl: a.JobPosting?.Company?.LogoUrl,
                 CurrentStage: a.CurrentStage,
                 SubmittedAtUtc: a.SubmittedAtUtc,
                 StageUpdatedAtUtc: a.StageUpdatedAtUtc
             )).ToList();
 
         // 4. Pending WorkSim Assessments
-        var assignments = await _context.AssessmentAssignments
-            .AsNoTracking()
-            .Include(aa => aa.JobAssessmentConfiguration)
-                .ThenInclude(jac => jac.ScenarioVersion)
-                    .ThenInclude(sv => sv.SimulationScenario)
-            .Include(aa => aa.Company)
-            .Include(aa => aa.JobApplication)
-                .ThenInclude(ja => ja.JobPosting)
-            .Where(aa => aa.CandidateProfileId == profile.Id
-                         && (aa.Status == AssessmentAssignmentStatus.Assigned || aa.Status == AssessmentAssignmentStatus.InProgress))
-            .OrderBy(aa => aa.DeadlineUtc)
-            .ToListAsync(ct);
+        List<AssessmentAssignment> assignments = new();
+        try
+        {
+            assignments = await _context.AssessmentAssignments
+                .AsNoTracking()
+                .Include(aa => aa.JobAssessmentConfiguration)
+                    .ThenInclude(jac => jac.ScenarioVersion)
+                        .ThenInclude(sv => sv.SimulationScenario)
+                .Include(aa => aa.Company)
+                .Include(aa => aa.JobApplication)
+                    .ThenInclude(ja => ja.JobPosting)
+                .Where(aa => aa.CandidateProfileId == profile.Id
+                             && (aa.Status == AssessmentAssignmentStatus.Assigned || aa.Status == AssessmentAssignmentStatus.InProgress))
+                .OrderBy(aa => aa.DeadlineUtc)
+                .ToListAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load assessment assignments for profile {ProfileId}", profile.Id);
+        }
 
         int pendingAssessmentsCount = assignments.Count;
         DateTimeOffset? nextDeadline = assignments.FirstOrDefault()?.DeadlineUtc;
@@ -135,10 +174,10 @@ public class CandidateDashboardService : ICandidateDashboardService
         var pendingAssessmentDtos = assignments.Select(aa => new CandidateDashboardAssessmentDto(
             AssignmentId: aa.Id,
             JobApplicationId: aa.JobApplicationId,
-            ScenarioTitle: aa.JobAssessmentConfiguration.ScenarioVersion.SimulationScenario.Title,
-            Category: aa.JobAssessmentConfiguration.ScenarioVersion.SimulationScenario.Category,
-            CompanyName: aa.Company.Name,
-            JobTitle: aa.JobApplication.JobPosting.Title,
+            ScenarioTitle: aa.JobAssessmentConfiguration?.ScenarioVersion?.SimulationScenario?.Title ?? "Assessment",
+            Category: aa.JobAssessmentConfiguration?.ScenarioVersion?.SimulationScenario?.Category ?? "General",
+            CompanyName: aa.Company?.Name ?? "Company",
+            JobTitle: aa.JobApplication?.JobPosting?.Title ?? "Job Position",
             DeadlineUtc: aa.DeadlineUtc,
             Status: aa.Status,
             IsExpired: aa.DeadlineUtc < now
@@ -157,7 +196,7 @@ public class CandidateDashboardService : ICandidateDashboardService
 
         return new CandidateDashboardDto(
             CandidateProfileId: profile.Id,
-            FullName: profile.User.FullName,
+            FullName: profile.User?.FullName ?? "Candidate",
             ProfileCompletionPercentage: completionPercentage,
             MissingProfileFields: missingFields,
             HasPrimaryCv: primaryCv != null,
@@ -186,20 +225,53 @@ public class CandidateDashboardService : ICandidateDashboardService
 
         if (profile == null)
         {
-            throw new NotFoundException("Candidate profile not found for user.");
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
+            if (user != null)
+            {
+                profile = new CandidateProfile
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    User = user,
+                    UpdatedAtUtc = DateTimeOffset.UtcNow
+                };
+                _context.CandidateProfiles.Add(profile);
+                await _context.SaveChangesAsync(ct);
+            }
+            else
+            {
+                throw new NotFoundException("Candidate user not found.");
+            }
         }
 
         // Fetch default CV or most recent CV
-        var cv = await _context.CandidateDocuments
-            .Include(d => d.ExtractionJobs)
-            .Where(d => d.CandidateProfileId == profile.Id && !d.IsDeleted)
-            .OrderByDescending(d => d.IsDefault)
-            .ThenByDescending(d => d.CreatedAtUtc)
-            .FirstOrDefaultAsync(ct);
+        CandidateDocument? cv = null;
+        try
+        {
+            cv = await _context.CandidateDocuments
+                .Include(d => d.ExtractionJobs)
+                .Where(d => d.CandidateProfileId == profile.Id && !d.IsDeleted)
+                .OrderByDescending(d => d.IsDefault)
+                .ThenByDescending(d => d.CreatedAtUtc)
+                .FirstOrDefaultAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load candidate document for profile {ProfileId}", profile.Id);
+        }
 
         if (cv == null)
         {
-            throw new NotFoundException("No uploaded CV documents found. Please upload a CV first.");
+            return new ExtractedCvSuggestionsDto(
+                DocumentId: Guid.Empty,
+                FileName: string.Empty,
+                ExtractionStatus: DocumentExtractionStatus.Pending,
+                ExtractedSkills: new List<string>(),
+                ExtractedEducation: new List<string>(),
+                ExtractedCertifications: new List<string>(),
+                EstimatedYearsOfExperience: null,
+                ErrorMessage: null
+            );
         }
 
         var latestJob = cv.ExtractionJobs

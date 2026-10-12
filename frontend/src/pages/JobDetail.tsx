@@ -20,6 +20,7 @@ import { jobsApi, candidateApplicationsApi, candidateDocumentsApi, candidateSave
 import { useAuth } from '../context/AuthContext';
 import type { PublicJobPostingDetail, JobRequirement } from '../types/recruitment';
 import type { CandidateDocumentSummary } from '../types/document';
+import { PageTransition } from '../components/common/PageTransition';
 
 export const JobDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -220,7 +221,8 @@ export const JobDetail: React.FC = () => {
   }
 
   return (
-    <div className="portal-container" style={{ maxWidth: '1000px', padding: '2rem 1.5rem 4rem' }}>
+    <PageTransition>
+      <div className="portal-container" style={{ maxWidth: '1000px', padding: '2rem 1.5rem 4rem' }}>
       {/* Navigation Breadcrumb */}
       <div style={{ marginBottom: '1.5rem' }}>
         <Link to="/jobs" className="link-subtle" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem' }}>
@@ -611,5 +613,6 @@ export const JobDetail: React.FC = () => {
         </div>
       )}
     </div>
+  </PageTransition>
   );
 };

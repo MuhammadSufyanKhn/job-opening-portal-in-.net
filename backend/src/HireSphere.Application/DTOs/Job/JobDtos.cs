@@ -14,7 +14,8 @@ public record JobCategoryDto(
     string Name,
     string Slug,
     string? Description,
-    int DisplayOrder);
+    int DisplayOrder,
+    int OpenJobsCount = 0);
 
 public record JobRequirementDto(
     Guid Id,

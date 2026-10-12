@@ -9,7 +9,7 @@ namespace HireSphere.Api.Controllers;
 
 [ApiController]
 [Route("api/admin/audit")]
-[Authorize(Roles = PlatformRoles.SuperAdmin)]
+[Authorize(Roles = PlatformRoles.AnyAdmin)]
 public class AdminAuditController : ControllerBase
 {
     private readonly IAdminAuditService _adminAuditService;

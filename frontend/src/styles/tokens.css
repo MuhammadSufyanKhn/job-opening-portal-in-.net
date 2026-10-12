@@ -22,6 +22,12 @@
   --pur: #5B3FD0;  --pur-bg: #ECE8FF;
   --cy: #0B6E99;   --cy-bg: #DDF1FA;
 
+  /* soft yellow / warm accent */
+  --amber: #F59E0B;
+  --amber-soft: #FEF3C7;
+  --amber-border: #FCD34D;
+  --amber-text: #92400E;
+
   /* shape */
   --r: 12px;
   --r-sm: 10px;

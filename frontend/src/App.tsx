@@ -26,6 +26,13 @@ import { SimulationWorkspace } from './pages/SimulationWorkspace';
 import { SimulationResult } from './pages/SimulationResult';
 import { NotificationCenter } from './pages/NotificationCenter';
 import { CompanyAnalytics } from './pages/CompanyAnalytics';
+import { CompanyDirectory } from './pages/CompanyDirectory';
+import { ForEmployers } from './pages/ForEmployers';
+import { HowItWorksPage } from './pages/HowItWorksPage';
+import { HelpFaq } from './pages/HelpFaq';
+import { Contact } from './pages/Contact';
+import { PrivacyPolicy } from './pages/PrivacyPolicy';
+import { TermsOfService } from './pages/TermsOfService';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; requiredRole?: string }> = ({
   children,
@@ -41,15 +48,21 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; requiredRole?: strin
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && !user?.roles.includes(requiredRole)) {
-    return (
-      <div className="portal-container">
-        <div className="alert alert-error">
-          <h3>Access Denied</h3>
-          <p>You do not have the required permissions to view this portal.</p>
+  if (requiredRole) {
+    const hasRole = (requiredRole === 'SuperAdmin' || requiredRole === 'Admin')
+      ? user?.roles.some(r => r.toLowerCase() === 'superadmin' || r.toLowerCase() === 'admin')
+      : user?.roles.some(r => r.toLowerCase() === requiredRole.toLowerCase());
+
+    if (!hasRole) {
+      return (
+        <div className="container" style={{ padding: '4rem 1rem', maxWidth: '640px' }}>
+          <div className="card panel" style={{ textAlign: 'center' }}>
+            <h3 style={{ color: 'var(--bad)', marginBottom: '8px' }}>Access Denied</h3>
+            <p className="muted">You do not have the required permissions to view this portal.</p>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
 
   return <>{children}</>;
@@ -70,6 +83,14 @@ export const App: React.FC = () => {
               <Route path="/register-company" element={<RegisterCompany />} />
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/jobs/:id" element={<JobDetail />} />
+              <Route path="/companies" element={<CompanyDirectory />} />
+              <Route path="/for-employers" element={<ForEmployers />} />
+              <Route path="/how-it-works" element={<HowItWorksPage />} />
+              <Route path="/help" element={<HelpFaq />} />
+              <Route path="/faq" element={<Navigate to="/help" replace />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
 
               {/* Candidate Protected Routes */}
               <Route

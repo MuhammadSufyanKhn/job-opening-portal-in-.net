@@ -10,7 +10,7 @@ namespace HireSphere.Api.Controllers;
 
 [ApiController]
 [Route("api/admin/users")]
-[Authorize(Roles = PlatformRoles.SuperAdmin)]
+[Authorize(Roles = PlatformRoles.AnyAdmin)]
 public class AdminUsersController : ControllerBase
 {
     private readonly IAdminUserService _adminUserService;

@@ -538,23 +538,27 @@ public class ApplicationService : IApplicationService
         };
 
 
-        var items = await query
+        var rawItems = await query
+            .Include(a => a.JobPosting)
+            .Include(a => a.CandidateProfile)
+                .ThenInclude(cp => cp.User)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(a => new CompanyApplicationSummaryDto(
-                a.Id,
-                a.JobPostingId,
-                a.JobPosting.Title,
-                a.CandidateProfileId,
-                a.CandidateProfile.User.FullName,
-                a.CandidateProfile.User.Email,
-                a.CandidateProfile.Headline,
-                a.CandidateProfile.Location,
-                a.CandidateProfile.YearsOfExperience,
-                a.CurrentStage,
-                a.SubmittedAtUtc,
-                a.StageUpdatedAtUtc))
             .ToListAsync(ct);
+
+        var items = rawItems.Select(a => new CompanyApplicationSummaryDto(
+            a.Id,
+            a.JobPostingId,
+            a.JobPosting?.Title ?? "Position",
+            a.CandidateProfileId,
+            a.CandidateProfile?.User?.FullName ?? "Applicant",
+            a.CandidateProfile?.User?.Email ?? string.Empty,
+            a.CandidateProfile?.Headline,
+            a.CandidateProfile?.Location,
+            a.CandidateProfile?.YearsOfExperience,
+            a.CurrentStage,
+            a.SubmittedAtUtc,
+            a.StageUpdatedAtUtc)).ToList();
 
         int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
@@ -906,7 +910,7 @@ public class ApplicationService : IApplicationService
             .CountAsync(a => a.CompanyId == companyId && a.CurrentStage == ApplicationStage.Shortlisted, ct);
 
         // Upcoming interviews
-        var upcomingInterviews = await _context.InterviewSchedules
+        var rawInterviews = await _context.InterviewSchedules
             .Include(i => i.JobApplication)
                 .ThenInclude(a => a.JobPosting)
             .Include(i => i.JobApplication)
@@ -915,20 +919,21 @@ public class ApplicationService : IApplicationService
             .Where(i => i.CompanyId == companyId && i.Status == InterviewStatus.Scheduled && i.ScheduledEndUtc >= now)
             .OrderBy(i => i.ScheduledStartUtc)
             .Take(6)
-            .Select(i => new InterviewScheduleDto(
-                i.Id,
-                i.CompanyId,
-                i.JobApplicationId,
-                i.JobApplication.CandidateProfile.User.FullName,
-                i.JobApplication.JobPosting.Title,
-                i.InterviewType,
-                i.ScheduledStartUtc,
-                i.ScheduledEndUtc,
-                i.MeetingLocation,
-                i.Status,
-                i.CreatedAtUtc,
-                i.UpdatedAtUtc))
             .ToListAsync(ct);
+
+        var upcomingInterviews = rawInterviews.Select(i => new InterviewScheduleDto(
+            i.Id,
+            i.CompanyId,
+            i.JobApplicationId,
+            i.JobApplication?.CandidateProfile?.User?.FullName ?? "Candidate",
+            i.JobApplication?.JobPosting?.Title ?? "Position",
+            i.InterviewType,
+            i.ScheduledStartUtc,
+            i.ScheduledEndUtc,
+            i.MeetingLocation,
+            i.Status,
+            i.CreatedAtUtc,
+            i.UpdatedAtUtc)).ToList();
 
         int upcomingInterviewsCount = await _context.InterviewSchedules
             .CountAsync(i => i.CompanyId == companyId && i.Status == InterviewStatus.Scheduled && i.ScheduledEndUtc >= now, ct);
@@ -938,27 +943,28 @@ public class ApplicationService : IApplicationService
             .CountAsync(aa => aa.JobApplication.CompanyId == companyId && (aa.Status == AssessmentAssignmentStatus.Assigned || aa.Status == AssessmentAssignmentStatus.InProgress), ct);
 
         // Recent applications
-        var recentApplications = await _context.JobApplications
+        var rawApplications = await _context.JobApplications
             .Include(a => a.JobPosting)
             .Include(a => a.CandidateProfile)
                 .ThenInclude(cp => cp.User)
             .Where(a => a.CompanyId == companyId)
             .OrderByDescending(a => a.SubmittedAtUtc)
             .Take(6)
-            .Select(a => new CompanyApplicationSummaryDto(
-                a.Id,
-                a.JobPostingId,
-                a.JobPosting.Title,
-                a.CandidateProfileId,
-                a.CandidateProfile.User.FullName,
-                a.CandidateProfile.User.Email,
-                a.CandidateProfile.Headline,
-                a.CandidateProfile.Location,
-                a.CandidateProfile.YearsOfExperience,
-                a.CurrentStage,
-                a.SubmittedAtUtc,
-                a.StageUpdatedAtUtc))
             .ToListAsync(ct);
+
+        var recentApplications = rawApplications.Select(a => new CompanyApplicationSummaryDto(
+            a.Id,
+            a.JobPostingId,
+            a.JobPosting?.Title ?? "Position",
+            a.CandidateProfileId,
+            a.CandidateProfile?.User?.FullName ?? "Applicant",
+            a.CandidateProfile?.User?.Email ?? string.Empty,
+            a.CandidateProfile?.Headline,
+            a.CandidateProfile?.Location,
+            a.CandidateProfile?.YearsOfExperience,
+            a.CurrentStage,
+            a.SubmittedAtUtc,
+            a.StageUpdatedAtUtc)).ToList();
 
         // Action items / Recruitment Tasks
         var actionItems = new List<RecruitmentTaskItemDto>();
@@ -1398,22 +1404,28 @@ public class ApplicationService : IApplicationService
             query = query.Where(i => i.ScheduledEndUtc >= now && i.Status == InterviewStatus.Scheduled);
         }
 
-        return await query
+        var rawInterviews = await query
+            .Include(i => i.JobApplication)
+                .ThenInclude(a => a.JobPosting)
+            .Include(i => i.JobApplication)
+                .ThenInclude(a => a.CandidateProfile)
+                    .ThenInclude(cp => cp.User)
             .OrderBy(i => i.ScheduledStartUtc)
-            .Select(i => new InterviewScheduleDto(
-                i.Id,
-                i.CompanyId,
-                i.JobApplicationId,
-                i.JobApplication.CandidateProfile.User.FullName,
-                i.JobApplication.JobPosting.Title,
-                i.InterviewType,
-                i.ScheduledStartUtc,
-                i.ScheduledEndUtc,
-                i.MeetingLocation,
-                i.Status,
-                i.CreatedAtUtc,
-                i.UpdatedAtUtc))
             .ToListAsync(ct);
+
+        return rawInterviews.Select(i => new InterviewScheduleDto(
+            i.Id,
+            i.CompanyId,
+            i.JobApplicationId,
+            i.JobApplication?.CandidateProfile?.User?.FullName ?? "Candidate",
+            i.JobApplication?.JobPosting?.Title ?? "Position",
+            i.InterviewType,
+            i.ScheduledStartUtc,
+            i.ScheduledEndUtc,
+            i.MeetingLocation,
+            i.Status,
+            i.CreatedAtUtc,
+            i.UpdatedAtUtc)).ToList();
     }
 
     private static void ValidateStageTransition(ApplicationStage current, ApplicationStage next)

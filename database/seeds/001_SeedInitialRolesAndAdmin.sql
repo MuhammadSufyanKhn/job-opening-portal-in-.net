@@ -48,7 +48,7 @@ BEGIN TRY
 
     -- Password hash for 'AdminSecure2026!' using HireSphere PBKDF2 (100,000 iterations):
     -- Format: 100000.{SaltBase64}.{HashBase64}
-    DECLARE @AdminPasswordHash NVARCHAR(MAX) = N'100000.vQ9+p3w2rT7yK1mN4xZ8wQ==.X7j9K2vL5mN8pQ1rT4wZ6xY9vB2nC5mQ8rT1wZ4xY7A=';
+    DECLARE @AdminPasswordHash NVARCHAR(MAX) = N'100000.oHPUhsIxo3rTO3fJBU22iA==.dNaNCirI6gB83qTKrajM/q+pazCXB6hpF3zdjQXHshg=';
 
     IF NOT EXISTS (SELECT * FROM dbo.Users WHERE NormalizedEmail = @AdminNormalized)
     BEGIN

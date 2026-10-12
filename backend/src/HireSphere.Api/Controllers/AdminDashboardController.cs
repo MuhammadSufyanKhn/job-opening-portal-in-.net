@@ -9,7 +9,7 @@ namespace HireSphere.Api.Controllers;
 
 [ApiController]
 [Route("api/admin/dashboard")]
-[Authorize(Roles = PlatformRoles.SuperAdmin)]
+[Authorize(Roles = PlatformRoles.AnyAdmin)]
 public class AdminDashboardController : ControllerBase
 {
     private readonly IAdminDashboardService _adminDashboardService;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, CheckCircle2, Lock, ArrowRight } from 'lucide-react';
+import { Building2, CheckCircle2, Lock, ArrowRight, ShieldCheck, Sparkles, Users } from 'lucide-react';
 import { EMPLOYER_CHECKLIST } from '../../content/homeContent';
 
 export const EmployerSection: React.FC = () => {
@@ -20,7 +20,7 @@ export const EmployerSection: React.FC = () => {
             </h2>
 
             <p className="lead">
-              Post a job in minutes and spend your time on the people who fit, not on sorting through piles of CVs.
+              Publish structured vacancies, evaluate candidate practical competency with WorkSim, and collaborate across team members.
             </p>
 
             <ul className="checks">
@@ -34,7 +34,7 @@ export const EmployerSection: React.FC = () => {
 
             <div className="row">
               <Link to="/register-company" className="btn white lg">
-                <span>Post a job for free</span>
+                <span>Register company account</span>
                 <ArrowRight size={18} />
               </Link>
               <Link to="/login" className="btn onnavy lg">
@@ -43,58 +43,45 @@ export const EmployerSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column: Applicant Summary Mock Card */}
-          <div className="card dash" aria-hidden="true">
-            <div className="dash-h">
+          {/* Right Column: Clean Feature Overview Card */}
+          <div className="card dash" style={{ padding: '28px', background: '#fff', borderRadius: 'var(--r)', color: 'var(--ink)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', paddingBottom: '12px', borderBottom: '1px solid var(--line)' }}>
               <div>
-                <b>Customer Support Lead</b>
-                <div className="muted" style={{ fontSize: '14px' }}>
-                  Harbor Logistics · 14 applicants
+                <b style={{ fontSize: '17px' }}>Employer Workspace</b>
+                <div className="muted" style={{ fontSize: '13px', marginTop: '2px' }}>
+                  End-to-End Recruitment Management
                 </div>
               </div>
-              <span className="badge b-ok">Verified company</span>
+              <span className="badge b-ok" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <ShieldCheck size={14} />
+                <span>Verified Status</span>
+              </span>
             </div>
 
-            <div className="dash-b">
-              <div className="prog">
-                <div>New<b>5</b></div>
-                <div className="on">Reviewing<b>4</b></div>
-                <div>Interview<b>3</b></div>
-                <div>Offer<b>2</b></div>
-              </div>
-
-              <b>Top matches</b>
-
-              <div className="app">
-                <span className="av">ER</span>
-                <div>
-                  <b>Elena Rostova</b>
-                  <small>Skills challenge passed</small>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ padding: '14px', borderRadius: 'var(--r-sm)', background: 'var(--bg)', border: '1px solid var(--line)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent)', fontWeight: 600, fontSize: '14px', marginBottom: '4px' }}>
+                  <Sparkles size={16} />
+                  <span>WorkSim Assessments</span>
                 </div>
-                <span className="badge b-ok">93% fit</span>
+                <p className="muted" style={{ fontSize: '13px', margin: 0 }}>
+                  Attach hands-on simulation scenarios to test candidate problem solving before scheduling interviews.
+                </p>
               </div>
 
-              <div className="app">
-                <span className="av">NK</span>
-                <div>
-                  <b>Nadia Khan</b>
-                  <small>Interview booked</small>
+              <div style={{ padding: '14px', borderRadius: 'var(--r-sm)', background: 'var(--bg)', border: '1px solid var(--line)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--ok)', fontWeight: 600, fontSize: '14px', marginBottom: '4px' }}>
+                  <Users size={16} />
+                  <span>Team Collaboration</span>
                 </div>
-                <span className="badge b-ok">91% fit</span>
+                <p className="muted" style={{ fontSize: '13px', margin: 0 }}>
+                  Invite recruiters and hiring managers. Share confidential candidate notes and scorecards.
+                </p>
               </div>
 
-              <div className="app">
-                <span className="av">OF</span>
-                <div>
-                  <b>Omar Farooq</b>
-                  <small>Ready to review</small>
-                </div>
-                <span className="badge b-ok">90% fit</span>
-              </div>
-
-              <div className="muted" style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span className="ic"><Lock size={14} /></span>
-                <span>Your team's notes are private and never shown to candidates.</span>
+              <div className="muted" style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', paddingTop: '8px' }}>
+                <Lock size={14} />
+                <span>Your team's internal evaluations are strictly confidential.</span>
               </div>
             </div>
           </div>
@@ -103,3 +90,5 @@ export const EmployerSection: React.FC = () => {
     </section>
   );
 };
+
+export default EmployerSection;

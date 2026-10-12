@@ -33,7 +33,7 @@ public class AdminDashboardService : IAdminDashboardService
             .CountAsync(ct);
         stats.TotalSuperAdmins = await _context.UserRoles
             .Include(ur => ur.Role)
-            .CountAsync(ur => ur.Role.NormalizedName == "SUPERADMIN", ct);
+            .CountAsync(ur => ur.Role.NormalizedName == "SUPERADMIN" || ur.Role.NormalizedName == "ADMIN", ct);
         stats.TotalDisabledUsers = await _context.Users
             .CountAsync(u => !u.IsDeleted && u.AccountStatus == AccountStatus.Disabled, ct);
 
@@ -56,10 +56,18 @@ public class AdminDashboardService : IAdminDashboardService
         stats.WorkSimTotalAssignments = await _context.AssessmentAssignments.CountAsync(ct);
         stats.WorkSimCompletedAssessments = await _context.AssessmentAssignments.CountAsync(a => a.Status == AssessmentAssignmentStatus.Completed, ct);
         
-        var avgScore = await _context.AssessmentResults
-            .Select(r => (decimal?)r.TotalScore)
-            .AverageAsync(ct);
-        stats.WorkSimAverageScore = avgScore.HasValue ? Math.Round(avgScore.Value, 1) : null;
+        var hasResults = await _context.AssessmentResults.AnyAsync(ct);
+        if (hasResults)
+        {
+            var avgScore = await _context.AssessmentResults
+                .Select(r => (decimal?)r.TotalScore)
+                .AverageAsync(ct);
+            stats.WorkSimAverageScore = avgScore.HasValue ? Math.Round(avgScore.Value, 1) : null;
+        }
+        else
+        {
+            stats.WorkSimAverageScore = null;
+        }
 
         // 5. Recent Platform Activity
         var recentLogs = await _context.AuditLogs

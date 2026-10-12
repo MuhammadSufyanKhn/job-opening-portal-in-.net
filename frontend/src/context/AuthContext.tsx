@@ -77,9 +77,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const isCandidate = Boolean(user?.roles.includes('Candidate'));
-  const isCompanyMember = Boolean(user?.roles.includes('CompanyMember'));
-  const isSuperAdmin = Boolean(user?.roles.includes('SuperAdmin'));
+  const isCandidate = Boolean(user?.roles.some(r => r.toLowerCase() === 'candidate'));
+  const isCompanyMember = Boolean(user?.roles.some(r => r.toLowerCase() === 'companymember'));
+  const isSuperAdmin = Boolean(user?.roles.some(r => r.toLowerCase() === 'superadmin' || r.toLowerCase() === 'admin'));
 
   return (
     <AuthContext.Provider

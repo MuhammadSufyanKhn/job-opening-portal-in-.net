@@ -60,3 +60,21 @@ public record RejectCompanyRequest(
 
 public record SuspendCompanyRequest(
     string Reason);
+
+public record PublicCompanySummaryDto(
+    Guid Id,
+    string Name,
+    string Slug,
+    string? WebsiteUrl,
+    string? LogoUrl,
+    string Industry,
+    string? CompanySize,
+    string? Description,
+    int OpenJobsCount);
+
+public record PublicCompanyDirectoryResult(
+    IReadOnlyList<PublicCompanySummaryDto> Items,
+    int TotalCount,
+    int Page,
+    int PageSize,
+    int TotalPages);

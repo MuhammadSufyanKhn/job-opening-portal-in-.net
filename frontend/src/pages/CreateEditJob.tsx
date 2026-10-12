@@ -19,6 +19,7 @@ import type {
   JobCategory, 
   CreateJobRequirementDto
 } from '../types/recruitment';
+import { PageTransition } from '../components/common/PageTransition';
 
 export const CreateEditJob: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -228,7 +229,8 @@ export const CreateEditJob: React.FC = () => {
   const isPublished = String(currentStatus) === '1' || String(currentStatus) === 'Published';
 
   return (
-    <div className="portal-container" style={{ maxWidth: '960px', padding: '2rem 1.5rem 5rem' }}>
+    <PageTransition>
+      <div className="portal-container" style={{ maxWidth: '960px', padding: '2rem 1.5rem 5rem' }}>
       {/* Top Navigation */}
       <div style={{ marginBottom: '1.5rem' }}>
         <Link to="/company/jobs" className="link-subtle" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem' }}>
@@ -635,5 +637,6 @@ export const CreateEditJob: React.FC = () => {
         </div>
       </form>
     </div>
+  </PageTransition>
   );
 };

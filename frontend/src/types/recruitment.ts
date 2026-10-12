@@ -30,6 +30,7 @@ export interface JobCategory {
   slug: string;
   description?: string;
   displayOrder: number;
+  openJobsCount?: number;
 }
 
 export interface JobRequirement {
@@ -280,5 +281,26 @@ export interface CompanyWorkspaceDashboard {
   upcomingInterviews: InterviewSchedule[];
   recentApplications: CompanyApplicationSummary[];
   actionItems: RecruitmentTaskItem[];
+}
+
+// --- Public Company Directory ---
+export interface PublicCompanySummary {
+  id: string;
+  name: string;
+  slug: string;
+  websiteUrl?: string | null;
+  logoUrl?: string | null;
+  industry: string;
+  companySize?: string | null;
+  description?: string | null;
+  openJobsCount: number;
+}
+
+export interface PublicCompanyDirectoryResult {
+  items: PublicCompanySummary[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 

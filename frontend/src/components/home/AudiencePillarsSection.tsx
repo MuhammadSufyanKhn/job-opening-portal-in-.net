@@ -139,7 +139,7 @@ export const AudiencePillarsSection: React.FC = () => {
                   <div className="mockup-item">
                     <div>
                       <div className="item-title">Staff Infrastructure Engineer</div>
-                      <div className="item-sub">Apex Cloud Systems • London, UK</div>
+                      <div className="item-sub">Cloud Infrastructure Partners • London, UK</div>
                     </div>
                     <span className="badge-pipeline badge-interview">Interview Scheduled</span>
                   </div>
@@ -232,7 +232,7 @@ export const AudiencePillarsSection: React.FC = () => {
               <div className="pillar-preview-card">
                 <div className="portal-mockup-header">
                   <div className="mockup-brand">Employer Workspace</div>
-                  <span className="mockup-status-badge bg-emerald">Apex Cloud Systems</span>
+                  <span className="mockup-status-badge bg-emerald">Verified Organization</span>
                 </div>
                 <div className="portal-mockup-body">
                   <div className="mockup-stat-row">
@@ -276,7 +276,7 @@ export const AudiencePillarsSection: React.FC = () => {
 
                   <div className="mockup-candidate-callout">
                     <div className="cand-top">
-                      <span className="cand-name">Elena Rostova</span>
+                      <span className="cand-name">Candidate Evaluation Sample</span>
                       <span className="cand-score">WorkSim: 92/100 (Proficient)</span>
                     </div>
                     <div className="cand-note">

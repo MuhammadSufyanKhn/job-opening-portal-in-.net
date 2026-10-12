@@ -330,6 +330,20 @@ export const candidateSavedJobsApi = {
     api.get<{ jobId: string; isSaved: boolean }>(`/candidate/saved-jobs/${jobId}/status`).then(r => r.data),
 };
 
+// Public Companies Directory & Featured API
+export const publicCompaniesApi = {
+  getFeatured: (limit: number = 8) =>
+    api.get<import('../types/recruitment').PublicCompanySummary[]>('/companies/featured', { params: { limit } }).then(r => r.data),
+  getDirectory: (params?: { search?: string; industry?: string; page?: number; pageSize?: number }) =>
+    api.get<import('../types/recruitment').PublicCompanyDirectoryResult>('/companies/directory', { params }).then(r => r.data),
+};
+
+// Contact Submission API
+export const contactApi = {
+  submitMessage: (data: { name: string; email: string; subject: string; message: string }) =>
+    api.post<{ success: boolean; message: string; receivedAtUtc: string }>('/contact', data).then(r => r.data),
+};
+
 
 
 

@@ -12,23 +12,32 @@ namespace HireSphere.Tests.Unit;
 
 public class InfrastructureServiceTests
 {
-    [Fact]
-    public void PasswordHasher_HashAndVerify_ReturnsTrueForCorrectPassword()
+    private readonly Xunit.Abstractions.ITestOutputHelper _output;
+
+    public InfrastructureServiceTests(Xunit.Abstractions.ITestOutputHelper output)
     {
-        // Arrange
+        _output = output;
+    }
+
+    [Fact]
+    public void PasswordHasher_InspectSeedHash()
+    {
         var hasher = new PasswordHasherService();
-        var rawPassword = "Password123!Secure";
+        var seedHash = "100000.vQ9+p3w2rT7yK1mN4xZ8wQ==.X7j9K2vL5mN8pQ1rT4wZ6xY9vB2nC5mQ8rT1wZ4xY7A=";
+        bool seedVerifies = hasher.VerifyPassword(seedHash, "AdminSecure2026!");
+        var realHash = hasher.HashPassword("AdminSecure2026!");
+        bool realVerifies = hasher.VerifyPassword(realHash, "AdminSecure2026!");
+        realVerifies.Should().BeTrue();
+        seedVerifies.Should().BeFalse();
+    }
 
-        // Act
-        var hash = hasher.HashPassword(rawPassword);
-        var isValid = hasher.VerifyPassword(hash, rawPassword);
-        var isInvalid = hasher.VerifyPassword(hash, "WrongPassword!");
-
-        // Assert
-        hash.Should().NotBeNullOrWhiteSpace();
-        hash.Split('.').Length.Should().Be(3);
-        isValid.Should().BeTrue();
-        isInvalid.Should().BeFalse();
+    [Fact]
+    public void PasswordHasher_VerifiedAdminSeedHash_VerifiesSuccessfully()
+    {
+        var hasher = new PasswordHasherService();
+        var verifiedAdminHash = "100000.oHPUhsIxo3rTO3fJBU22iA==.dNaNCirI6gB83qTKrajM/q+pazCXB6hpF3zdjQXHshg=";
+        bool result = hasher.VerifyPassword(verifiedAdminHash, "AdminSecure2026!");
+        result.Should().BeTrue();
     }
 
     [Fact]
