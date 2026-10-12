@@ -79,6 +79,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseCors("FrontendClient");
 
 app.UseAuthentication();
@@ -120,6 +124,7 @@ app.MapGet("/api/health", async (
     }
 });
 
+app.MapFallbackToFile("index.html");
 // Strict adherence to database discipline:
 // No Database.Migrate() or Database.EnsureCreated() calls.
 // All schema modifications are executed manually by the administrator in SSMS.
