@@ -161,7 +161,7 @@ public class AuthService : IAuthService
             Industry = request.Industry.Trim(),
             Description = request.Description?.Trim(),
             ContactEmail = request.ContactEmail.Trim(),
-            ApprovalStatus = CompanyApprovalStatus.PendingApproval, // Must be approved by SuperAdmin
+            ApprovalStatus = CompanyApprovalStatus.PendingApproval,
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
 

@@ -206,12 +206,13 @@ export const Jobs: React.FC = () => {
     return map[String(type)] || 'On-site';
   };
 
-  const formatSalary = (min?: number | null, max?: number | null, curr = 'USD') => {
+  const formatSalary = (min?: number | null, max?: number | null, curr = 'PKR') => {
     if (!min && !max) return 'Competitive';
     const num = (n: number) => n >= 1000 ? `${Math.round(n / 1000)}k` : `${n}`;
-    if (min && max) return `$${num(min)} – $${num(max)} ${curr}`;
-    if (min) return `From $${num(min)} ${curr}`;
-    if (max) return `Up to $${num(max)} ${curr}`;
+    const displayCurr = (!curr || curr === 'USD') ? 'PKR' : curr;
+    if (min && max) return `${displayCurr} ${num(min)} – ${num(max)}`;
+    if (min) return `From ${displayCurr} ${num(min)}`;
+    if (max) return `Up to ${displayCurr} ${num(max)}`;
     return 'Competitive';
   };
 

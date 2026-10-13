@@ -61,11 +61,15 @@ export const HowItWorksSection: React.FC = () => {
   };
 
   return (
-    <section 
+    <motion.section 
       ref={sectionRef} 
       className="s" 
       id="how" 
       aria-labelledby="how-heading"
+      initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-50px' }}
+      transition={{ duration: 0.6, ease: [0.2, 0.7, 0.2, 1] }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -275,7 +279,7 @@ export const HowItWorksSection: React.FC = () => {
           </div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 

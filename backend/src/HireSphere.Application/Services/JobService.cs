@@ -56,7 +56,7 @@ public class JobService : IJobService
             Location = request.Location.Trim(),
             SalaryMin = request.SalaryMin,
             SalaryMax = request.SalaryMax,
-            SalaryCurrency = string.IsNullOrWhiteSpace(request.SalaryCurrency) ? "USD" : request.SalaryCurrency.Trim().ToUpperInvariant(),
+            SalaryCurrency = string.IsNullOrWhiteSpace(request.SalaryCurrency) ? "PKR" : request.SalaryCurrency.Trim().ToUpperInvariant(),
             ExpiresAtUtc = request.ExpiresAtUtc,
             Status = JobPostingStatus.Draft,
             ActiveVersionNumber = 1,
@@ -133,7 +133,7 @@ public class JobService : IJobService
         job.Location = request.Location.Trim();
         job.SalaryMin = request.SalaryMin;
         job.SalaryMax = request.SalaryMax;
-        job.SalaryCurrency = string.IsNullOrWhiteSpace(request.SalaryCurrency) ? "USD" : request.SalaryCurrency.Trim().ToUpperInvariant();
+        job.SalaryCurrency = string.IsNullOrWhiteSpace(request.SalaryCurrency) ? "PKR" : request.SalaryCurrency.Trim().ToUpperInvariant();
         job.ExpiresAtUtc = request.ExpiresAtUtc;
         job.UpdatedAtUtc = DateTimeOffset.UtcNow;
 
@@ -188,8 +188,8 @@ public class JobService : IJobService
     {
         var company = await ValidateCompanyMembershipAndRole(companyId, userId, canWrite: true, ct);
 
-        if (company.ApprovalStatus != CompanyApprovalStatus.Approved)
-            throw new ForbiddenAccessException("Company must be approved by a platform administrator before publishing vacancies.");
+        if (company.ApprovalStatus == CompanyApprovalStatus.Suspended)
+            throw new ForbiddenAccessException("Company account is suspended and cannot publish vacancies.");
 
         var job = await _context.JobPostings
             .Include(j => j.JobCategory)
@@ -270,8 +270,8 @@ public class JobService : IJobService
     {
         var company = await ValidateCompanyMembershipAndRole(companyId, userId, canWrite: true, ct);
 
-        if (company.ApprovalStatus != CompanyApprovalStatus.Approved)
-            throw new ForbiddenAccessException("Company must be approved by a platform administrator before publishing vacancies.");
+        if (company.ApprovalStatus == CompanyApprovalStatus.Suspended)
+            throw new ForbiddenAccessException("Company account is suspended and cannot reopen vacancies.");
 
         var job = await _context.JobPostings
             .Include(j => j.JobCategory)

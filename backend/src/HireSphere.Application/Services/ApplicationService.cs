@@ -87,8 +87,8 @@ public class ApplicationService : IApplicationService
         if (job.ExpiresAtUtc.HasValue && job.ExpiresAtUtc.Value <= DateTimeOffset.UtcNow)
             throw new ConflictException("The application deadline for this vacancy has expired.");
 
-        if (job.Company.ApprovalStatus != CompanyApprovalStatus.Approved)
-            throw new ForbiddenAccessException("This company is not currently approved to accept applications.");
+        if (job.Company.ApprovalStatus == CompanyApprovalStatus.Suspended)
+            throw new ForbiddenAccessException("This company is suspended and cannot accept applications.");
 
         // Check for duplicate application
         bool alreadyApplied = await _context.JobApplications

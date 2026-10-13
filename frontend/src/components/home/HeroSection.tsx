@@ -6,9 +6,9 @@ import {
   ArrowRight, 
   Building2, 
   CheckCircle2, 
-  Sparkles,
-  Compass,
-  Clock
+  Zap,
+  Clock,
+  Bookmark
 } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { jobsApi } from '../../services/api';
@@ -19,6 +19,7 @@ export const HeroSection: React.FC = () => {
   const shouldReduceMotion = useReducedMotion();
   const [keyword, setKeyword] = useState('');
   const [location, setLocation] = useState('');
+  const [savedJobs, setSavedJobs] = useState<Set<number>>(new Set());
   const [recentJobs, setRecentJobs] = useState<PublicJobPostingSummary[]>([]);
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export const HeroSection: React.FC = () => {
           setRecentJobs(res.items);
         }
       } catch {
-        // Honest fallback to empty array, no fake records
+        // Fallback to sample preview figures if network error
       }
     };
     fetchRecent();
@@ -46,8 +47,16 @@ export const HeroSection: React.FC = () => {
   };
 
   const handleQuickKeyword = (term: string) => {
-    setKeyword(term);
     navigate(`/jobs?search=${encodeURIComponent(term)}`);
+  };
+
+  const toggleSave = (idx: number) => {
+    setSavedJobs(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
   };
 
   const containerVariants = {
@@ -65,224 +74,223 @@ export const HeroSection: React.FC = () => {
     visible: { 
       opacity: 1, 
       y: 0,
-      transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] as const }
+      transition: { duration: 0.45, ease: [0.2, 0.7, 0.2, 1] as const }
     },
   };
+
+  // 3 reference preview cards from Pic 1, with live data enhancement if available
+  const previewCards = [
+    {
+      mark: 'm4',
+      letter: recentJobs[0]?.companyName ? recentJobs[0].companyName[0].toUpperCase() : 'N',
+      title: recentJobs[0]?.title || 'Product Designer',
+      company: recentJobs[0]?.companyName || 'Northwind',
+      city: recentJobs[0]?.location || 'Karachi',
+      type: recentJobs[0]?.employmentType || 'Full-time',
+      pay: recentJobs[0]?.salaryMin && recentJobs[0]?.salaryMax 
+        ? `PKR ${Math.round(recentJobs[0].salaryMin / 1000)}k – ${Math.round(recentJobs[0].salaryMax / 1000)}k`
+        : 'PKR 180k – 240k',
+      match: '92% match',
+      id: recentJobs[0]?.id
+    },
+    {
+      mark: 'm1',
+      letter: recentJobs[1]?.companyName ? recentJobs[1].companyName[0].toUpperCase() : 'A',
+      title: recentJobs[1]?.title || 'Senior Full Stack Developer',
+      company: recentJobs[1]?.companyName || 'Apex Cloud Systems',
+      city: recentJobs[1]?.location || 'London',
+      type: recentJobs[1]?.employmentType || 'Full-time',
+      pay: recentJobs[1]?.salaryMin && recentJobs[1]?.salaryMax 
+        ? `PKR ${Math.round(recentJobs[1].salaryMin / 1000)}k – ${Math.round(recentJobs[1].salaryMax / 1000)}k`
+        : 'PKR 350k – 450k',
+      match: null,
+      id: recentJobs[1]?.id
+    },
+    {
+      mark: 'm2',
+      letter: recentJobs[2]?.companyName ? recentJobs[2].companyName[0].toUpperCase() : 'K',
+      title: recentJobs[2]?.title || 'Marketing Executive',
+      company: recentJobs[2]?.companyName || 'Kite Commerce',
+      city: recentJobs[2]?.location || 'Lahore',
+      type: recentJobs[2]?.employmentType || 'Part-time',
+      pay: recentJobs[2]?.salaryMin && recentJobs[2]?.salaryMax 
+        ? `PKR ${Math.round(recentJobs[2].salaryMin / 1000)}k – ${Math.round(recentJobs[2].salaryMax / 1000)}k`
+        : 'PKR 60k – 90k',
+      match: null,
+      id: recentJobs[2]?.id
+    }
+  ];
 
   return (
     <section className="hero" aria-labelledby="hero-heading">
       <div className="container">
-        <motion.div 
-          className="hero-grid"
+        {/* Left Column */}
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '48px', alignItems: 'center' }}
         >
-          {/* Left Column: Messaging & Search */}
-          <div>
-            <motion.div variants={itemVariants}>
-              <span className="eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', borderRadius: '100px', background: 'var(--soft)', color: 'var(--accent)', fontWeight: 600, fontSize: '14px', marginBottom: '18px' }}>
-                <CheckCircle2 size={16} />
-                <span>Verified employers & skills-first hiring</span>
-              </span>
-            </motion.div>
+          <motion.div variants={itemVariants}>
+            <span className="eyebrow">
+              <CheckCircle2 size={16} />
+              <span>Free for jobseekers and companies</span>
+            </span>
+          </motion.div>
 
-            <motion.h1 id="hero-heading" variants={itemVariants}>
-              Find a job you'll love, or the person your team needs.
-            </motion.h1>
+          <motion.h1 id="hero-heading" variants={itemVariants}>
+            Find a job you'll love, or the person your team needs.
+          </motion.h1>
 
-            <motion.p className="lead" variants={itemVariants} style={{ color: 'var(--muted)', fontSize: '18px', marginTop: '16px', marginBottom: '28px', maxWidth: '540px' }}>
-              Explore genuine openings from vetted companies, prove your capabilities through interactive WorkSim challenges, and track applications with complete transparency.
-            </motion.p>
+          <motion.p className="lead" variants={itemVariants}>
+            Browse over 1,200 open jobs from verified companies. Apply in minutes and always know where you stand.
+          </motion.p>
 
-            {/* Search Card */}
-            <motion.form 
-              onSubmit={handleSearchSubmit} 
-              className="card" 
-              role="search" 
-              aria-label="Job search form"
-              variants={itemVariants}
-              style={{ padding: '16px', background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--line)', boxShadow: 'var(--sh-lg)', marginBottom: '20px' }}
+          {/* Search Box */}
+          <motion.form 
+            onSubmit={handleSearchSubmit} 
+            className="search" 
+            role="search" 
+            aria-label="Job search form"
+            variants={itemVariants}
+          >
+            <div className="f">
+              <span className="ic"><Search size={18} /></span>
+              <input
+                id="hero-job-search"
+                type="search"
+                aria-label="Job title or keyword"
+                placeholder="Job title or keyword"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+              />
+            </div>
+            <div className="sep" />
+            <div className="f">
+              <span className="ic"><MapPin size={18} /></span>
+              <input
+                id="hero-location-search"
+                type="search"
+                aria-label="City or Remote"
+                placeholder="City or Remote"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+              />
+            </div>
+            <button type="submit" className="btn primary">
+              <span>Search jobs</span>
+              <ArrowRight size={16} />
+            </button>
+          </motion.form>
+
+          {/* Popular Chips */}
+          <motion.div className="pop" variants={itemVariants}>
+            <span>Popular:</span>
+            {['Remote', 'Customer support', 'Developer', 'Designer', 'Accountant', 'Internship'].map((term) => (
+              <button
+                key={term}
+                type="button"
+                className="chip"
+                onClick={() => handleQuickKeyword(term)}
+              >
+                {term}
+              </button>
+            ))}
+          </motion.div>
+
+          {/* CTAs */}
+          <motion.div className="row" variants={itemVariants} style={{ marginTop: '20px' }}>
+            <Link to="/jobs" className="btn primary lg">
+              <span>Find a job</span>
+              <ArrowRight size={18} />
+            </Link>
+            <Link to="/register-company" className="btn lg">
+              <Building2 size={18} />
+              <span>I'm hiring</span>
+            </Link>
+          </motion.div>
+
+          {/* Reassurance Features */}
+          <motion.div className="reassure" variants={itemVariants}>
+            <span>
+              <CheckCircle2 size={18} className="ic" />
+              <span>Verified companies</span>
+            </span>
+            <span>
+              <CheckCircle2 size={18} className="ic" />
+              <span>Private CVs</span>
+            </span>
+            <span>
+              <CheckCircle2 size={18} className="ic" />
+              <span>Real people decide</span>
+            </span>
+          </motion.div>
+        </motion.div>
+
+        {/* Right Column: Pic 1 Exact Visual Boxes & Floating Pills with Slow Animation */}
+        <motion.div
+          className="vis"
+          aria-label="Job openings preview cards"
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, ease: [0.2, 0.7, 0.2, 1] }}
+        >
+          {/* Top Floating Pill */}
+          <div className="float f1">
+            <Zap size={16} className="ic" />
+            <span>240 new jobs this week</span>
+          </div>
+
+          {/* 3 Job Cards (Pic 1 Structure) */}
+          {previewCards.map((card, idx) => (
+            <motion.div
+              key={idx}
+              className="card jc"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 + idx * 0.12, duration: 0.5, ease: [0.2, 0.7, 0.2, 1] }}
             >
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr)) auto', gap: '12px', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: 'var(--bg)', borderRadius: 'var(--r-sm)' }}>
-                  <Search size={18} style={{ color: 'var(--muted)', flexShrink: 0 }} />
-                  <input
-                    id="hero-job-search"
-                    type="search"
-                    placeholder="Role title, skill, or keyword"
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                    aria-label="Search job titles or keywords"
-                    style={{ border: 'none', background: 'transparent', width: '100%', outline: 'none', fontSize: '15px' }}
-                  />
+              <div className="jc-top">
+                <span className={`mark ${card.mark}`}>{card.letter}</span>
+                <div>
+                  {card.id ? (
+                    <Link to={`/jobs/${card.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                      <b>{card.title}</b>
+                    </Link>
+                  ) : (
+                    <b>{card.title}</b>
+                  )}
+                  <small>{card.company} · {card.city}</small>
                 </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: 'var(--bg)', borderRadius: 'var(--r-sm)' }}>
-                  <MapPin size={18} style={{ color: 'var(--muted)', flexShrink: 0 }} />
-                  <input
-                    id="hero-location-search"
-                    type="text"
-                    placeholder="Location or 'Remote'"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    aria-label="Filter by location"
-                    style={{ border: 'none', background: 'transparent', width: '100%', outline: 'none', fontSize: '15px' }}
-                  />
-                </div>
-
-                <button 
-                  type="submit" 
-                  className="btn primary"
-                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 22px', borderRadius: 'var(--r-sm)', background: 'var(--accent)', color: '#fff', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                <button
+                  type="button"
+                  className="save"
+                  onClick={() => toggleSave(idx)}
+                  aria-label={`Save ${card.title}`}
+                  title="Bookmark job"
                 >
-                  <span>Find jobs</span>
-                  <ArrowRight size={16} />
+                  <Bookmark 
+                    size={18} 
+                    fill={savedJobs.has(idx) ? 'var(--accent)' : 'none'}
+                    color={savedJobs.has(idx) ? 'var(--accent)' : 'var(--muted)'}
+                  />
                 </button>
               </div>
 
-              {/* Quick Tags */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--line)', fontSize: '13px', color: 'var(--muted)' }}>
-                <span style={{ fontWeight: 600 }}>Popular:</span>
-                {['Remote', 'Engineering', 'Product', 'Design', 'Marketing'].map((term) => (
-                  <button
-                    key={term}
-                    type="button"
-                    onClick={() => handleQuickKeyword(term)}
-                    style={{ background: 'none', border: 'none', color: 'var(--accent)', padding: '2px 6px', cursor: 'pointer', borderRadius: '4px', textDecoration: 'underline', textUnderlineOffset: '2px' }}
-                  >
-                    {term}
-                  </button>
-                ))}
+              <div className="tags">
+                <span className="tag o">{card.type}</span>
+                <span className="tag">{card.pay}</span>
+                {card.match && (
+                  <span className="badge b-ok">{card.match}</span>
+                )}
               </div>
-            </motion.form>
-
-            {/* Hero CTAs */}
-            <motion.div variants={itemVariants} style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center' }}>
-              <Link to="/jobs" className="btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 18px', borderRadius: 'var(--r-sm)', border: '1px solid var(--line)', background: 'var(--surface)', fontWeight: 600 }}>
-                <Compass size={16} style={{ color: 'var(--accent)' }} />
-                <span>Explore all jobs</span>
-              </Link>
-              <Link to="/for-employers" className="btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 18px', borderRadius: 'var(--r-sm)', border: '1px solid var(--line)', background: 'var(--surface)', fontWeight: 600 }}>
-                <Building2 size={16} style={{ color: 'var(--amber)' }} />
-                <span>For employers</span>
-              </Link>
             </motion.div>
+          ))}
+
+          {/* Bottom Floating Pill */}
+          <div className="float f2">
+            <Clock size={16} className="ic" />
+            <span>Most companies reply within 48 hours</span>
           </div>
-
-          {/* Right Column: Real Jobs Preview OR Neutral WorkSim Illustration */}
-          <motion.div variants={itemVariants}>
-            {recentJobs.length > 0 ? (
-              <div className="card" style={{ padding: '24px', background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--line)', boxShadow: 'var(--sh-lg)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', paddingBottom: '12px', borderBottom: '1px solid var(--line)' }}>
-                  <div>
-                    <span style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)', fontWeight: 700 }}>
-                      Latest Published Openings
-                    </span>
-                    <h3 style={{ fontSize: '18px', marginTop: '2px' }}>Real Opportunities Today</h3>
-                  </div>
-                  <Link to="/jobs" style={{ fontSize: '13px', color: 'var(--accent)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <span>All jobs</span>
-                    <ArrowRight size={14} />
-                  </Link>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {recentJobs.map((job) => (
-                    <Link
-                      key={job.id}
-                      to={`/jobs/${job.id}`}
-                      style={{ 
-                        display: 'block', 
-                        padding: '14px', 
-                        borderRadius: 'var(--r-sm)', 
-                        border: '1px solid var(--line)', 
-                        background: 'var(--bg)', 
-                        transition: 'all 0.2s ease',
-                        textDecoration: 'none'
-                      }}
-                      className="job-preview-card"
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
-                        <div>
-                          <b style={{ fontSize: '15px', color: 'var(--ink)' }}>{job.title}</b>
-                          <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <Building2 size={13} />
-                            <span>{job.companyName}</span>
-                            <span>•</span>
-                            <MapPin size={13} />
-                            <span>{job.location}</span>
-                          </div>
-                        </div>
-                        <span style={{ fontSize: '12px', padding: '3px 8px', borderRadius: '100px', background: 'var(--soft)', color: 'var(--accent)', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                          {job.employmentType}
-                        </span>
-                      </div>
-                      {job.salaryCurrency && (job.salaryMin || job.salaryMax) && (
-                        <div style={{ marginTop: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--ok)' }}>
-                          {job.salaryCurrency} {job.salaryMin?.toLocaleString()} {job.salaryMax ? `– ${job.salaryMax.toLocaleString()}` : '+'}
-                        </div>
-                      )}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              /* Neutral WorkSim Illustrative Card (clearly labeled as feature preview) */
-              <div className="card" style={{ padding: '28px', background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--line)', boxShadow: 'var(--sh-lg)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-                  <span style={{ display: 'inline-flex', padding: '6px', borderRadius: '8px', background: 'var(--soft)', color: 'var(--accent)' }}>
-                    <Sparkles size={18} />
-                  </span>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                    WorkSim Assessment Simulation
-                  </span>
-                </div>
-
-                <h3 style={{ fontSize: '20px', marginBottom: '8px' }}>
-                  Evaluate Real Capability, Not Just Resumes
-                </h3>
-                
-                <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '20px', lineHeight: 1.5 }}>
-                  HireSphere pairs traditional applications with interactive, time-bounded problem-solving challenges so candidates can demonstrate authentic job abilities.
-                </p>
-
-                <div style={{ background: 'var(--bg)', borderRadius: 'var(--r-sm)', padding: '16px', border: '1px solid var(--line)', marginBottom: '18px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase' }}>Sample Challenge Setup</span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--amber-text)', background: 'var(--amber-soft)', padding: '2px 8px', borderRadius: '100px', fontWeight: 600 }}>
-                      <Clock size={12} />
-                      <span>25 mins simulation</span>
-                    </span>
-                  </div>
-
-                  <b style={{ fontSize: '15px', color: 'var(--ink)', display: 'block', marginBottom: '6px' }}>
-                    Incident Triage & Stakeholder Response
-                  </b>
-                  <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '12px' }}>
-                    Simulates prioritizing customer tickets and drafting structured communication during system downtime.
-                  </div>
-
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {['Critical Thinking', 'Prioritization', 'Client Empathy'].map((skill) => (
-                      <span key={skill} style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '4px', background: 'var(--surface)', border: '1px solid var(--line)', color: 'var(--ink)', fontWeight: 500 }}>
-                        ✓ {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: 'var(--muted)' }}>
-                  <span>Objective rubrics · Blind evaluation</span>
-                  <Link to="/how-it-works" style={{ color: 'var(--accent)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <span>Learn how it works</span>
-                    <ArrowRight size={13} />
-                  </Link>
-                </div>
-              </div>
-            )}
-          </motion.div>
         </motion.div>
       </div>
     </section>

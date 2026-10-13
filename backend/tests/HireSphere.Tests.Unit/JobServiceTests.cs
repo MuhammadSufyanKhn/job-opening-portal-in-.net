@@ -145,11 +145,11 @@ public class JobServiceTests
     }
 
     [Fact]
-    public async Task PublishJobAsync_PendingApprovalCompany_ThrowsForbiddenAccessException()
+    public async Task PublishJobAsync_SuspendedCompany_ThrowsForbiddenAccessException()
     {
         // Arrange
         using var context = TestDbContextFactory.CreateInMemoryDbContext();
-        var (company, owner, category) = SeedCompanyAndOwner(context, CompanyApprovalStatus.PendingApproval);
+        var (company, owner, category) = SeedCompanyAndOwner(context, CompanyApprovalStatus.Suspended);
         var service = new JobService(context, _auditServiceMock.Object);
 
         var request = new CreateJobPostingRequest(
@@ -177,7 +177,7 @@ public class JobServiceTests
 
         // Assert
         await act.Should().ThrowAsync<ForbiddenAccessException>()
-            .WithMessage("*approved*");
+            .WithMessage("*suspended*");
     }
 
     [Fact]

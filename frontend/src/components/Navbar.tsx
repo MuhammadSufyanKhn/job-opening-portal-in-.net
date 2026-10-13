@@ -233,9 +233,24 @@ export const Navbar: React.FC = () => {
                 <div className="user">
                   <div>
                     {user.fullName}
-                    <small>{user.roles.some(r => r.toLowerCase() === 'superadmin' || r.toLowerCase() === 'admin') ? 'Administrator' : user.roles.includes('CompanyMember') ? 'Company account' : 'Jobseeker'}</small>
+                    <small>
+                      {user.roles.some(r => r.toLowerCase() === 'superadmin' || r.toLowerCase() === 'admin') 
+                        ? 'Super admin' 
+                        : user.roles.includes('CompanyMember') 
+                        ? 'Company admin' 
+                        : 'Candidate'}
+                    </small>
                   </div>
-                  <span className="mark m1" style={{ width: '38px', height: '38px', fontSize: '14px' }}>
+                  <span 
+                    className={`mark ${
+                      user.roles.some(r => r.toLowerCase() === 'superadmin' || r.toLowerCase() === 'admin')
+                        ? 'm4'
+                        : user.roles.includes('CompanyMember')
+                        ? 'm2'
+                        : 'm1'
+                    }`} 
+                    style={{ width: '38px', height: '38px', fontSize: '14px' }}
+                  >
                     {user.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                   </span>
                 </div>

@@ -3,7 +3,6 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   Building2, 
   MapPin, 
-  DollarSign, 
   Calendar, 
   Globe, 
   ArrowLeft, 
@@ -342,13 +341,15 @@ export const JobDetail: React.FC = () => {
             <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '0.35rem' }}>
               Compensation Range
             </span>
-            <div style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <DollarSign size={18} className="text-emerald" />
+            <div style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span className="badge b-ok nodot" style={{ fontSize: '12px', padding: '2px 8px' }}>
+                {(job.salaryCurrency && job.salaryCurrency !== 'USD') ? job.salaryCurrency : 'PKR'}
+              </span>
               {job.salaryMin != null || job.salaryMax != null ? (
                 <>
-                  {job.salaryMin != null && `$${job.salaryMin.toLocaleString()}`}
+                  {job.salaryMin != null && `${job.salaryMin.toLocaleString()}`}
                   {job.salaryMin != null && job.salaryMax != null && ' – '}
-                  {job.salaryMax != null && `$${job.salaryMax.toLocaleString()}`} {job.salaryCurrency}
+                  {job.salaryMax != null && `${job.salaryMax.toLocaleString()}`}
                 </>
               ) : (
                 'Competitive / Undisclosed'

@@ -44,7 +44,7 @@ export const CreateEditJob: React.FC = () => {
   const [location, setLocation] = useState('');
   const [salaryMin, setSalaryMin] = useState<string>('');
   const [salaryMax, setSalaryMax] = useState<string>('');
-  const [salaryCurrency, setSalaryCurrency] = useState('USD');
+  const [salaryCurrency, setSalaryCurrency] = useState('PKR');
   const [expiresAt, setExpiresAt] = useState<string>('');
   const [activeVersionNumber, setActiveVersionNumber] = useState<number>(1);
   const [currentStatus, setCurrentStatus] = useState<any>(0);
@@ -89,7 +89,7 @@ export const CreateEditJob: React.FC = () => {
         setLocation(existing.location);
         setSalaryMin(existing.salaryMin != null ? String(existing.salaryMin) : '');
         setSalaryMax(existing.salaryMax != null ? String(existing.salaryMax) : '');
-        setSalaryCurrency(existing.salaryCurrency || 'USD');
+        setSalaryCurrency(existing.salaryCurrency || 'PKR');
         setActiveVersionNumber(existing.activeVersionNumber || 1);
         setCurrentStatus(existing.status);
         if (existing.expiresAtUtc) {
@@ -434,7 +434,7 @@ export const CreateEditJob: React.FC = () => {
                 type="text"
                 maxLength={3}
                 className="input-standard"
-                placeholder="USD"
+                placeholder="PKR"
                 value={salaryCurrency}
                 onChange={(e) => setSalaryCurrency(e.target.value)}
               />

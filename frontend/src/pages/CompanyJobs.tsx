@@ -151,8 +151,6 @@ export const CompanyJobs: React.FC = () => {
     );
   }
 
-  const isApproved = company?.approvalStatus === 'Approved';
-
   return (
     <div className="portal-container" style={{ maxWidth: '1150px', padding: '2.5rem 1.5rem 5rem' }}>
       {/* Header */}
@@ -187,14 +185,14 @@ export const CompanyJobs: React.FC = () => {
         </div>
       </div>
 
-      {/* Approval Warning if applicable */}
-      {company && !isApproved && (
-        <div className="alert alert-warning" style={{ marginBottom: '1.75rem' }}>
+      {/* Suspension Alert if applicable */}
+      {company && company.approvalStatus === 'Suspended' && (
+        <div className="alert alert-error" style={{ marginBottom: '1.75rem' }}>
           <AlertCircle size={20} />
           <div>
-            <strong>Organization Gated: {company.approvalStatus}</strong>
+            <strong>Organization Suspended</strong>
             <p style={{ marginTop: '0.2rem', fontSize: '0.85rem' }}>
-              Your organization must be approved by Platform Governance before publishing vacancies to the public marketplace. You can still author drafts and structured requirements.
+              Your organization account has been suspended by platform administration. Contact support to restore publishing capabilities.
             </p>
           </div>
         </div>
@@ -375,8 +373,8 @@ export const CompanyJobs: React.FC = () => {
                                 description: 'Publishing will make this job publicly visible and allow eligible candidates to submit applications. An immutable version snapshot (v1) will be locked.',
                               })}
                               className="btn btn-primary btn-sm"
-                              disabled={!isApproved}
-                              title={!isApproved ? 'Company must be approved to publish' : 'Publish opening'}
+                              disabled={company?.approvalStatus === 'Suspended'}
+                              title={company?.approvalStatus === 'Suspended' ? 'Company is suspended' : 'Publish opening to marketplace'}
                             >
                               <Play size={14} /> Publish
                             </button>
