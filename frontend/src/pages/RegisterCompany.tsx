@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authApi } from '../services/api';
-import { Briefcase, AlertCircle, ShieldCheck, ArrowRight, Building2, User } from 'lucide-react';
+import { Briefcase, AlertCircle, CheckCircle2, ShieldCheck, Eye, EyeOff, User, Building2 } from 'lucide-react';
 import { PageTransition } from '../components/common/PageTransition';
 
 export const RegisterCompany: React.FC = () => {
@@ -17,23 +17,49 @@ export const RegisterCompany: React.FC = () => {
     ownerEmail: '',
     ownerPassword: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: value };
+      // If ownerEmail is not set yet, mirror official email as default convenience
+      if (name === 'contactEmail' && !prev.ownerEmail) {
+        updated.ownerEmail = value;
+      }
+      return updated;
+    });
   };
+
+  const calculateScore = (p: string) => {
+    let s = 0;
+    if (p.length >= 8) s++;
+    if (/[a-z]/.test(p) && /[A-Z]/.test(p)) s++;
+    if (/\d/.test(p)) s++;
+    if (/[^A-Za-z0-9]/.test(p)) s++;
+    return p ? Math.max(1, s) : 0;
+  };
+
+  const score = calculateScore(formData.ownerPassword);
+  const meterLabels = ['Use 8 or more characters', 'Weak', 'Okay', 'Good', 'Strong'];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!agreeTerms) {
+      setError('Please agree to the Terms and Privacy policy to continue.');
+      return;
+    }
+
     setError(null);
     setIsSubmitting(true);
 
     try {
       await authApi.registerCompany(formData);
-      // Explicitly clear any tokens/session so user is not automatically authenticated
       localStorage.removeItem('hiresphere_token');
       localStorage.removeItem('hiresphere_refresh');
       navigate('/login?registered=true', { state: { registered: true } });
@@ -47,217 +73,253 @@ export const RegisterCompany: React.FC = () => {
 
   return (
     <PageTransition>
-      <div className="auth-page">
-        <div className="auth-card" style={{ maxWidth: '640px' }}>
-          {/* Brand at top */}
-          <div className="auth-brand">
-            <Link to="/" className="brand">
-              <i aria-hidden="true"><Briefcase size={16} /></i>
+      <div className="v s2">
+        {/* Left story panel */}
+        <aside className="l">
+          <div>
+            <Link to="/" className="brand w">
+              <i><Briefcase size={16} /></i>
               <span>HireSphere</span>
             </Link>
           </div>
 
-          <div className="auth-header">
-            <h1>Create your company workspace</h1>
-            <p>Post vacancies, assess candidate capabilities, and build your hiring pipeline.</p>
+          <div className="rise">
+            <h1>Hire the right people, faster.</h1>
+            <p className="sub">
+              Post jobs for free, see how well each applicant fits and keep your team in sync.
+            </p>
           </div>
 
-          {/* Reassurance banner */}
-          <div className="auth-reassurance" style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: 'var(--r-sm)', background: 'var(--soft)', color: 'var(--accent)', fontSize: '13.5px' }}>
-            <ShieldCheck size={18} style={{ flexShrink: 0 }} />
-            <span>Platform administrators audit and verify every company profile before job listings go live.</span>
-          </div>
-
-          {error && (
-            <div className="form-error" style={{ marginBottom: '20px', padding: '12px 14px', background: 'var(--bad-bg)', color: 'var(--bad)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px' }}>
-              <AlertCircle size={18} style={{ flexShrink: 0 }} />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="auth-form" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {/* Section 1: Organization Details */}
-            <div style={{ padding: '20px', borderRadius: 'var(--r-sm)', background: 'var(--bg)', border: '1px solid var(--line)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', color: 'var(--ink)' }}>
-                <Building2 size={18} style={{ color: 'var(--accent)' }} />
-                <h3 style={{ fontSize: '16px' }}>Organization Details</h3>
+          <div className="stack" aria-hidden="true">
+            <div className="mc">
+              <span className="mark m1">ER</span>
+              <div>
+                <b>Elena Rostova</b>
+                <small>Skills challenge passed</small>
               </div>
+              <span className="badge b-ok">93% fit</span>
+            </div>
+            <div className="mc">
+              <span className="mark m2">NK</span>
+              <div>
+                <b>Nadia Khan</b>
+                <small>Interview booked</small>
+              </div>
+              <span className="badge b-ok">91% fit</span>
+            </div>
+            <div className="mc">
+              <span className="mark m4">OF</span>
+              <div>
+                <b>Omar Farooq</b>
+                <small>Ready to review</small>
+              </div>
+              <span className="badge b-ok">90% fit</span>
+            </div>
+          </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div className="form-group">
-                  <label htmlFor="companyName" className="form-label">
-                    Legal company name <span style={{ color: 'var(--bad)' }}>*</span>
-                  </label>
-                  <input
-                    id="companyName"
-                    name="companyName"
-                    type="text"
-                    className="form-input"
-                    value={formData.companyName}
-                    onChange={handleChange}
-                    placeholder="e.g. Acme Corporation"
-                    required
-                    disabled={isSubmitting}
-                  />
+          <div className="pts">
+            <span><CheckCircle2 size={18} className="ic" /> Verified companies</span>
+            <span><CheckCircle2 size={18} className="ic" /> Private CVs</span>
+            <span><CheckCircle2 size={18} className="ic" /> Real people decide</span>
+          </div>
+        </aside>
+
+        {/* Right Open page form */}
+        <section className="r">
+          <div className="box wrap company-box">
+            <div className="t2" role="tablist">
+              <Link to="/login" role="tab" aria-selected="false">Sign in</Link>
+              <span aria-hidden="true">/</span>
+              <button type="button" role="tab" aria-selected="true">Create account</button>
+            </div>
+
+            <div className="hd">
+              <h2>Create your company account</h2>
+              <p>Post your first job in minutes.</p>
+            </div>
+
+            {/* Role switcher pill buttons */}
+            <div className="seg" role="tablist" aria-label="I am a">
+              <Link to="/register-candidate" role="tab" aria-selected="false">
+                <User size={15} /> I'm looking for a job
+              </Link>
+              <button type="button" role="tab" aria-selected="true">
+                <Building2 size={15} /> I'm hiring
+              </button>
+            </div>
+
+            {error && (
+              <div className="err" style={{ padding: '10px 12px', background: 'var(--bad-bg)', borderRadius: '8px', marginBottom: '8px', fontSize: '14px' }}>
+                <AlertCircle size={18} style={{ flexShrink: 0 }} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="form" noValidate>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div className={`fld ${error && !formData.companyName ? 'bad' : ''}`}>
+                  <label className="lb" htmlFor="companyName">Company name</label>
+                  <div className="inp">
+                    <input
+                      id="companyName"
+                      name="companyName"
+                      type="text"
+                      value={formData.companyName}
+                      onChange={handleChange}
+                      placeholder="Apex Cloud Systems"
+                      autoComplete="organization"
+                      required
+                      disabled={isSubmitting}
+                    />
+                  </div>
                 </div>
 
-                <div className="g2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-                  <div className="form-group">
-                    <label htmlFor="industry" className="form-label">
-                      Primary industry <span style={{ color: 'var(--bad)' }}>*</span>
-                    </label>
+                <div className={`fld ${error && !formData.industry ? 'bad' : ''}`}>
+                  <label className="lb" htmlFor="industry">Industry</label>
+                  <div className="inp">
                     <input
                       id="industry"
                       name="industry"
                       type="text"
-                      className="form-input"
                       value={formData.industry}
                       onChange={handleChange}
-                      placeholder="e.g. Software, Logistics, Healthcare"
+                      placeholder="e.g. Software, Logistics"
                       required
                       disabled={isSubmitting}
                     />
                   </div>
-
-                  <div className="form-group">
-                    <label htmlFor="websiteUrl" className="form-label">Website URL</label>
-                    <input
-                      id="websiteUrl"
-                      name="websiteUrl"
-                      type="url"
-                      className="form-input"
-                      value={formData.websiteUrl}
-                      onChange={handleChange}
-                      placeholder="https://example.com"
-                      disabled={isSubmitting}
-                    />
-                  </div>
                 </div>
+              </div>
 
-                <div className="form-group">
-                  <label htmlFor="contactEmail" className="form-label">
-                    Official corporate contact email <span style={{ color: 'var(--bad)' }}>*</span>
-                  </label>
+              <div className={`fld ${error && !formData.contactEmail ? 'bad' : ''}`}>
+                <label className="lb" htmlFor="contactEmail">Work / Official email</label>
+                <div className="inp">
                   <input
                     id="contactEmail"
                     name="contactEmail"
                     type="email"
-                    className="form-input"
                     value={formData.contactEmail}
                     onChange={handleChange}
-                    placeholder="recruitment@example.com"
+                    placeholder="you@yourcompany.com"
+                    autoComplete="email"
                     required
                     disabled={isSubmitting}
                   />
-                  <small className="muted" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                    Used for platform verification notices and audit validation.
-                  </small>
                 </div>
-              </div>
-            </div>
-
-            {/* Section 2: Account Owner Credentials */}
-            <div style={{ padding: '20px', borderRadius: 'var(--r-sm)', background: 'var(--bg)', border: '1px solid var(--line)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', color: 'var(--ink)' }}>
-                <User size={18} style={{ color: 'var(--accent)' }} />
-                <h3 style={{ fontSize: '16px' }}>Primary Administrator Credentials</h3>
+                <div className="hint">Use your company email so we can verify your account.</div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div className="g2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-                  <div className="form-group">
-                    <label htmlFor="ownerFirstName" className="form-label">
-                      First name <span style={{ color: 'var(--bad)' }}>*</span>
-                    </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div className={`fld ${error && !formData.ownerFirstName ? 'bad' : ''}`}>
+                  <label className="lb" htmlFor="ownerFirstName">Your first name</label>
+                  <div className="inp">
                     <input
                       id="ownerFirstName"
                       name="ownerFirstName"
                       type="text"
-                      className="form-input"
                       value={formData.ownerFirstName}
                       onChange={handleChange}
-                      placeholder="e.g. Sarah"
+                      placeholder="Sana"
+                      autoComplete="given-name"
                       required
                       disabled={isSubmitting}
                     />
                   </div>
+                </div>
 
-                  <div className="form-group">
-                    <label htmlFor="ownerLastName" className="form-label">
-                      Last name <span style={{ color: 'var(--bad)' }}>*</span>
-                    </label>
+                <div className={`fld ${error && !formData.ownerLastName ? 'bad' : ''}`}>
+                  <label className="lb" htmlFor="ownerLastName">Your last name</label>
+                  <div className="inp">
                     <input
                       id="ownerLastName"
                       name="ownerLastName"
                       type="text"
-                      className="form-input"
                       value={formData.ownerLastName}
                       onChange={handleChange}
-                      placeholder="e.g. Jenkins"
+                      placeholder="Malik"
+                      autoComplete="family-name"
                       required
                       disabled={isSubmitting}
                     />
                   </div>
                 </div>
+              </div>
 
-                <div className="form-group">
-                  <label htmlFor="ownerEmail" className="form-label">
-                    Sign-in email address <span style={{ color: 'var(--bad)' }}>*</span>
-                  </label>
+              <div className={`fld ${error && !formData.ownerEmail ? 'bad' : ''}`}>
+                <label className="lb" htmlFor="ownerEmail">Admin sign-in email</label>
+                <div className="inp">
                   <input
                     id="ownerEmail"
                     name="ownerEmail"
                     type="email"
-                    className="form-input"
                     value={formData.ownerEmail}
                     onChange={handleChange}
-                    placeholder="sarah.jenkins@example.com"
+                    placeholder="sana.malik@yourcompany.com"
+                    autoComplete="email"
                     required
                     disabled={isSubmitting}
                   />
                 </div>
+              </div>
 
-                <div className="form-group">
-                  <label htmlFor="ownerPassword" className="form-label">
-                    Password <span style={{ color: 'var(--bad)' }}>*</span>
-                  </label>
+              <div className={`fld ${error && !formData.ownerPassword ? 'bad' : ''}`}>
+                <label className="lb" htmlFor="ownerPassword">Password</label>
+                <div className="inp pw">
                   <input
                     id="ownerPassword"
                     name="ownerPassword"
-                    type="password"
-                    className="form-input"
+                    type={showPassword ? 'text' : 'password'}
                     value={formData.ownerPassword}
                     onChange={handleChange}
                     placeholder="Create a secure password"
+                    autoComplete="new-password"
                     required
                     disabled={isSubmitting}
                   />
-                  <small className="muted" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                    Must be at least 6 characters with upper/lower case letters and numbers.
-                  </small>
+                  <button
+                    type="button"
+                    className="eye"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                <div className="meter" data-s={score}>
+                  <i></i><i></i><i></i><i></i>
+                  <span>{meterLabels[score]}</span>
                 </div>
               </div>
-            </div>
 
-            <button 
-              type="submit" 
-              className="btn primary lg btn-block" 
-              disabled={isSubmitting}
-              style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-            >
-              <span>{isSubmitting ? 'Registering organization...' : 'Create company account'}</span>
-              {!isSubmitting && <ArrowRight size={18} />}
-            </button>
-          </form>
+              <div className="note">
+                <ShieldCheck size={20} className="ic" style={{ flexShrink: 0 }} />
+                <span>We check every company before its jobs go live, to keep scams out.</span>
+              </div>
 
-          <div className="auth-footer" style={{ marginTop: '24px', textAlign: 'center' }}>
-            <p>Already have an account? <Link to="/login" style={{ color: 'var(--accent)', fontWeight: 600 }}>Sign in</Link></p>
-            <div style={{ marginTop: '10px' }}>
-              <span className="muted" style={{ fontSize: '13.5px' }}>Looking for a job? </span>
-              <Link to="/register-candidate" style={{ fontSize: '13.5px', color: 'var(--accent)' }}>Create your free profile</Link>
-            </div>
+              <div className="fld">
+                <label className="chk">
+                  <input
+                    type="checkbox"
+                    checked={agreeTerms}
+                    onChange={(e) => setAgreeTerms(e.target.checked)}
+                    required
+                  />
+                  <span>
+                    I agree to the <a className="lnk" href="#terms" onClick={(e) => e.preventDefault()}>Terms</a> and <a className="lnk" href="#privacy" onClick={(e) => e.preventDefault()}>Privacy policy</a>.
+                  </span>
+                </label>
+              </div>
+
+              <button className="btn primary lg block" type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Creating company workspace...' : 'Create company account'}
+              </button>
+            </form>
+
+            <p className="fine">
+              Already have an account? <Link to="/login" className="lnk">Sign in</Link>
+            </p>
           </div>
-        </div>
+        </section>
       </div>
     </PageTransition>
   );
