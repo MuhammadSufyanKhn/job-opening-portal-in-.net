@@ -124,17 +124,16 @@ export const AdminUsers: React.FC = () => {
   };
 
   return (
-    <div className="portal-container">
+    <div className="portal-container page">
       <motion.div
-        className="portal-content"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="page-header flex-between">
+        <div className="ph">
           <div>
-            <div className="flex-align-gap">
-              <Users size={28} className="text-primary" />
+            <div className="ph-title-wrap">
+              <Users size={28} style={{ color: 'var(--accent)' }} />
               <h1>User Accounts & Identity Administration</h1>
             </div>
             <p>Audit registered identities, enforce security standing, and safeguard tenant access</p>
@@ -218,30 +217,30 @@ export const AdminUsers: React.FC = () => {
                   <th>Affiliations</th>
                   <th>Status</th>
                   <th>Registered</th>
-                  <th>Actions</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((u) => (
                   <tr key={u.id}>
                     <td>
-                      <div className="font-medium">{u.fullName}</div>
-                      <div className="text-muted text-sm">{u.email}</div>
+                      <div><b>{u.fullName}</b></div>
+                      <small className="muted">{u.email}</small>
                       {u.phoneNumber && (
-                        <div className="text-muted text-xs">{u.phoneNumber}</div>
+                        <small className="muted" style={{ display: 'block' }}>{u.phoneNumber}</small>
                       )}
                     </td>
                     <td>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                         {u.roles.map((r) => (
                           <span
                             key={r}
                             className={`badge ${
-                              r === 'SuperAdmin'
-                                ? 'badge-purple'
+                              r === 'SuperAdmin' || r === 'Admin'
+                                ? 'b-pur'
                                 : r === 'CompanyMember'
-                                ? 'badge-cyan'
-                                : 'badge-emerald'
+                                ? 'b-blue'
+                                : 'b-ok'
                             }`}
                           >
                             {r}
@@ -251,17 +250,17 @@ export const AdminUsers: React.FC = () => {
                     </td>
                     <td>
                       {u.isCandidate && (
-                        <span className="badge badge-outline text-xs" style={{ marginRight: '0.25rem' }}>
+                        <span className="badge nodot" style={{ marginRight: '4px' }}>
                           Candidate
                         </span>
                       )}
                       {u.companyNames.length > 0 && (
-                        <span className="text-xs text-muted">
+                        <small className="muted">
                           {u.companyNames.join(', ')}
-                        </span>
+                        </small>
                       )}
                       {!u.isCandidate && u.companyNames.length === 0 && (
-                        <span className="text-muted text-xs">—</span>
+                        <span className="muted">—</span>
                       )}
                     </td>
                     <td>
@@ -277,11 +276,9 @@ export const AdminUsers: React.FC = () => {
                         {u.accountStatus}
                       </span>
                     </td>
-                    <td className="text-xs text-muted">
-                      {new Date(u.createdAtUtc).toLocaleDateString()}
-                    </td>
-                    <td>
-                      <div className="action-button-group">
+                    <td className="muted">{new Date(u.createdAtUtc).toLocaleDateString()}</td>
+                    <td style={{ textAlign: 'right' }}>
+                      <div className="action-button-group" style={{ justifyContent: 'flex-end' }}>
                         <button
                           onClick={() => openUserDetails(u.id)}
                           className="btn btn-sm btn-outline"

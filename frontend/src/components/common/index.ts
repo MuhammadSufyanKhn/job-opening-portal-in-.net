@@ -6,3 +6,4 @@ export { Pagination } from './Pagination';
 export { PageHeader } from './PageHeader';
 export { PageTransition } from './PageTransition';
 export { ScrollReveal } from './ScrollReveal';
+export { AnimatedNumber } from './AnimatedNumber';

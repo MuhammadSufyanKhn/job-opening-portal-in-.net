@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { jobsApi, publicCompaniesApi } from '../../services/api';
 import { motion, useReducedMotion } from 'motion/react';
+import { AnimatedNumber } from '../common';
 
 export const StatsStrip: React.FC = () => {
   const shouldReduceMotion = useReducedMotion();
@@ -35,10 +36,10 @@ export const StatsStrip: React.FC = () => {
   }, []);
 
   const stats = [
-    { value: totalJobs.toLocaleString(), label: 'open jobs right now' },
-    { value: totalCompanies.toLocaleString(), label: 'companies hiring' },
-    { value: '48 hours', label: 'typical reply time' },
-    { value: 'Free', label: 'for everyone' }
+    { numValue: totalJobs, label: 'open jobs right now' },
+    { numValue: totalCompanies, label: 'companies hiring' },
+    { numValue: 48, suffix: ' hours', label: 'typical reply time' },
+    { rawValue: 'Free', label: 'for everyone' }
   ];
 
   return (
@@ -57,7 +58,13 @@ export const StatsStrip: React.FC = () => {
         >
           {stats.map((s, idx) => (
             <div key={idx}>
-              <b>{s.value}</b>
+              <b>
+                {s.numValue !== undefined ? (
+                  <AnimatedNumber value={s.numValue} suffix={s.suffix} duration={1.6} />
+                ) : (
+                  s.rawValue
+                )}
+              </b>
               <span>{s.label}</span>
             </div>
           ))}

@@ -82,17 +82,16 @@ export const AdminAudit: React.FC = () => {
   };
 
   return (
-    <div className="portal-container">
+    <div className="portal-container page">
       <motion.div
-        className="portal-content"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="page-header flex-between">
+        <div className="ph">
           <div>
-            <div className="flex-align-gap">
-              <ShieldCheck size={28} className="text-primary" />
+            <div className="ph-title-wrap">
+              <ShieldCheck size={28} style={{ color: 'var(--accent)' }} />
               <h1>System Audit Trail & Governance Logs</h1>
             </div>
             <p>Immutable operational records of administrative decisions, reviews, and status transitions</p>
@@ -167,7 +166,9 @@ export const AdminAudit: React.FC = () => {
           </div>
         ) : logs.length === 0 ? (
           <div className="empty-state">
-            <Activity size={40} className="text-muted" />
+            <div className="stat-icon-wrapper" style={{ width: 54, height: 54, borderRadius: 14 }}>
+              <Activity size={26} />
+            </div>
             <h3>No Audit Logs Found</h3>
             <p>No operational actions matched your specified filter criteria.</p>
           </div>

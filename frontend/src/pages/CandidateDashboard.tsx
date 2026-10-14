@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { candidateDashboardApi } from '../services/api';
 import type { CandidateDashboard as DashboardData } from '../types/candidate';
-import { StageBadge, LoadingState } from '../components/common';
+import { StageBadge, LoadingState, AnimatedNumber } from '../components/common';
 import { LABELS } from '../content/labels';
 
 export const CandidateDashboard: React.FC = () => {
@@ -95,7 +95,7 @@ export const CandidateDashboard: React.FC = () => {
               <FileText size={20} />
             </div>
             <div>
-              <b>{data.totalApplications}</b>
+              <b><AnimatedNumber value={data.totalApplications} /></b>
               <span>Applications sent</span>
             </div>
           </div>
@@ -105,7 +105,7 @@ export const CandidateDashboard: React.FC = () => {
               <Clock size={20} />
             </div>
             <div>
-              <b>{data.activeApplications}</b>
+              <b><AnimatedNumber value={data.activeApplications} /></b>
               <span>In review</span>
             </div>
           </div>
@@ -115,7 +115,7 @@ export const CandidateDashboard: React.FC = () => {
               <Briefcase size={20} />
             </div>
             <div>
-              <b>{data.pendingAssessmentsCount || 0}</b>
+              <b><AnimatedNumber value={data.pendingAssessmentsCount || 0} /></b>
               <span>{LABELS.SKILLS_CHALLENGES}</span>
             </div>
           </div>
@@ -125,7 +125,7 @@ export const CandidateDashboard: React.FC = () => {
               <Bookmark size={20} />
             </div>
             <div>
-              <b>{data.totalSavedJobs || 0}</b>
+              <b><AnimatedNumber value={data.totalSavedJobs || 0} /></b>
               <span>Saved jobs</span>
             </div>
           </div>

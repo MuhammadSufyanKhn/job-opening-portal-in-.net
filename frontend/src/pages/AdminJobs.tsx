@@ -141,17 +141,16 @@ export const AdminJobs: React.FC = () => {
   };
 
   return (
-    <div className="portal-container">
+    <div className="portal-container page">
       <motion.div
-        className="portal-content"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="page-header flex-between">
+        <div className="ph">
           <div>
-            <div className="flex-align-gap">
-              <Briefcase size={28} className="text-primary" />
+            <div className="ph-title-wrap">
+              <Briefcase size={28} style={{ color: 'var(--accent)' }} />
               <h1>Job Listings & Content Moderation</h1>
             </div>
             <p>Audit vacancy publications, enforce content safety, and intervene on deceptive listings</p>
@@ -208,7 +207,9 @@ export const AdminJobs: React.FC = () => {
           </div>
         ) : jobs.length === 0 ? (
           <div className="empty-state">
-            <Briefcase size={40} className="text-muted" />
+            <div className="stat-icon-wrapper" style={{ width: 54, height: 54, borderRadius: 14 }}>
+              <Briefcase size={26} />
+            </div>
             <h3>No Job Postings Found</h3>
             <p>No vacancy records matched the selected status or query criteria.</p>
           </div>
@@ -222,7 +223,7 @@ export const AdminJobs: React.FC = () => {
                   <th>Applications</th>
                   <th>Status</th>
                   <th>Published Date</th>
-                  <th>Actions</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>

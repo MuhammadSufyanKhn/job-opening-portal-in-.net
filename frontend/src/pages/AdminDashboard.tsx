@@ -5,6 +5,7 @@ import { adminDashboardApi, analyticsApi } from '../services/api';
 import type { PlatformDashboardStats } from '../types/admin';
 import type { PlatformAnalyticsOverview } from '../types/analytics';
 import { AdminNavigation } from '../components/AdminNavigation';
+import { AnimatedNumber } from '../components/common';
 import {
   Users,
   Building2,
@@ -53,14 +54,13 @@ export const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="portal-container">
+    <div className="portal-container page">
       <motion.div
-        className="portal-content"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="page-header flex-between">
+        <div className="ph">
           <div>
             <h1>Platform Administration & Operations</h1>
             <p>Real-time metrics, system health, and operational oversight across HireSphere</p>
@@ -77,7 +77,7 @@ export const AdminDashboard: React.FC = () => {
           </button>
         </div>
 
-        <AdminNavigation />
+        <AdminNavigation pendingCompanyCount={stats?.pendingCompanies} />
 
         {error && (
           <div className="alert alert-error">
@@ -93,12 +93,14 @@ export const AdminDashboard: React.FC = () => {
           </div>
         ) : stats ? (
           <>
-            {/* Primary KPI Grid */}
+            {/* Primary KPI Grid with Number Counting Animation */}
             <div className="stats-grid">
               <div className="stat-card">
                 <div className="stat-header">
                   <span className="stat-label">Total Registered Users</span>
-                  <span className="stat-value">{stats.totalUsers}</span>
+                  <span className="stat-value">
+                    <AnimatedNumber value={stats.totalUsers} duration={1.5} />
+                  </span>
                   <span className="stat-subtext">
                     {stats.totalCandidates} candidates · {stats.totalCompanyMembers} employers
                   </span>
@@ -111,7 +113,9 @@ export const AdminDashboard: React.FC = () => {
               <div className="stat-card">
                 <div className="stat-header">
                   <span className="stat-label">Registered Organizations</span>
-                  <span className="stat-value">{stats.totalCompanies}</span>
+                  <span className="stat-value">
+                    <AnimatedNumber value={stats.totalCompanies} duration={1.5} />
+                  </span>
                   <span className="stat-subtext">
                     {stats.pendingCompanies > 0 ? (
                       <span className="text-warning font-medium">
@@ -130,7 +134,9 @@ export const AdminDashboard: React.FC = () => {
               <div className="stat-card">
                 <div className="stat-header">
                   <span className="stat-label">Job Postings</span>
-                  <span className="stat-value">{stats.totalJobs}</span>
+                  <span className="stat-value">
+                    <AnimatedNumber value={stats.totalJobs} duration={1.5} />
+                  </span>
                   <span className="stat-subtext">
                     {stats.publishedJobs} active · {stats.suspendedJobs} suspended
                   </span>
@@ -143,7 +149,9 @@ export const AdminDashboard: React.FC = () => {
               <div className="stat-card">
                 <div className="stat-header">
                   <span className="stat-label">Candidate Applications</span>
-                  <span className="stat-value">{stats.totalApplications}</span>
+                  <span className="stat-value">
+                    <AnimatedNumber value={stats.totalApplications} duration={1.5} />
+                  </span>
                   <span className="stat-subtext">Processed across platform</span>
                 </div>
                 <div className="stat-icon-wrapper bg-primary-soft text-primary">
@@ -153,11 +161,13 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Secondary Highlights: WorkSim & Company Pipeline */}
-            <div className="stats-grid" style={{ marginBottom: '2.5rem' }}>
+            <div className="stats-grid" style={{ marginBottom: '2rem' }}>
               <div className="stat-card">
                 <div className="stat-header">
                   <span className="stat-label">Skills Challenge Invitations</span>
-                  <span className="stat-value">{stats.workSimTotalAssignments}</span>
+                  <span className="stat-value">
+                    <AnimatedNumber value={stats.workSimTotalAssignments} duration={1.5} />
+                  </span>
                   <span className="stat-subtext">
                     {stats.workSimCompletedAssessments} completed challenges
                   </span>
@@ -171,9 +181,11 @@ export const AdminDashboard: React.FC = () => {
                 <div className="stat-header">
                   <span className="stat-label">Skills Challenge Average</span>
                   <span className="stat-value">
-                    {stats.workSimAverageScore !== null
-                      ? `${Math.round(stats.workSimAverageScore)}%`
-                      : 'N/A'}
+                    {stats.workSimAverageScore !== null ? (
+                      <AnimatedNumber value={Math.round(stats.workSimAverageScore)} suffix="%" duration={1.5} />
+                    ) : (
+                      'N/A'
+                    )}
                   </span>
                   <span className="stat-subtext">
                     Based on completed challenge submissions
@@ -187,7 +199,9 @@ export const AdminDashboard: React.FC = () => {
               <div className="stat-card">
                 <div className="stat-header">
                   <span className="stat-label">Companies Awaiting Review</span>
-                  <span className="stat-value text-amber">{stats.pendingCompanies}</span>
+                  <span className="stat-value text-amber">
+                    <AnimatedNumber value={stats.pendingCompanies} duration={1.5} />
+                  </span>
                   <span className="stat-subtext">
                     {stats.pendingCompanies > 0 ? (
                       <Link to="/admin/companies" className="link-subtle">
@@ -207,7 +221,7 @@ export const AdminDashboard: React.FC = () => {
                 <div className="stat-header">
                   <span className="stat-label">Governance Interventions</span>
                   <span className="stat-value text-danger">
-                    {stats.suspendedCompanies + stats.suspendedJobs + stats.totalDisabledUsers}
+                    <AnimatedNumber value={stats.suspendedCompanies + stats.suspendedJobs + stats.totalDisabledUsers} duration={1.5} />
                   </span>
                   <span className="stat-subtext">
                     {stats.suspendedCompanies} comp · {stats.suspendedJobs} jobs · {stats.totalDisabledUsers} users
@@ -220,12 +234,12 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Quick Actions & Recent Platform Activity */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem', alignItems: 'start' }}>
-              {/* Quick Navigation Panels */}
-              <div className="card-form" style={{ padding: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--text-primary)' }}>
-                  Operations Portals
-                </h3>
+            <div className="two" style={{ gridTemplateColumns: '1fr 2fr', gap: '1.5rem', alignItems: 'start' }}>
+              {/* Operations Quick Links */}
+              <div className="panel card">
+                <div className="ph2">
+                  <h3>Operations Portals</h3>
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <Link
                     to="/admin/companies"

@@ -115,17 +115,16 @@ export const AdminCompanies: React.FC = () => {
   };
 
   return (
-    <div className="portal-container">
+    <div className="portal-container page">
       <motion.div
-        className="portal-content"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="page-header flex-between">
+        <div className="ph">
           <div>
-            <div className="flex-align-gap">
-              <ShieldCheck size={28} className="text-primary" />
+            <div className="ph-title-wrap">
+              <ShieldCheck size={28} style={{ color: 'var(--accent)' }} />
               <h1>Company Verification & Governance</h1>
             </div>
             <p>Review business registrations, enforce marketplace compliance, and audit tenant statuses</p>
@@ -156,30 +155,35 @@ export const AdminCompanies: React.FC = () => {
 
           <div className="filter-group">
             <button
+              type="button"
               className={`filter-btn ${filterStatus === 'PendingApproval' ? 'active' : ''}`}
               onClick={() => { setFilterStatus('PendingApproval'); setPage(1); }}
             >
               Pending Approval
             </button>
             <button
+              type="button"
               className={`filter-btn ${filterStatus === 'Approved' ? 'active' : ''}`}
               onClick={() => { setFilterStatus('Approved'); setPage(1); }}
             >
               Approved
             </button>
             <button
+              type="button"
               className={`filter-btn ${filterStatus === 'Suspended' ? 'active' : ''}`}
               onClick={() => { setFilterStatus('Suspended'); setPage(1); }}
             >
               Suspended
             </button>
             <button
+              type="button"
               className={`filter-btn ${filterStatus === 'Rejected' ? 'active' : ''}`}
               onClick={() => { setFilterStatus('Rejected'); setPage(1); }}
             >
               Rejected
             </button>
             <button
+              type="button"
               className={`filter-btn ${filterStatus === 'ALL' ? 'active' : ''}`}
               onClick={() => { setFilterStatus('ALL'); setPage(1); }}
             >
@@ -210,45 +214,51 @@ export const AdminCompanies: React.FC = () => {
                   <th>Owner Contact</th>
                   <th>Status</th>
                   <th>Registration Date</th>
-                  <th>Actions</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {companies.map((comp) => (
+                {companies.map((comp, idx) => (
                   <tr key={comp.id}>
                     <td>
-                      <div className="font-medium">{comp.name}</div>
-                      <div className="text-muted text-sm">{comp.contactEmail}</div>
-                      {comp.websiteUrl && (
-                        <a
-                          href={comp.websiteUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="link-external"
-                          style={{ fontSize: '0.8rem', color: 'var(--primary)' }}
-                        >
-                          Website <ExternalLink size={11} />
-                        </a>
-                      )}
+                      <div className="cell">
+                        <span className={`mark m${(idx % 5) + 1}`}>
+                          {comp.name[0]?.toUpperCase()}
+                        </span>
+                        <div>
+                          <b>{comp.name}</b>
+                          <small className="muted">{comp.contactEmail}</small>
+                          {comp.websiteUrl && (
+                            <a
+                              href={comp.websiteUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{ fontSize: '12px', color: 'var(--accent)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}
+                            >
+                              Website <ExternalLink size={10} />
+                            </a>
+                          )}
+                        </div>
+                      </div>
                     </td>
-                    <td>{comp.industry}</td>
+                    <td>{comp.industry || '—'}</td>
                     <td>
-                      <div>{comp.ownerName}</div>
-                      <div className="text-muted text-sm">{comp.ownerEmail}</div>
+                      <div><b>{comp.ownerName}</b></div>
+                      <small className="muted">{comp.ownerEmail}</small>
                     </td>
                     <td>
                       <span className={`status-badge status-${comp.approvalStatus.toLowerCase()}`}>
                         {comp.approvalStatus}
                       </span>
                       {comp.rejectionReason && (
-                        <div className="text-danger text-xs mt-1" title={comp.rejectionReason}>
+                        <div className="text-danger" style={{ fontSize: '11.5px', marginTop: '3px' }} title={comp.rejectionReason}>
                           Reason: {comp.rejectionReason}
                         </div>
                       )}
                     </td>
-                    <td>{new Date(comp.createdAtUtc).toLocaleDateString()}</td>
-                    <td>
-                      <div className="action-button-group">
+                    <td className="muted">{new Date(comp.createdAtUtc).toLocaleDateString()}</td>
+                    <td style={{ textAlign: 'right' }}>
+                      <div className="action-button-group" style={{ justifyContent: 'flex-end' }}>
                         <button
                           onClick={() => setInspectingCompany(comp)}
                           className="btn btn-sm btn-outline"

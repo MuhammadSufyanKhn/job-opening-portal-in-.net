@@ -24,7 +24,7 @@ import {
   Sparkles,
   MapPin
 } from 'lucide-react';
-import { StageBadge, LoadingState } from '../components/common';
+import { StageBadge, LoadingState, AnimatedNumber } from '../components/common';
 
 export const CompanyDashboard: React.FC = () => {
   const { user, activeCompanyId } = useAuth();
@@ -194,7 +194,7 @@ export const CompanyDashboard: React.FC = () => {
                   <Briefcase size={18} style={{ color: 'var(--primary-color)' }} />
                 </div>
                 <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                  {dashboard.activeJobsCount}
+                  <AnimatedNumber value={dashboard.activeJobsCount} />
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--primary-color)', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                   Manage listings <ArrowRight size={12} />
@@ -209,7 +209,7 @@ export const CompanyDashboard: React.FC = () => {
                   <Clock size={18} style={{ color: '#0284c7' }} />
                 </div>
                 <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0284c7' }}>
-                  {dashboard.pendingReviewCount}
+                  <AnimatedNumber value={dashboard.pendingReviewCount} />
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#0284c7', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                   Review candidates <ArrowRight size={12} />
@@ -224,7 +224,7 @@ export const CompanyDashboard: React.FC = () => {
                   <UserCheck size={18} style={{ color: '#6366f1' }} />
                 </div>
                 <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#6366f1' }}>
-                  {dashboard.shortlistedCount}
+                  <AnimatedNumber value={dashboard.shortlistedCount} />
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#6366f1', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                   View shortlisted <ArrowRight size={12} />
@@ -239,7 +239,7 @@ export const CompanyDashboard: React.FC = () => {
                   <Calendar size={18} style={{ color: '#0ea5e9' }} />
                 </div>
                 <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0ea5e9' }}>
-                  {dashboard.upcomingInterviewsCount}
+                  <AnimatedNumber value={dashboard.upcomingInterviewsCount} />
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#0ea5e9', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                   Interview schedule <ArrowRight size={12} />
@@ -254,7 +254,7 @@ export const CompanyDashboard: React.FC = () => {
                   <Terminal size={18} style={{ color: '#8b5cf6' }} />
                 </div>
                 <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#8b5cf6' }}>
-                  {dashboard.pendingAssessmentsCount}
+                  <AnimatedNumber value={dashboard.pendingAssessmentsCount} />
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#8b5cf6', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                   Track simulations <ArrowRight size={12} />
