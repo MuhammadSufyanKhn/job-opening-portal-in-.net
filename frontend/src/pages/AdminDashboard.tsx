@@ -58,7 +58,7 @@ export const AdminDashboard: React.FC = () => {
         className="portal-content"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="page-header flex-between">
           <div>

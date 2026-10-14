@@ -46,10 +46,10 @@ export const WorkSimIntroSection: React.FC = () => {
             return (
               <motion.div
                 key={idx}
-                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
+                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 32 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.35, delay: shouldReduceMotion ? 0 : idx * 0.08 }}
+                viewport={{ once: true, margin: '-50px' }}
+                transition={{ duration: 0.65, delay: shouldReduceMotion ? 0 : idx * 0.12 }}
                 className="card"
                 style={{ padding: '28px', background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--line)', boxShadow: 'var(--sh)' }}
               >

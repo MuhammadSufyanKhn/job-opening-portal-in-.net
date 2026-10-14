@@ -106,8 +106,6 @@ export const Login: React.FC = () => {
           <div className="box wrap">
             <div className="t2" role="tablist">
               <button type="button" role="tab" aria-selected="true">Sign in</button>
-              <span aria-hidden="true">/</span>
-              <Link to="/register-candidate" role="tab" aria-selected="false">Create account</Link>
             </div>
 
             <div className="hd">

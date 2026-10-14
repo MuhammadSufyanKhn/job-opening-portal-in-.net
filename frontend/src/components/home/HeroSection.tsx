@@ -64,17 +64,17 @@ export const HeroSection: React.FC = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: shouldReduceMotion ? 0 : 0.08,
+        staggerChildren: shouldReduceMotion ? 0 : 0.15,
       },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 14 },
+    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 28 },
     visible: { 
       opacity: 1, 
       y: 0,
-      transition: { duration: 0.45, ease: [0.2, 0.7, 0.2, 1] as const }
+      transition: { duration: 0.75, ease: [0.16, 1, 0.3, 1] as const }
     },
   };
 
@@ -226,28 +226,28 @@ export const HeroSection: React.FC = () => {
           </motion.div>
         </motion.div>
 
-        {/* Right Column: Pic 1 Exact Visual Boxes & Floating Pills with Slow Animation */}
+        {/* Right Column: Visual Boxes & Floating Pills */}
         <motion.div
           className="vis"
           aria-label="Job openings preview cards"
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease: [0.2, 0.7, 0.2, 1] }}
+          initial={{ opacity: 0, x: 32 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
         >
-          {/* Top Floating Pill */}
+          {/* Top-right Floating Pill: "Most companies reply" */}
           <div className="float f1">
-            <Zap size={16} className="ic" />
-            <span>240 new jobs this week</span>
+            <Clock size={16} className="ic" />
+            <span>Most companies reply within 48 hours</span>
           </div>
 
-          {/* 3 Job Cards (Pic 1 Structure) */}
+          {/* 3 Job Cards — alternating: 1st flush left, 2nd indented right, 3rd flush left */}
           {previewCards.map((card, idx) => (
             <motion.div
               key={idx}
               className="card jc"
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 + idx * 0.12, duration: 0.5, ease: [0.2, 0.7, 0.2, 1] }}
+              transition={{ delay: 0.2 + idx * 0.2, duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
             >
               <div className="jc-top">
                 <span className={`mark ${card.mark}`}>{card.letter}</span>
@@ -286,10 +286,10 @@ export const HeroSection: React.FC = () => {
             </motion.div>
           ))}
 
-          {/* Bottom Floating Pill */}
+          {/* Bottom-left Floating Pill: "240 new jobs this week" */}
           <div className="float f2">
-            <Clock size={16} className="ic" />
-            <span>Most companies reply within 48 hours</span>
+            <Zap size={16} className="ic" />
+            <span>240 new jobs this week</span>
           </div>
         </motion.div>
       </div>

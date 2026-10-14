@@ -73,10 +73,10 @@ export const CompaniesHiringSection: React.FC = () => {
             {companies.map((company, idx) => (
               <motion.div
                 key={company.id}
-                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 12 }}
+                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: shouldReduceMotion ? 0 : idx * 0.04 }}
+                viewport={{ once: true, margin: '-50px' }}
+                transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : idx * 0.07 }}
               >
                 <div
                   role="button"

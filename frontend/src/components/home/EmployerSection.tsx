@@ -13,10 +13,10 @@ export const EmployerSection: React.FC = () => {
         <div className="emp">
           {/* Left Column: Benefits & Actions */}
           <motion.div
-            initial={{ opacity: 0, x: shouldReduceMotion ? 0 : -20 }}
+            initial={{ opacity: 0, x: shouldReduceMotion ? 0 : -36 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, ease: [0.2, 0.7, 0.2, 1] }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
           >
             <span className="pill-label">
               <span className="ic"><Building2 size={16} /></span>
@@ -55,10 +55,10 @@ export const EmployerSection: React.FC = () => {
           <motion.div 
             className="card dash" 
             style={{ padding: '28px', background: '#fff', borderRadius: 'var(--r)', color: 'var(--ink)', boxShadow: '0 24px 50px -12px rgba(0,0,0,0.5)' }}
-            initial={{ opacity: 0, x: shouldReduceMotion ? 0 : 20 }}
+            initial={{ opacity: 0, x: shouldReduceMotion ? 0 : 36 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, ease: [0.2, 0.7, 0.2, 1] }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '14px', borderBottom: '1px solid var(--line)' }}>
               <div>

@@ -116,8 +116,6 @@ export const RegisterCandidate: React.FC = () => {
         <section className="r">
           <div className="box wrap">
             <div className="t2" role="tablist">
-              <Link to="/login" role="tab" aria-selected="false">Sign in</Link>
-              <span aria-hidden="true">/</span>
               <button type="button" role="tab" aria-selected="true">Create account</button>
             </div>
 

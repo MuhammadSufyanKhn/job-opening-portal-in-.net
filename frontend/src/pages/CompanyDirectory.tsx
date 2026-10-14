@@ -166,7 +166,7 @@ export const CompanyDirectory: React.FC = () => {
                 key={company.id}
                 initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.28, delay: shouldReduceMotion ? 0 : idx * 0.04 }}
+                transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : idx * 0.07 }}
                 className="card"
                 style={{ 
                   padding: '24px', 

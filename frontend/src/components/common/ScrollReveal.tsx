@@ -12,8 +12,8 @@ interface ScrollRevealProps {
 export const ScrollReveal: React.FC<ScrollRevealProps> = ({
   children,
   delay = 0,
-  duration = 0.36,
-  yOffset = 18,
+  duration = 0.75,
+  yOffset = 36,
   className = '',
 }) => {
   const shouldReduceMotion = useReducedMotion();
@@ -26,7 +26,7 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
     <motion.div
       initial={{ opacity: 0, y: yOffset }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
+      viewport={{ once: true, margin: '-60px' }}
       transition={{ duration, delay, ease: [0.16, 1, 0.3, 1] as const }}
       className={className}
     >
