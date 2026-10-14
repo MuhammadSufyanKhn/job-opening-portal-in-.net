@@ -234,17 +234,17 @@ export const HeroSection: React.FC = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
         >
-          {/* Top-right Floating Pill: "Most companies reply" */}
+          {/* Top-Left Floating Pill (Pic 1): "240 new jobs this week" */}
           <div className="float f1">
-            <Clock size={16} className="ic" />
-            <span>Most companies reply within 48 hours</span>
+            <Zap size={16} className="ic" />
+            <span>240 new jobs this week</span>
           </div>
 
-          {/* 3 Job Cards — alternating: 1st flush left, 2nd indented right, 3rd flush left */}
+          {/* 3 Job Cards — staggered cascade downwards to the right (Pic 1) */}
           {previewCards.map((card, idx) => (
             <motion.div
               key={idx}
-              className="card jc"
+              className={`card jc jc-${idx + 1}`}
               initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 + idx * 0.2, duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
@@ -286,10 +286,10 @@ export const HeroSection: React.FC = () => {
             </motion.div>
           ))}
 
-          {/* Bottom-left Floating Pill: "240 new jobs this week" */}
+          {/* Bottom-Right Floating Pill (Pic 1): "Most companies reply within 48 hours" */}
           <div className="float f2">
-            <Zap size={16} className="ic" />
-            <span>240 new jobs this week</span>
+            <Clock size={16} className="ic" />
+            <span>Most companies reply within 48 hours</span>
           </div>
         </motion.div>
       </div>

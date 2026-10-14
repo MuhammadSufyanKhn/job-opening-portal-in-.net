@@ -1055,76 +1055,6 @@ section.s {
   font-size: 18px;
 }
 
-.vis {
-  position: relative;
-  display: grid;
-  gap: 14px;
-  padding: 18px 0;
-}
-
-.jc {
-  padding: 18px;
-  display: grid;
-  gap: 12px;
-  box-shadow: var(--sh-lg);
-}
-
-.jc:nth-child(2) { margin-left: 36px; }
-.jc:nth-child(3) { margin-left: 14px; }
-
-.jc-top {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.jc-top > div {
-  flex: 1;
-}
-
-.jc b {
-  display: block;
-  line-height: 1.25;
-}
-
-.jc small {
-  color: var(--muted);
-}
-
-.save {
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: #fff;
-  display: grid;
-  place-items: center;
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.float {
-  position: absolute;
-  z-index: 2;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  box-shadow: var(--sh-lg);
-  padding: 10px 14px;
-  font-weight: 600;
-  font-size: 14px;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.float .ic {
-  color: var(--accent);
-  font-size: 18px;
-}
-
-.f1 { top: -6px; right: -8px; }
-.f2 { bottom: -4px; left: -24px; }
 
 /* --- Stats Strip --- */
 .stats {
@@ -3065,12 +2995,14 @@ section.s {
   font-size: 18px;
 }
 
-/* Pic 1: Job Cards & Floating Badges */
+/* Pic 1: Job Cards & Floating Badges Staircase Layout */
 .vis {
   position: relative;
-  display: grid;
-  gap: 14px;
-  padding: 18px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 0;
+  width: 100%;
 }
 .jc {
   padding: 18px;
@@ -3081,18 +3013,26 @@ section.s {
   border-radius: var(--r);
   box-shadow: var(--sh-lg);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  width: 440px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .jc:hover {
   transform: translateY(-3px);
   box-shadow: 0 16px 36px -10px rgba(27, 36, 51, 0.28);
 }
-.jc:nth-child(2) {
-  margin-left: 40px;
-  margin-right: -40px;
-}
-.jc:nth-child(3) {
+
+/* Diagonal staircase cascade to the right (Pic 1) */
+.jc-1 {
   margin-left: 0;
 }
+.jc-2 {
+  margin-left: 45px;
+}
+.jc-3 {
+  margin-left: 90px;
+}
+
 .jc-top {
   display: flex;
   gap: 12px;
@@ -3141,19 +3081,24 @@ section.s {
   gap: 10px;
   align-items: center;
   color: var(--ink);
+  white-space: nowrap;
 }
 .float .ic {
   color: var(--accent);
   display: inline-flex;
 }
+/* Top-left pill per Pic 1 */
 .f1 {
-  top: -6px;
-  right: -8px;
+  top: -12px;
+  left: -14px;
+  right: auto;
   animation: slowFloat 5s ease-in-out infinite alternate;
 }
+/* Bottom-right pill per Pic 1 */
 .f2 {
-  bottom: -4px;
-  left: -24px;
+  bottom: -10px;
+  right: -6px;
+  left: auto;
   animation: slowFloatReverse 5.5s ease-in-out infinite alternate;
 }
 
@@ -3335,9 +3280,12 @@ section.s {
     display: none;
   }
 
-  .jc:nth-child(2),
-  .jc:nth-child(3) {
-    margin-left: 0;
+  .jc,
+  .jc-1,
+  .jc-2,
+  .jc-3 {
+    margin-left: 0 !important;
+    width: 100% !important;
   }
 
   .stats b {
