@@ -169,7 +169,7 @@ export const CandidateProfile: React.FC = () => {
   const missingFields = profile?.missingFields ?? [];
 
   return (
-    <div className="portal-container" style={{ maxWidth: '960px', padding: '2rem 1.5rem 5rem' }}>
+    <div className="portal-container candidate-portal candidate-profile-page" style={{ maxWidth: '960px', padding: '2rem 1.5rem 5rem' }}>
       <motion.div
         className="portal-content"
         initial={{ opacity: 0 }}
@@ -177,7 +177,7 @@ export const CandidateProfile: React.FC = () => {
         transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* Page Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
+        <div className="candidate-profile-hero" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
           <div>
             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary-color)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Candidate Experience

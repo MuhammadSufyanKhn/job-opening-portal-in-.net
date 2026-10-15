@@ -4786,6 +4786,79 @@ body {
   border-radius: 999px;
 }
 
+.job-detail-page .job-detail-card {
+  border-color: rgba(16, 27, 42, 0.1);
+  box-shadow: 0 24px 55px -38px rgba(16, 27, 42, 0.85);
+}
+
+.job-detail-page .job-detail-card h1 {
+  color: var(--ink);
+  line-height: 1.08;
+}
+
+.candidate-profile-page .candidate-profile-hero {
+  padding: 28px 32px;
+  border-radius: 18px;
+  background: #E8F1D5;
+  border: 1px solid rgba(66, 99, 235, 0.12);
+}
+
+.candidate-profile-page .card-form,
+.candidate-documents-page .card,
+.candidate-documents-page .card-form {
+  border-color: rgba(16, 27, 42, 0.1);
+  box-shadow: 0 18px 42px -34px rgba(16, 27, 42, 0.75);
+}
+
+.candidate-documents-page .drop-zone {
+  border-color: rgba(66, 99, 235, 0.35);
+  background: rgba(232, 241, 213, 0.35);
+}
+
+.admin-list-page .admin-toolbar,
+.admin-list-page .admin-table-responsive,
+.admin-list-page .card-form {
+  border-color: rgba(16, 27, 42, 0.1);
+  box-shadow: 0 18px 42px -34px rgba(16, 27, 42, 0.8);
+}
+
+.admin-list-page .admin-table-responsive thead th {
+  background: #F1F3F8;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.analytics-page .stats .st,
+.analytics-page .card,
+.analytics-page .card-form {
+  border-color: rgba(16, 27, 42, 0.1);
+  box-shadow: 0 18px 42px -34px rgba(16, 27, 42, 0.8);
+}
+
+.analytics-page .filter-btn.active {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
+
+.analytics-page .analytics-table,
+.analytics-page .card-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @media (max-width: 640px) {
   .page,
   .portal-container {
@@ -4831,5 +4904,26 @@ body {
   .candidate-portal .candidate-hero::after,
   .admin-portal .admin-hero::after {
     right: -80px;
+  }
+
+  .candidate-profile-page .candidate-profile-hero {
+    padding: 22px 18px;
+  }
+
+  .job-detail-page .job-detail-card {
+    padding: 1.35rem !important;
+  }
+
+  .analytics-page .filter-btn {
+    min-height: 40px;
+  }
+
+  .analytics-page form {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .analytics-page form .input-standard {
+    flex: 1 1 130px;
   }
 }

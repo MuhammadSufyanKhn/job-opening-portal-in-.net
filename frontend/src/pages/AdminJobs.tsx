@@ -141,14 +141,15 @@ export const AdminJobs: React.FC = () => {
   };
 
   return (
-    <div className="portal-container page">
+    <div className="portal-container page admin-portal admin-list-page">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="ph">
+        <div className="ph workflow-hero">
           <div>
+            <span className="eyebrow">Marketplace moderation</span>
             <div className="ph-title-wrap">
               <Briefcase size={28} style={{ color: 'var(--accent)' }} />
               <h1>Job Listings & Content Moderation</h1>

@@ -122,7 +122,7 @@ export const CompanyAnalytics: React.FC = () => {
 
   if (!companyId) {
     return (
-      <div className="portal-container">
+      <div className="portal-container employer-portal analytics-page">
         <div className="empty-state">
           <Briefcase size={40} className="text-muted" />
           <h3>No Organization Selected</h3>
@@ -145,8 +145,9 @@ export const CompanyAnalytics: React.FC = () => {
         transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* Header matching Picture 7 */}
-        <div className="ph">
+        <div className="ph workflow-hero">
           <div>
+            <span className="eyebrow">Recruitment intelligence</span>
             <h1>Hiring insights</h1>
             <p className="muted">
               {preset === '7d' ? 'Last 7 days' : preset === '30d' ? 'Last 30 days' : preset === '90d' ? 'Last 90 days' : preset === 'all' ? 'All time' : 'Custom period'} · {overview?.companyName || 'all vacancies'}

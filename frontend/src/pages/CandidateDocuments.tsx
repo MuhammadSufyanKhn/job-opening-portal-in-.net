@@ -102,11 +102,12 @@ export const CandidateDocuments: React.FC = () => {
   };
 
   return (
-    <div className="page">
+    <div className="page candidate-portal candidate-documents-page">
       <div className="container">
         {/* Header */}
-        <div className="ph">
+        <div className="ph workflow-hero">
           <div>
+            <span className="eyebrow">Candidate toolkit</span>
             <h1>My CVs</h1>
             <p>Private storage for your resumes. Companies only see a CV when you apply.</p>
           </div>

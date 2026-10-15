@@ -221,7 +221,7 @@ export const JobDetail: React.FC = () => {
 
   return (
     <PageTransition>
-      <div className="portal-container" style={{ maxWidth: '1000px', padding: '2rem 1.5rem 4rem' }}>
+      <div className="portal-container candidate-portal job-detail-page" style={{ maxWidth: '1000px', padding: '2rem 1.5rem 4rem' }}>
       {/* Navigation Breadcrumb */}
       <div style={{ marginBottom: '1.5rem' }}>
         <Link to="/jobs" className="link-subtle" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem' }}>
@@ -230,7 +230,7 @@ export const JobDetail: React.FC = () => {
       </div>
 
       {/* Main Vacancy Card */}
-      <div className="card-form" style={{ padding: '2.5rem', marginBottom: '2rem' }}>
+      <div className="card-form job-detail-card" style={{ padding: '2.5rem', marginBottom: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '2rem' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
