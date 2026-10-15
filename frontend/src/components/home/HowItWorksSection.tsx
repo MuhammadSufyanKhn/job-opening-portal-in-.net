@@ -193,10 +193,13 @@ export const HowItWorksSection: React.FC = () => {
                   >
                     {idx + 1}
                   </span>
-                  <div style={{ display: 'none', mdDisplay: 'block' } as any}>
-                    <b style={{ fontSize: '13px', color: isActive ? 'var(--accent)' : 'var(--ink)' }}>
-                      Step {idx + 1}
-                    </b>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'left', overflow: 'hidden' }}>
+                    <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', color: isActive ? 'var(--accent)' : 'var(--muted)', fontWeight: 700 }}>
+                      Stage {idx + 1}
+                    </span>
+                    <strong style={{ fontSize: '13px', color: isActive ? 'var(--ink)' : 'var(--muted-d, #4B5565)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {_step.title}
+                    </strong>
                   </div>
                 </button>
               );

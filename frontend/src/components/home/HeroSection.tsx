@@ -78,19 +78,19 @@ export const HeroSection: React.FC = () => {
     },
   };
 
-  // 3 reference preview cards from Pic 1, with live data enhancement if available
+  // 3 reference preview cards with live data enhancement if available
   const previewCards = [
     {
-      mark: 'm4',
-      letter: recentJobs[0]?.companyName ? recentJobs[0].companyName[0].toUpperCase() : 'N',
-      title: recentJobs[0]?.title || 'Product Designer',
-      company: recentJobs[0]?.companyName || 'Northwind',
-      city: recentJobs[0]?.location || 'Karachi',
+      mark: 'm2',
+      letter: recentJobs[0]?.companyName ? recentJobs[0].companyName[0].toUpperCase() : 'A',
+      title: recentJobs[0]?.title || 'Cloud Solutions Architect',
+      company: recentJobs[0]?.companyName || 'Apex Cloud Systems',
+      city: recentJobs[0]?.location || 'Remote',
       type: recentJobs[0]?.employmentType || 'Full-time',
       pay: recentJobs[0]?.salaryMin && recentJobs[0]?.salaryMax 
         ? `PKR ${Math.round(recentJobs[0].salaryMin / 1000)}k – ${Math.round(recentJobs[0].salaryMax / 1000)}k`
-        : 'PKR 180k – 240k',
-      match: '92% match',
+        : 'PKR 280k – 380k',
+      match: '96% match',
       id: recentJobs[0]?.id
     },
     {

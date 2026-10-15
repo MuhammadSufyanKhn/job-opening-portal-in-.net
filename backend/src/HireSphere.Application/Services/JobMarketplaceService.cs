@@ -176,6 +176,33 @@ public class JobMarketplaceService : IJobMarketplaceService
 
     public async Task<IReadOnlyList<JobCategoryDto>> GetCategoriesAsync(CancellationToken ct = default)
     {
+        if (!await _context.JobCategories.AnyAsync(ct))
+        {
+            var defaults = new List<JobCategory>
+            {
+                new() { Name = "Software Engineering", Slug = "software-engineering", Description = "Full-stack, backend, frontend, systems, and mobile software engineering", DisplayOrder = 1 },
+                new() { Name = "Cloud Infrastructure & DevOps", Slug = "cloud-devops", Description = "AWS, Azure, GCP, Kubernetes, CI/CD, and site reliability engineering", DisplayOrder = 2 },
+                new() { Name = "Data Science, AI & Machine Learning", Slug = "data-ai", Description = "MLOps, LLMs, data engineering, statistical analysis, and BI", DisplayOrder = 3 },
+                new() { Name = "Product Management", Slug = "product-management", Description = "Product strategy, agile roadmapping, and technical product ownership", DisplayOrder = 4 },
+                new() { Name = "UI/UX & Product Design", Slug = "design-creative", Description = "User experience research, UI design, Figma design systems, and interaction", DisplayOrder = 5 },
+                new() { Name = "Cybersecurity & InfoSec", Slug = "cybersecurity", Description = "Security engineering, penetration testing, compliance, SOC, and governance", DisplayOrder = 6 },
+                new() { Name = "Quality Assurance & Test Automation", Slug = "qa-testing", Description = "Manual QA, SDET, Cypress, Playwright, and test architecture", DisplayOrder = 7 },
+                new() { Name = "Sales & Business Development", Slug = "sales-marketing", Description = "Enterprise B2B sales, account executive, inbound/outbound SDR, and partnerships", DisplayOrder = 8 },
+                new() { Name = "Marketing, Growth & Content", Slug = "marketing-growth", Description = "Digital marketing, SEO, paid performance, copywriting, and brand strategy", DisplayOrder = 9 },
+                new() { Name = "Customer Success & Technical Support", Slug = "customer-support", Description = "Customer onboarding, client success management, and helpdesk operations", DisplayOrder = 10 },
+                new() { Name = "Human Resources & Talent Acquisition", Slug = "human-resources", Description = "Technical recruiting, people operations, HR business partnering, and culture", DisplayOrder = 11 },
+                new() { Name = "Finance, Accounting & Auditing", Slug = "finance-accounting", Description = "Financial planning, accounting, corporate tax, treasury, and payroll", DisplayOrder = 12 },
+                new() { Name = "Operations, Supply Chain & Logistics", Slug = "operations-logistics", Description = "Operational scaling, logistics management, procurement, and process design", DisplayOrder = 13 },
+                new() { Name = "Legal, Regulatory & Compliance", Slug = "legal-compliance", Description = "Corporate law, contract negotiations, GDPR, data protection, and IP", DisplayOrder = 14 },
+                new() { Name = "Healthcare & Life Sciences", Slug = "healthcare-biotech", Description = "Clinical research, biomedical engineering, pharmacy, and health-tech", DisplayOrder = 15 },
+                new() { Name = "Education, EdTech & Instructional Design", Slug = "education-training", Description = "Curriculum development, corporate training, and online instructional design", DisplayOrder = 16 },
+                new() { Name = "Hardware, Embedded Systems & IoT", Slug = "hardware-embedded", Description = "Firmware development, PCB layout, robotics, and hardware testing", DisplayOrder = 17 },
+                new() { Name = "Project & Technical Program Management", Slug = "project-management", Description = "Scrum management, technical delivery, agile coordination, and PMO", DisplayOrder = 18 }
+            };
+            _context.JobCategories.AddRange(defaults);
+            await _context.SaveChangesAsync(ct);
+        }
+
         var now = DateTimeOffset.UtcNow;
         return await _context.JobCategories
             .OrderBy(c => c.DisplayOrder)

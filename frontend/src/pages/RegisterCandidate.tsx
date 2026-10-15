@@ -88,12 +88,12 @@ export const RegisterCandidate: React.FC = () => {
               <span className="badge b-ok">New</span>
             </div>
             <div className="mc">
-              <span className="mark m4">N</span>
+              <span className="mark m2">S</span>
               <div>
-                <b>Product Designer</b>
-                <small>Northwind · Hybrid</small>
+                <b>Staff Security Architect</b>
+                <small>CyberVanguard · Remote</small>
               </div>
-              <span className="badge b-ok">92% match</span>
+              <span className="badge b-ok">96% match</span>
             </div>
             <div className="mc">
               <span className="mark m1">A</span>
@@ -236,7 +236,7 @@ export const RegisterCandidate: React.FC = () => {
                       type="text"
                       value={formData.headline}
                       onChange={handleChange}
-                      placeholder="e.g. Product Designer"
+                      placeholder="e.g. Senior Software Engineer"
                       disabled={isSubmitting}
                     />
                   </div>

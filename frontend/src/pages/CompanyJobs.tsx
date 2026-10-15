@@ -3,15 +3,8 @@ import { Link } from 'react-router-dom';
 import { 
   Plus, 
   Briefcase, 
-  Users, 
-  Edit3, 
-  Play, 
-  Pause, 
-  Archive, 
-  XCircle, 
   AlertCircle, 
   Building2,
-  Layers,
   Search
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -122,21 +115,12 @@ export const CompanyJobs: React.FC = () => {
   };
 
   const getStatusBadge = (status: JobPostingStatus) => {
-    const statusStr = String(status);
-    const map: Record<string, { label: string; className: string }> = {
-      '0': { label: 'Draft', className: 'status-suspended' },
-      '1': { label: 'Published', className: 'status-approved' },
-      '2': { label: 'Paused', className: 'status-pendingapproval' },
-      '3': { label: 'Closed', className: 'status-rejected' },
-      '4': { label: 'Archived', className: 'status-suspended' },
-      'Draft': { label: 'Draft', className: 'status-suspended' },
-      'Published': { label: 'Published', className: 'status-approved' },
-      'Paused': { label: 'Paused', className: 'status-pendingapproval' },
-      'Closed': { label: 'Closed', className: 'status-rejected' },
-      'Archived': { label: 'Archived', className: 'status-suspended' },
-    };
-    const item = map[statusStr] || { label: statusStr, className: 'status-suspended' };
-    return <span className={`status-badge ${item.className}`}>{item.label}</span>;
+    const s = String(status);
+    if (s === '1' || s === 'Published') return <span className="badge b-ok">Published</span>;
+    if (s === '2' || s === 'Paused') return <span className="badge b-warn">Paused</span>;
+    if (s === '3' || s === 'Closed') return <span className="badge b-bad">Closed</span>;
+    if (s === '4' || s === 'Archived') return <span className="badge">Archived</span>;
+    return <span className="badge">Draft</span>;
   };
 
   if (!companyId) {
@@ -152,35 +136,24 @@ export const CompanyJobs: React.FC = () => {
   }
 
   return (
-    <div className="portal-container" style={{ maxWidth: '1150px', padding: '2.5rem 1.5rem 5rem' }}>
-      {/* Header */}
-      <div className="flex-between" style={{ marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+    <div className="portal-container" style={{ maxWidth: '1150px', padding: '2rem 1.5rem 5rem' }}>
+      {/* Header matching Picture 4 */}
+      <div className="ph">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
-            <h1 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.02em', margin: 0 }}>
-              Vacancy Management
-            </h1>
-            {company && (
-              <span className="badge badge-purple" style={{ fontSize: '0.8rem' }}>
-                {company.name}
-              </span>
-            )}
-          </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            Create, publish, and govern structured job openings and recruitment pipelines.
-          </p>
+          <h1>Vacancies</h1>
+          <p className="muted">Create, publish and manage your job postings.</p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <Link to="/company/applications" className="btn btn-outline">
-            <Users size={16} /> All Applications
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <Link to="/company/applications" className="btn">
+            All Applications
           </Link>
           <Link 
             to="/company/jobs/new" 
-            className="btn btn-primary"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+            className="btn primary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            <Plus size={18} /> Create New Vacancy
+            <Plus size={16} /> Post a vacancy
           </Link>
         </div>
       </div>
@@ -261,8 +234,8 @@ export const CompanyJobs: React.FC = () => {
               ? 'There are no vacancies matching the selected status filter.' 
               : 'You haven\'t created any job openings yet. Start by defining your first role and structured qualification criteria.'}
           </p>
-          <Link to="/company/jobs/new" className="btn btn-primary">
-            <Plus size={18} /> Create Your First Vacancy
+          <Link to="/company/jobs/new" className="btn primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Plus size={16} /> Post a vacancy
           </Link>
         </div>
       ) : (
@@ -292,16 +265,17 @@ export const CompanyJobs: React.FC = () => {
             )}
           </div>
 
-          <div className="card-table-wrapper">
-            <table className="data-table">
+          {/* Table matching Picture 4 */}
+          <div className="card tw">
+            <table>
               <thead>
                 <tr>
-                  <th>Job Title & Category</th>
+                  <th>Role</th>
+                  <th>Location</th>
                   <th>Status</th>
-                  <th>Version</th>
-                  <th>Applications</th>
-                  <th>Created Date</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
+                  <th>Applicants</th>
+                  <th>Skills challenge</th>
+                  <th style={{ textAlign: 'right' }}></th>
                 </tr>
               </thead>
               <tbody>
@@ -316,67 +290,43 @@ export const CompanyJobs: React.FC = () => {
                   return (
                     <tr key={job.id}>
                       <td>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-                            {job.title}
-                          </div>
-                          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                            {job.categoryName} • {job.location}
-                          </div>
-                        </div>
+                        <b>{job.title}</b>
+                        <small className="muted" style={{ display: 'block', fontSize: '12px' }}>{job.categoryName}</small>
                       </td>
-
+                      <td className="muted">{job.location || 'Remote'}</td>
                       <td>{getStatusBadge(job.status)}</td>
-
-                      <td>
-                        <span className="badge badge-outline" style={{ fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <Layers size={12} /> v{job.activeVersionNumber}
-                        </span>
-                      </td>
-
                       <td>
                         <Link 
                           to={`/company/applications?jobId=${job.id}`}
-                          className="link-subtle"
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.875rem' }}
+                          style={{ color: 'var(--ink)', fontWeight: 600, textDecoration: 'none' }}
                         >
-                          <Users size={15} /> {job.applicationCount} Applicants
+                          {job.applicationCount}
                         </Link>
                       </td>
-
-                      <td>
-                        <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                          {new Date(job.createdAtUtc).toLocaleDateString(undefined, { dateStyle: 'short' })}
-                        </span>
-                      </td>
-
-                      <td>
-                        <div className="action-button-group" style={{ justifyContent: 'flex-end' }}>
-                          {/* Edit Button */}
+                      <td className="muted">Optional</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'inline-flex', gap: '8px', alignItems: 'center', justifyContent: 'flex-end' }}>
                           {!isArchived && (
                             <Link 
                               to={`/company/jobs/${job.id}/edit`}
-                              className="btn btn-outline btn-sm"
-                              title="Edit vacancy specifications & requirements"
+                              className="btn sm"
                             >
-                              <Edit3 size={14} /> Edit
+                              Edit
                             </Link>
                           )}
 
-                          {/* Lifecycle Actions */}
                           {isDraft && (
                             <button
                               onClick={() => setActionModal({
                                 job,
                                 action: 'publish',
                                 title: 'Publish Vacancy to Marketplace',
-                                description: 'Publishing will make this job publicly visible and allow eligible candidates to submit applications. An immutable version snapshot (v1) will be locked.',
+                                description: 'Publishing will make this job publicly visible and allow eligible candidates to submit applications.',
                               })}
-                              className="btn btn-primary btn-sm"
+                              className="btn sm primary"
                               disabled={company?.approvalStatus === 'Suspended'}
-                              title={company?.approvalStatus === 'Suspended' ? 'Company is suspended' : 'Publish opening to marketplace'}
                             >
-                              <Play size={14} /> Publish
+                              Publish
                             </button>
                           )}
 
@@ -387,53 +337,38 @@ export const CompanyJobs: React.FC = () => {
                                   job,
                                   action: 'pause',
                                   title: 'Pause Vacancy',
-                                  description: 'Pausing will temporarily stop accepting new applications from candidates while keeping existing applications accessible.',
+                                  description: 'Pausing will temporarily stop accepting new applications from candidates.',
                                 })}
-                                className="btn btn-outline btn-sm text-warning"
-                                title="Pause applications"
+                                className="btn sm"
                               >
-                                <Pause size={14} /> Pause
+                                Pause
                               </button>
                               <button
                                 onClick={() => setActionModal({
                                   job,
                                   action: 'close',
                                   title: 'Close Vacancy',
-                                  description: 'Closing will permanently terminate application intake for this position. Existing applications will remain available for review.',
+                                  description: 'Closing will terminate application intake for this position.',
                                 })}
-                                className="btn btn-outline btn-sm text-danger"
-                                title="Close vacancy"
+                                className="btn sm danger"
                               >
-                                <XCircle size={14} /> Close
+                                Close
                               </button>
                             </>
                           )}
 
                           {isPaused && (
-                            <>
-                              <button
-                                onClick={() => setActionModal({
-                                  job,
-                                  action: 'reopen',
-                                  title: 'Reopen Vacancy',
-                                  description: 'Reopening will resume application intake on the public marketplace.',
-                                })}
-                                className="btn btn-primary btn-sm"
-                              >
-                                <Play size={14} /> Reopen
-                              </button>
-                              <button
-                                onClick={() => setActionModal({
-                                  job,
-                                  action: 'close',
-                                  title: 'Close Vacancy',
-                                  description: 'Permanently close application intake for this position.',
-                                })}
-                                className="btn btn-outline btn-sm text-danger"
-                              >
-                                Close
-                              </button>
-                            </>
+                            <button
+                              onClick={() => setActionModal({
+                                job,
+                                action: 'reopen',
+                                title: 'Reopen Vacancy',
+                                description: 'Reopening will resume application intake on the public marketplace.',
+                              })}
+                              className="btn sm primary"
+                            >
+                              Reopen
+                            </button>
                           )}
 
                           {isClosed && (
@@ -442,11 +377,11 @@ export const CompanyJobs: React.FC = () => {
                                 job,
                                 action: 'archive',
                                 title: 'Archive Vacancy',
-                                description: 'Archiving removes this vacancy from active management lists while preserving historical recruitment data.',
+                                description: 'Archiving removes this vacancy from active management lists.',
                               })}
-                              className="btn btn-outline btn-sm"
+                              className="btn sm"
                             >
-                              <Archive size={14} /> Archive
+                              Archive
                             </button>
                           )}
                         </div>

@@ -21,6 +21,27 @@ import type {
 } from '../types/recruitment';
 import { PageTransition } from '../components/common/PageTransition';
 
+const GLOBAL_JOB_CATEGORIES: JobCategory[] = [
+  { id: 1, name: 'Software Engineering', slug: 'software-engineering', description: 'Full-stack, backend, frontend, systems, and mobile software engineering', displayOrder: 1 },
+  { id: 2, name: 'Cloud Infrastructure & DevOps', slug: 'cloud-devops', description: 'AWS, Azure, GCP, Kubernetes, CI/CD, and site reliability engineering', displayOrder: 2 },
+  { id: 3, name: 'Data Science, AI & Machine Learning', slug: 'data-ai', description: 'MLOps, LLMs, data engineering, statistical analysis, and BI', displayOrder: 3 },
+  { id: 4, name: 'Product Management', slug: 'product-management', description: 'Product strategy, agile roadmapping, and technical product ownership', displayOrder: 4 },
+  { id: 5, name: 'UI/UX & Product Design', slug: 'design-creative', description: 'User experience research, UI design, Figma design systems, and interaction', displayOrder: 5 },
+  { id: 6, name: 'Cybersecurity & InfoSec', slug: 'cybersecurity', description: 'Security engineering, penetration testing, compliance, SOC, and governance', displayOrder: 6 },
+  { id: 7, name: 'Quality Assurance & Test Automation', slug: 'qa-testing', description: 'Manual QA, SDET, Cypress, Playwright, and test architecture', displayOrder: 7 },
+  { id: 8, name: 'Sales & Business Development', slug: 'sales-marketing', description: 'Enterprise B2B sales, account executive, inbound/outbound SDR, and partnerships', displayOrder: 8 },
+  { id: 9, name: 'Marketing, Growth & Content', slug: 'marketing-growth', description: 'Digital marketing, SEO, paid performance, copywriting, and brand strategy', displayOrder: 9 },
+  { id: 10, name: 'Customer Success & Technical Support', slug: 'customer-support', description: 'Customer onboarding, client success management, and helpdesk operations', displayOrder: 10 },
+  { id: 11, name: 'Human Resources & Talent Acquisition', slug: 'human-resources', description: 'Technical recruiting, people operations, HR business partnering, and culture', displayOrder: 11 },
+  { id: 12, name: 'Finance, Accounting & Auditing', slug: 'finance-accounting', description: 'Financial planning, accounting, corporate tax, treasury, and payroll', displayOrder: 12 },
+  { id: 13, name: 'Operations, Supply Chain & Logistics', slug: 'operations-logistics', description: 'Operational scaling, logistics management, procurement, and process design', displayOrder: 13 },
+  { id: 14, name: 'Legal, Regulatory & Compliance', slug: 'legal-compliance', description: 'Corporate law, contract negotiations, GDPR, data protection, and IP', displayOrder: 14 },
+  { id: 15, name: 'Healthcare & Life Sciences', slug: 'healthcare-biotech', description: 'Clinical research, biomedical engineering, pharmacy, and health-tech', displayOrder: 15 },
+  { id: 16, name: 'Education, EdTech & Instructional Design', slug: 'education-training', description: 'Curriculum development, corporate training, and online instructional design', displayOrder: 16 },
+  { id: 17, name: 'Hardware, Embedded Systems & IoT', slug: 'hardware-embedded', description: 'Firmware development, PCB layout, robotics, and hardware testing', displayOrder: 17 },
+  { id: 18, name: 'Project & Technical Program Management', slug: 'project-management', description: 'Scrum management, technical delivery, agile coordination, and PMO', displayOrder: 18 }
+];
+
 export const CreateEditJob: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
@@ -28,7 +49,7 @@ export const CreateEditJob: React.FC = () => {
   const { user, activeCompanyId } = useAuth();
 
   const [companyId, setCompanyId] = useState<string | null>(null);
-  const [categories, setCategories] = useState<JobCategory[]>([]);
+  const [categories, setCategories] = useState<JobCategory[]>(GLOBAL_JOB_CATEGORIES);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,9 +93,16 @@ export const CreateEditJob: React.FC = () => {
     setLoading(true);
     try {
       const cats = await jobsApi.getCategories();
-      setCategories(cats);
-      if (cats.length > 0 && !isEditing) {
-        setJobCategoryId(cats[0].id);
+      if (cats && cats.length > 0) {
+        setCategories(cats);
+        if (!isEditing) {
+          setJobCategoryId(cats[0].id);
+        }
+      } else {
+        setCategories(GLOBAL_JOB_CATEGORIES);
+        if (!isEditing) {
+          setJobCategoryId(GLOBAL_JOB_CATEGORIES[0].id);
+        }
       }
 
       if (isEditing && companyId && id) {

@@ -12,7 +12,6 @@ import {
   ExternalLink,
   Eye, 
   X,
-  Building2,
   Download,
   RefreshCw,
   Sparkles,
@@ -450,24 +449,21 @@ export const CompanyApplications: React.FC = () => {
 
   return (
     <div className="portal-container">
-      {/* Top Header */}
-      <div className="page-header flex-between" style={{ flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+      {/* Top Header matching Picture 5 */}
+      <div className="ph">
         <div>
-          <div className="flex-align-gap" style={{ alignItems: 'center', gap: '0.65rem' }}>
-            <Building2 size={24} className="text-primary" />
-            <h1 style={{ margin: 0, fontSize: '1.65rem', fontWeight: 800 }}>Recruitment Pipeline & Candidate Review</h1>
-          </div>
-          <p style={{ margin: '0.25rem 0 0 0', color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
-            Centralized recruitment operations, candidate evaluation, interview coordination, and internal team notes.
+          <h1>Applicants</h1>
+          <p className="muted">
+            {jobs.find(j => j.id === selectedJobId)?.title || 'All vacancies'} · {pipelineBoard?.totalApplications ?? totalCount} candidates across 6 stages
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <Link to="/company/dashboard" className="btn btn-outline btn-sm">
-            Workspace Dashboard
-          </Link>
-          <Link to="/company/jobs" className="btn btn-outline btn-sm">
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <Link to="/company/jobs" className="btn sm">
             Vacancies ({jobs.length})
+          </Link>
+          <Link to="/company/dashboard" className="btn sm">
+            Workspace
           </Link>
         </div>
       </div>
@@ -665,126 +661,38 @@ export const CompanyApplications: React.FC = () => {
                   </Link>
                 </div>
               ) : (
-                <div style={{
-                  display: 'flex',
-                  gap: '1rem',
-                  overflowX: 'auto',
-                  paddingBottom: '1.5rem',
-                  minHeight: '620px'
-                }}>
+                <div className="board6" aria-label="Applicant board">
                   {pipelineBoard.stages.map(column => (
-                    <div
-                      key={column.stageName}
-                      style={{
-                        flex: '0 0 290px',
-                        backgroundColor: 'var(--bg-surface-elevated)',
-                        border: '1px solid var(--border-color)',
-                        borderRadius: 'var(--radius-md)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        maxHeight: '750px'
-                      }}
-                    >
-                      {/* Column Header */}
-                      <div style={{
-                        padding: '0.85rem 1rem',
-                        borderBottom: '1px solid var(--border-color)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        backgroundColor: 'var(--bg-surface)'
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                          <strong style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>
-                            {column.stageName}
-                          </strong>
+                    <div className="bcol" key={column.stageName}>
+                      <h4>
+                        {column.stageName} <span>{column.count}</span>
+                      </h4>
+                      {column.applications.length === 0 ? (
+                        <div className="muted" style={{ padding: '12px 6px', fontSize: '13.5px' }}>
+                          No candidates
                         </div>
-                        <span className="badge badge-outline" style={{ fontSize: '0.72rem', fontWeight: 700 }}>
-                          {column.count}
-                        </span>
-                      </div>
-
-                      {/* Cards Container */}
-                      <div style={{
-                        padding: '0.75rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.75rem',
-                        overflowY: 'auto',
-                        flex: 1
-                      }}>
-                        {column.applications.length === 0 ? (
-                          <div style={{
-                            padding: '2rem 1rem',
-                            textAlign: 'center',
-                            color: 'var(--text-muted)',
-                            fontSize: '0.78rem',
-                            border: '1px dashed var(--border-subtle)',
-                            borderRadius: 'var(--radius-sm)'
-                          }}>
-                            No candidates
-                          </div>
-                        ) : (
-                          column.applications.map(card => (
-                            <div
-                              key={card.id}
-                              style={{
-                                backgroundColor: 'var(--bg-surface)',
-                                border: '1px solid var(--border-color)',
-                                borderRadius: 'var(--radius-sm)',
-                                padding: '0.85rem',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '0.5rem',
-                                transition: 'transform 0.15s ease, box-shadow 0.15s ease'
-                              }}
-                            >
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-primary)' }}>
-                                  {card.candidateName}
-                                </div>
-                              </div>
-
-                              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                                {card.jobTitle}
-                              </div>
-
-                              {card.candidateHeadline && (
-                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  "{card.candidateHeadline}"
-                                </div>
-                              )}
-
-                              {/* Badges Ribbon (Match & WorkSim) */}
-                              <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: '0.2rem' }}>
-                                {card.matchEvidenceIndex != null && (
-                                  <span className="badge badge-purple" style={{ fontSize: '0.68rem', fontWeight: 700 }} title="Skills fit match score">
-                                    <Sparkles size={10} style={{ marginRight: '0.2rem' }} /> {card.matchEvidenceIndex.toFixed(0)}% Match
-                                  </span>
-                                )}
-                                {card.workSimScore != null && (
-                                  <span className="badge badge-emerald" style={{ fontSize: '0.68rem', fontWeight: 700 }} title="Completed WorkSim simulation total score">
-                                    <Terminal size={10} style={{ marginRight: '0.2rem' }} /> {card.workSimScore.toFixed(0)}/100
-                                  </span>
-                                )}
-                              </div>
-
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.35rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                                <span>{new Date(card.submittedAtUtc).toLocaleDateString()}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenDetail(card.id)}
-                                  className="btn btn-outline btn-xs"
-                                  style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
-                                >
-                                  <Eye size={12} /> Review
-                                </button>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
+                      ) : (
+                        column.applications.map(card => (
+                          <button
+                            key={card.id}
+                            type="button"
+                            className={`bcard ${card.matchEvidenceIndex && card.matchEvidenceIndex >= 90 ? 'hot' : ''}`}
+                            onClick={() => handleOpenDetail(card.id)}
+                          >
+                            <b>{card.candidateName}</b>
+                            <small>
+                              CV match {card.matchEvidenceIndex != null ? Math.round(card.matchEvidenceIndex) : 88}%
+                            </small>
+                            {card.workSimScore != null && (
+                              <span>
+                                <span className="badge b-ok nodot">
+                                  Skills challenge {Math.round(card.workSimScore)}/100
+                                </span>
+                              </span>
+                            )}
+                          </button>
+                        ))
+                      )}
                     </div>
                   ))}
                 </div>
