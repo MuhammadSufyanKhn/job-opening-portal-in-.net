@@ -101,11 +101,12 @@ export const CandidateApplications: React.FC = () => {
   const colorClasses = ['m1', 'm2', 'm4', 'm3', 'm5'];
 
   return (
-    <div className="page">
+    <div className="page candidate-portal candidate-applications-page">
       <div className="container">
         {/* Page Header */}
-        <div className="ph">
+        <div className="ph workflow-hero">
           <div>
+            <span className="eyebrow">Application tracker</span>
             <h1>My applications</h1>
             <p>Every stage change is recorded so you always know where you stand.</p>
           </div>

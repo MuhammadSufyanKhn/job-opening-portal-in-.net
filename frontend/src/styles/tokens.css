@@ -3,17 +3,20 @@
    ============================================================================= */
 :root {
   /* surfaces and text */
-  --bg: #EEF1F5;            /* page background */
-  --surface: #FFFFFF;       /* cards, nav, inputs */
-  --ink: #1B2433;           /* main text */
-  --muted: #5E6B7E;         /* secondary text (AA on white) */
-  --line: #D9DFE8;          /* all borders and dividers */
-  --navy: #14213D;          /* one dark section per page */
+  --bg: #F7F5EF;
+  --surface: #FFFFFF;
+  --ink: #101B2A;
+  --muted: #5C6675;
+  --line: #DCE0D8;
+  --navy: #101B2A;
 
   /* brand */
-  --accent: #1F5EFF;        /* primary buttons, links, active states */
-  --accent-d: #1747C9;      /* hover */
-  --soft: #E3EBFF;          /* light blue fills, selected rows, tags */
+  --accent: #4263EB;
+  --accent-d: #304BC0;
+  --soft: #E9EDFF;
+  --lime: #D7FF55;
+  --lavender: #B8A5FF;
+  --ivory: #F7F5EF;
 
   /* status (text on tinted background) */
   --ok: #0F7A55;   --ok-bg: #DDF5EA;
@@ -49,14 +52,14 @@
 
   /* portal-specific identities */
   /* Candidate Portal (Growth & verified opportunities) */
-  --cand-primary: #0F7A55;
-  --cand-primary-d: #0B5C40;
-  --cand-soft: #E8F8F0;
+  --cand-primary: #287A58;
+  --cand-primary-d: #1D5B43;
+  --cand-soft: #EAF5E8;
   --cand-border: #C6EDD8;
 
   /* Employer Portal (Productivity & hiring pipeline) */
-  --emp-primary: #1F5EFF;
-  --emp-primary-d: #1747C9;
+  --emp-primary: #4263EB;
+  --emp-primary-d: #304BC0;
   --emp-warm: #D97706;
   --emp-warm-soft: #FEF3C7;
   --emp-soft: #EEF3FF;
@@ -65,7 +68,7 @@
   /* Admin Operations Portal (Governance, technical control) */
   --admin-navy: #0B132B;
   --admin-surface: #1C2541;
-  --admin-accent: #6366F1;
+  --admin-accent: #B8A5FF;
   --admin-accent-soft: #EEF2FF;
   --admin-border: #CBD5E1;
 

@@ -121,7 +121,7 @@ export const CompanyDashboard: React.FC = () => {
 
   if (!company) {
     return (
-      <div className="portal-container">
+      <div className="portal-container employer-portal">
         <div className="empty-state">
           <Building2 size={40} className="text-muted" />
           <h3>No Organization Selected</h3>
@@ -143,8 +143,9 @@ export const CompanyDashboard: React.FC = () => {
         transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* Header matching Picture 1 */}
-        <div className="ph">
+        <div className="ph employer-hero">
           <div>
+            <span className="eyebrow">Employer workspace</span>
             <h1>{company.name}</h1>
             <p className="muted">
               {isApproved ? 'Verified organisation' : 'Pending verification'} · {members.length} team {members.length === 1 ? 'member' : 'members'}
@@ -240,7 +241,7 @@ export const CompanyDashboard: React.FC = () => {
             </div>
 
             {/* Two-Column Layout matching Picture 1 */}
-            <div className="two">
+            <div className="two employer-dashboard-grid">
               {/* Left Column: Active Vacancies Panel */}
               <div className="card panel">
                 <div className="ph2">

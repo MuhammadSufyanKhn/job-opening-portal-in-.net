@@ -67,11 +67,12 @@ export const CandidateDashboard: React.FC = () => {
   const colorClasses = ['m1', 'm2', 'm4', 'm3', 'm5'];
 
   return (
-    <div className="page">
+    <div className="page candidate-portal">
       <div className="container">
         {/* Page Header */}
-        <div className="ph">
+        <div className="ph candidate-hero">
           <div>
+            <span className="eyebrow">Your career workspace</span>
             <h1>Welcome back, {data.fullName?.split(' ')[0] || 'there'}</h1>
             <p>
               {pendingSims.length > 0 
@@ -132,7 +133,7 @@ export const CandidateDashboard: React.FC = () => {
         </div>
 
         {/* Two-Column Layout */}
-        <div className="two">
+        <div className="two candidate-dashboard-grid">
           {/* Left Column: Recent Applications */}
           <div className="card panel">
             <div className="ph2">

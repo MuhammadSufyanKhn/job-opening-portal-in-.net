@@ -183,14 +183,12 @@ export const candidateDocumentsApi = {
     const formData = new FormData();
     formData.append('file', file);
     return api.post<import('../types/document').CandidateDocumentDetail>('/candidate/documents', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
     }).then(r => r.data);
   },
   uploadNewVersion: (rootDocumentId: string, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
     return api.post<import('../types/document').CandidateDocumentDetail>(`/candidate/documents/${rootDocumentId}/versions`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
     }).then(r => r.data);
   },
   setDefaultCv: (id: string) => api.post(`/candidate/documents/${id}/set-default`).then(r => r.data),
@@ -343,7 +341,6 @@ export const contactApi = {
   submitMessage: (data: { name: string; email: string; subject: string; message: string }) =>
     api.post<{ success: boolean; message: string; receivedAtUtc: string }>('/contact', data).then(r => r.data),
 };
-
 
 
 

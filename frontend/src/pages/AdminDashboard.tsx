@@ -54,14 +54,15 @@ export const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="portal-container page">
+    <div className="portal-container page admin-portal">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="ph">
+        <div className="ph admin-hero">
           <div>
+            <span className="eyebrow">Operations console</span>
             <h1>Platform Administration & Operations</h1>
             <p>Real-time metrics, system health, and operational oversight across HireSphere</p>
           </div>

@@ -139,10 +139,11 @@ export const CompanyJobs: React.FC = () => {
   }
 
   return (
-    <div className="portal-container" style={{ maxWidth: '1150px', padding: '2rem 1.5rem 5rem' }}>
+    <div className="portal-container employer-portal company-jobs-page" style={{ maxWidth: '1150px', padding: '2rem 1.5rem 5rem' }}>
       {/* Header matching Picture 4 */}
-      <div className="ph">
+      <div className="ph workflow-hero">
         <div>
+          <span className="eyebrow">Hiring pipeline</span>
           <h1>Vacancies</h1>
           <p className="muted">Create, publish and manage your job postings.</p>
         </div>

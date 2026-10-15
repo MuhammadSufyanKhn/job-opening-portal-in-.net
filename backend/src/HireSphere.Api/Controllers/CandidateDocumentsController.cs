@@ -49,10 +49,11 @@ public class CandidateDocumentsController : ControllerBase
 
     [HttpPost]
     [Consumes("multipart/form-data")]
+    [RequestFormLimits(MultipartBodyLengthLimit = 10 * 1024 * 1024)]
     [ProducesResponseType(typeof(CandidateDocumentDetailDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> UploadCv(IFormFile? file, CancellationToken ct)
+    public async Task<IActionResult> UploadCv([FromForm(Name = "file")] IFormFile? file, CancellationToken ct)
     {
         if (file == null || file.Length == 0)
         {
@@ -73,11 +74,12 @@ public class CandidateDocumentsController : ControllerBase
 
     [HttpPost("{id:guid}/versions")]
     [Consumes("multipart/form-data")]
+    [RequestFormLimits(MultipartBodyLengthLimit = 10 * 1024 * 1024)]
     [ProducesResponseType(typeof(CandidateDocumentDetailDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UploadNewVersion(Guid id, IFormFile? file, CancellationToken ct)
+    public async Task<IActionResult> UploadNewVersion(Guid id, [FromForm(Name = "file")] IFormFile? file, CancellationToken ct)
     {
         if (file == null || file.Length == 0)
         {

@@ -72,7 +72,7 @@ export const Navbar: React.FC = () => {
   }, [mobileMenuOpen]);
 
   return (
-    <header className="navbar">
+    <header className="navbar navbar-floating">
       <div className="navbar-container">
         {/* Brand Logo */}
         <Link to="/" className="brand" onClick={closeMobileMenu}>

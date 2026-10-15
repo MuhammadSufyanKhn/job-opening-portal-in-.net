@@ -74,48 +74,59 @@ public class CandidateDocumentService : ICandidateDocumentService
         var hasExisting = await _context.CandidateDocuments
             .AnyAsync(d => d.CandidateProfileId == candidateProfileId && !d.IsDeleted, cancellationToken);
 
-        // Save file to private storage
-        var storageKey = await _storageService.SaveFileAsync(stream, ext, cancellationToken);
-
-        var document = new CandidateDocument
+        string? storageKey = null;
+        try
         {
-            Id = Guid.NewGuid(),
-            CandidateProfileId = candidateProfileId,
-            OriginalFileName = Path.GetFileName(fileName),
-            StorageKey = storageKey,
-            FileExtension = ext,
-            MimeType = contentType,
-            FileSizeBytes = stream.Length,
-            IsDefault = !hasExisting, // First document becomes default
-            VersionNumber = 1,
-            RootDocumentId = null,
-            ContentHash = contentHash,
-            CreatedAtUtc = DateTimeOffset.UtcNow,
-            IsDeleted = false
-        };
+            storageKey = await _storageService.SaveFileAsync(stream, ext, cancellationToken);
 
-        _context.CandidateDocuments.Add(document);
+            var document = new CandidateDocument
+            {
+                Id = Guid.NewGuid(),
+                CandidateProfileId = candidateProfileId,
+                OriginalFileName = Path.GetFileName(fileName),
+                StorageKey = storageKey,
+                FileExtension = ext,
+                MimeType = contentType,
+                FileSizeBytes = stream.Length,
+                IsDefault = !hasExisting,
+                VersionNumber = 1,
+                RootDocumentId = null,
+                ContentHash = contentHash,
+                CreatedAtUtc = DateTimeOffset.UtcNow,
+                IsDeleted = false
+            };
 
-        // Create extraction job
-        var extractionJob = new DocumentExtractionJob
+            _context.CandidateDocuments.Add(document);
+
+            var extractionJob = new DocumentExtractionJob
+            {
+                Id = Guid.NewGuid(),
+                CandidateDocumentId = document.Id,
+                Status = DocumentExtractionStatus.Processing,
+                ParserVersion = "1.0",
+                AttemptCount = 1,
+                StartedAtUtc = DateTimeOffset.UtcNow,
+                CreatedAtUtc = DateTimeOffset.UtcNow
+            };
+
+            _context.DocumentExtractionJobs.Add(extractionJob);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            await ProcessExtractionAsync(document, extractionJob, stream, ext, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return await MapToDetailDtoAsync(document, extractionJob, cancellationToken);
+        }
+        catch (Exception ex)
         {
-            Id = Guid.NewGuid(),
-            CandidateDocumentId = document.Id,
-            Status = DocumentExtractionStatus.Processing,
-            ParserVersion = "1.0",
-            AttemptCount = 1,
-            StartedAtUtc = DateTimeOffset.UtcNow,
-            CreatedAtUtc = DateTimeOffset.UtcNow
-        };
+            _logger.LogError(ex, "CV upload failed for candidate profile {CandidateProfileId} and file {FileName}", candidateProfileId, fileName);
+            if (!string.IsNullOrWhiteSpace(storageKey))
+            {
+                await _storageService.DeleteFileAsync(storageKey, cancellationToken);
+            }
 
-        _context.DocumentExtractionJobs.Add(extractionJob);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        // Execute text extraction
-        await ProcessExtractionAsync(document, extractionJob, stream, ext, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        return await MapToDetailDtoAsync(document, extractionJob, cancellationToken);
+            throw;
+        }
     }
 
     public async Task<CandidateDocumentDetailDto> UploadNewVersionAsync(

@@ -448,10 +448,11 @@ export const CompanyApplications: React.FC = () => {
 
 
   return (
-    <div className="portal-container">
+    <div className="portal-container employer-portal company-applications-page">
       {/* Top Header matching Picture 5 */}
-      <div className="ph">
+      <div className="ph workflow-hero">
         <div>
+          <span className="eyebrow">Candidate pipeline</span>
           <h1>Applicants</h1>
           <p className="muted">
             {jobs.find(j => j.id === selectedJobId)?.title || 'All vacancies'} · {pipelineBoard?.totalApplications ?? totalCount} candidates across 6 stages
