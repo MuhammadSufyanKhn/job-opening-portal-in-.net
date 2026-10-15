@@ -62,6 +62,18 @@ export const CompanyDashboard: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    const handleCompanyDataChanged = (event: Event) => {
+      const companyId = (event as CustomEvent<{ companyId?: string }>).detail?.companyId;
+      if (companyId && companyId === (activeCompanyId || user?.companies?.[0]?.companyId)) {
+        loadCompanyData(companyId);
+      }
+    };
+
+    window.addEventListener('hiresphere:company-data-changed', handleCompanyDataChanged);
+    return () => window.removeEventListener('hiresphere:company-data-changed', handleCompanyDataChanged);
+  }, [activeCompanyId, user]);
+
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!company) return;

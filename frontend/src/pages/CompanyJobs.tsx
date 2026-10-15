@@ -106,7 +106,10 @@ export const CompanyJobs: React.FC = () => {
       }
 
       setActionModal(null);
-      loadJobs(companyId);
+      await loadJobs(companyId);
+      window.dispatchEvent(new CustomEvent('hiresphere:company-data-changed', {
+        detail: { companyId, action },
+      }));
     } catch (err: any) {
       setActionError(err.response?.data?.detail || `Failed to ${action} vacancy.`);
     } finally {

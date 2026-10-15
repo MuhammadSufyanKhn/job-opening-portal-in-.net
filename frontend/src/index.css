@@ -4222,6 +4222,55 @@ section.s {
   margin-top: 2px;
 }
 
+@media (max-width: 1000px) {
+  .portal-container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .two {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .portal-container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .ph {
+    align-items: stretch;
+  }
+
+  .ph > div:last-child {
+    width: 100%;
+  }
+
+  .ph > div:last-child .btn {
+    flex: 1 1 160px;
+  }
+
+  .card.panel {
+    padding: 18px;
+  }
+
+  .arow {
+    grid-template-columns: 1fr auto;
+    gap: 8px 12px;
+  }
+
+  .arow .badge {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .arow .btn {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
+
 .tw {
   overflow-x: auto;
   background: #fff;
@@ -4395,4 +4444,3 @@ section.s {
   border-top: 3px solid var(--accent);
   transition: height 0.4s ease;
 }
-
