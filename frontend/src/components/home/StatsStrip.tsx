@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { jobsApi, publicCompaniesApi } from '../../services/api';
 import { motion, useReducedMotion } from 'motion/react';
 import { AnimatedNumber } from '../common';
+import { Briefcase, Building2, Clock, Sparkles } from 'lucide-react';
 
 export const StatsStrip: React.FC = () => {
   const shouldReduceMotion = useReducedMotion();
@@ -12,22 +13,18 @@ export const StatsStrip: React.FC = () => {
     let isMounted = true;
     const fetchLiveCounts = async () => {
       try {
-        // Fetch published jobs count
         const jobsRes = await jobsApi.searchJobs({ pageSize: 1 });
         const liveJobCount = jobsRes?.totalCount || 0;
 
-        // Fetch verified companies count from public directory
         const companiesRes = await publicCompaniesApi.getDirectory({ pageSize: 1 });
         const liveCompanyCount = companiesRes?.totalCount || 0;
 
         if (isMounted) {
-          // Increment baseline 1,284 as vacancies are added by companies
           setTotalJobs(1284 + liveJobCount);
-          // Increment baseline 312 as companies are registered
           setTotalCompanies(312 + liveCompanyCount);
         }
       } catch {
-        // Fallback to baseline figures if offline or unauthenticated
+        // Fallback to baseline figures
       }
     };
 
@@ -36,38 +33,106 @@ export const StatsStrip: React.FC = () => {
   }, []);
 
   const stats = [
-    { numValue: totalJobs, label: 'open jobs right now' },
-    { numValue: totalCompanies, label: 'companies hiring' },
-    { numValue: 48, suffix: ' hours', label: 'typical reply time' },
-    { rawValue: 'Free', label: 'for everyone' }
+    { 
+      numValue: totalJobs, 
+      label: 'open jobs right now', 
+      badge: 'Live vacancies',
+      accent: 'accent-blue',
+      icon: Briefcase,
+      iconBg: '#EEF4FF',
+      iconColor: '#1F5EFF'
+    },
+    { 
+      numValue: totalCompanies, 
+      label: 'companies hiring', 
+      badge: 'Vetted employers',
+      accent: 'accent-emerald',
+      icon: Building2,
+      iconBg: '#EDF9F3',
+      iconColor: '#0F7A55'
+    },
+    { 
+      numValue: 48, 
+      suffix: ' hours', 
+      label: 'typical reply time', 
+      badge: 'Direct review',
+      accent: 'accent-amber',
+      icon: Clock,
+      iconBg: '#FEF8EB',
+      iconColor: '#D97706'
+    },
+    { 
+      rawValue: 'Free', 
+      label: 'for all jobseekers', 
+      badge: 'Zero fees',
+      accent: 'accent-purple',
+      icon: Sparkles,
+      iconBg: '#F3EEFF',
+      iconColor: '#7C3AED'
+    }
   ];
 
   return (
-    <section 
-      className="white" 
-      style={{ borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}
-      aria-label="Platform Statistics"
-    >
+    <section className="stats-ribbon-section" aria-label="Platform Statistics">
       <div className="container">
         <motion.div 
-          className="stats"
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          className="stats-ribbon-grid"
+          initial="hidden"
+          whileInView="visible"
           viewport={{ once: true, margin: '-40px' }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: shouldReduceMotion ? 0 : 0.14
+              }
+            }
+          }}
         >
-          {stats.map((s, idx) => (
-            <div key={idx}>
-              <b>
-                {s.numValue !== undefined ? (
-                  <AnimatedNumber value={s.numValue} suffix={s.suffix} duration={1.6} />
-                ) : (
-                  s.rawValue
-                )}
-              </b>
-              <span>{s.label}</span>
-            </div>
-          ))}
+          {stats.map((s, idx) => {
+            const IconComponent = s.icon;
+            return (
+              <motion.div 
+                key={idx}
+                className={`stats-ribbon-card ${s.accent}`}
+                variants={{
+                  hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 20 },
+                  visible: { 
+                    opacity: 1, 
+                    y: 0,
+                    transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] }
+                  }
+                }}
+              >
+                <div className="stats-ribbon-top">
+                  <div 
+                    className="stats-ribbon-icon"
+                    style={{ background: s.iconBg, color: s.iconColor }}
+                  >
+                    <IconComponent size={20} />
+                  </div>
+                  <span 
+                    className="stats-ribbon-badge"
+                    style={{ background: s.iconBg, color: s.iconColor }}
+                  >
+                    {s.badge}
+                  </span>
+                </div>
+
+                <div>
+                  <div className="stats-ribbon-value">
+                    {s.numValue !== undefined ? (
+                      <AnimatedNumber value={s.numValue} suffix={s.suffix} duration={1.6} />
+                    ) : (
+                      s.rawValue
+                    )}
+                  </div>
+                  <p className="stats-ribbon-label">{s.label}</p>
+                </div>
+              </motion.div>
+            );
+          })}
         </motion.div>
       </div>
     </section>

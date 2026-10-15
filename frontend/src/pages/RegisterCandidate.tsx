@@ -115,13 +115,15 @@ export const RegisterCandidate: React.FC = () => {
         {/* Right Open page form */}
         <section className="r">
           <div className="box wrap">
-            <div className="t2" role="tablist">
-              <button type="button" role="tab" aria-selected="true">Create account</button>
+            <div className="t2">
+              <span style={{ color: 'var(--ink)', fontWeight: 700, borderBottom: '2px solid var(--accent)', paddingBottom: '4px' }}>Create account</span>
+              <span style={{ color: 'var(--muted)', opacity: 0.4 }}>•</span>
+              <Link to="/login" style={{ color: 'var(--muted)', textDecoration: 'none', fontWeight: 500 }}>Sign in instead</Link>
             </div>
 
             <div className="hd">
               <h2>Create your free profile</h2>
-              <p>It takes about two minutes.</p>
+              <p>Join thousands of professionals landing verified roles.</p>
             </div>
 
             {/* Role switcher pill buttons */}

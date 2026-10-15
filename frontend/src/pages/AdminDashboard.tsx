@@ -233,21 +233,21 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Actions & Recent Platform Activity */}
-            <div className="two" style={{ gridTemplateColumns: '1fr 2fr', gap: '1.5rem', alignItems: 'start' }}>
+            {/* Balanced Operations & Analytics Grid */}
+            <div className="admin-row-balanced">
               {/* Operations Quick Links */}
-              <div className="panel card">
-                <div className="ph2">
-                  <h3>Operations Portals</h3>
+              <div className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div className="ph2" style={{ marginBottom: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Operations Portals</h3>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                   <Link
                     to="/admin/companies"
                     className="btn btn-outline"
-                    style={{ justifyContent: 'space-between', padding: '0.75rem 1rem' }}
+                    style={{ justifyContent: 'space-between', padding: '0.85rem 1.1rem', borderRadius: '10px' }}
                   >
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Building2 size={16} />
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontWeight: 600 }}>
+                      <Building2 size={17} className="text-primary" />
                       Verify Organizations
                     </span>
                     {stats.pendingCompanies > 0 && (
@@ -258,22 +258,22 @@ export const AdminDashboard: React.FC = () => {
                   <Link
                     to="/admin/users"
                     className="btn btn-outline"
-                    style={{ justifyContent: 'space-between', padding: '0.75rem 1rem' }}
+                    style={{ justifyContent: 'space-between', padding: '0.85rem 1.1rem', borderRadius: '10px' }}
                   >
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Users size={16} />
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontWeight: 600 }}>
+                      <Users size={17} className="text-primary" />
                       Manage Accounts
                     </span>
-                    <ArrowRight size={14} />
+                    <ArrowRight size={15} />
                   </Link>
 
                   <Link
                     to="/admin/jobs"
                     className="btn btn-outline"
-                    style={{ justifyContent: 'space-between', padding: '0.75rem 1rem' }}
+                    style={{ justifyContent: 'space-between', padding: '0.85rem 1.1rem', borderRadius: '10px' }}
                   >
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Briefcase size={16} />
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontWeight: 600 }}>
+                      <Briefcase size={17} className="text-primary" />
                       Job Moderation
                     </span>
                     {stats.suspendedJobs > 0 && (
@@ -284,111 +284,125 @@ export const AdminDashboard: React.FC = () => {
                   <Link
                     to="/admin/audit"
                     className="btn btn-outline"
-                    style={{ justifyContent: 'space-between', padding: '0.75rem 1rem' }}
+                    style={{ justifyContent: 'space-between', padding: '0.85rem 1.1rem', borderRadius: '10px' }}
                   >
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Activity size={16} />
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontWeight: 600 }}>
+                      <Activity size={17} className="text-primary" />
                       Full Audit History
                     </span>
-                    <ArrowRight size={14} />
+                    <ArrowRight size={15} />
                   </Link>
                 </div>
               </div>
 
               {/* Platform Recruitment Inflow & Active Employers Overview */}
-              {platformAnalytics && (
-                <div className="analytics-two-col" style={{ marginTop: '1.5rem', marginBottom: '1.5rem' }}>
-                  <div className="card" style={{ padding: '1.25rem' }}>
-                    <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
-                      <div className="flex-align-gap">
-                        <TrendingUp size={18} className="text-primary" />
-                        <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Platform Application Inflow</h3>
+              {platformAnalytics ? (
+                <div className="admin-analytics-grid">
+                  <div className="card" style={{ padding: '1.35rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div className="flex-between" style={{ marginBottom: '1rem' }}>
+                        <div className="flex-align-gap">
+                          <TrendingUp size={18} className="text-primary" />
+                          <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Platform Application Inflow</h3>
+                        </div>
+                        <span className="badge badge-primary" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
+                          30D: {platformAnalytics.applicationsInPeriod}
+                        </span>
                       </div>
-                      <span className="badge badge-primary" style={{ fontSize: '0.75rem' }}>
-                        Last 30 Days: {platformAnalytics.applicationsInPeriod}
-                      </span>
+                      {platformAnalytics.platformActivityTrend.length === 0 ? (
+                        <p className="text-muted" style={{ fontSize: '0.85rem', padding: '2rem 0', textAlign: 'center' }}>
+                          No platform application activity in the last 30 days.
+                        </p>
+                      ) : (
+                        <div className="trend-chart" style={{ height: '140px' }}>
+                          {(() => {
+                            const maxCount = Math.max(...platformAnalytics.platformActivityTrend.map(t => t.applicationsCount), 1);
+                            return platformAnalytics.platformActivityTrend.map(point => {
+                              const heightPct = Math.max(10, (point.applicationsCount / maxCount) * 100);
+                              return (
+                                <div key={point.date} className="trend-bar-column">
+                                  <div
+                                    className="trend-bar-rect"
+                                    style={{ height: `${heightPct}%` }}
+                                    title={`${point.date}: ${point.applicationsCount} candidate applications`}
+                                  />
+                                  <span className="trend-bar-label">{point.date.slice(5)}</span>
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+                      )}
                     </div>
-                    {platformAnalytics.platformActivityTrend.length === 0 ? (
-                      <p className="text-muted" style={{ fontSize: '0.825rem', padding: '2rem 0', textAlign: 'center' }}>
-                        No platform application activity in the last 30 days.
-                      </p>
-                    ) : (
-                      <div className="trend-chart" style={{ height: '120px' }}>
-                        {(() => {
-                          const maxCount = Math.max(...platformAnalytics.platformActivityTrend.map(t => t.applicationsCount), 1);
-                          return platformAnalytics.platformActivityTrend.map(point => {
-                            const heightPct = Math.max(10, (point.applicationsCount / maxCount) * 100);
-                            return (
-                              <div key={point.date} className="trend-bar-column">
-                                <div
-                                  className="trend-bar-rect"
-                                  style={{ height: `${heightPct}%` }}
-                                  title={`${point.date}: ${point.applicationsCount} candidate applications`}
-                                />
-                                <span className="trend-bar-label">{point.date.slice(5)}</span>
-                              </div>
-                            );
-                          });
-                        })()}
-                      </div>
-                    )}
                   </div>
 
-                  <div className="card" style={{ padding: '1.25rem' }}>
-                    <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
-                      <div className="flex-align-gap">
-                        <Building2 size={18} className="text-warning" />
-                        <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Top Hiring Organizations</h3>
+                  <div className="card" style={{ padding: '1.35rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div className="flex-between" style={{ marginBottom: '1rem' }}>
+                        <div className="flex-align-gap">
+                          <Building2 size={18} className="text-warning" />
+                          <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Top Hiring Organizations</h3>
+                        </div>
+                        <span className="text-muted" style={{ fontSize: '0.75rem' }}>By Volume</span>
                       </div>
-                      <span className="text-muted" style={{ fontSize: '0.75rem' }}>By Candidate Volume</span>
-                    </div>
-                    {platformAnalytics.activeCompanies.length === 0 ? (
-                      <p className="text-muted" style={{ fontSize: '0.825rem', padding: '2rem 0', textAlign: 'center' }}>
-                        No verified organizations active yet.
-                      </p>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                        {platformAnalytics.activeCompanies.slice(0, 5).map(co => (
-                          <div key={co.companyId} className="flex-between" style={{ padding: '0.4rem 0', borderBottom: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}>
-                            <span className="font-medium">{co.companyName}</span>
-                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                              <span className="badge badge-status" style={{ fontSize: '0.7rem' }}>
-                                {co.activeJobsCount} active jobs
-                              </span>
-                              <span className="badge badge-purple" style={{ fontSize: '0.7rem' }}>
-                                {co.totalApplicationsCount} applicants
-                              </span>
+                      {platformAnalytics.activeCompanies.length === 0 ? (
+                        <p className="text-muted" style={{ fontSize: '0.85rem', padding: '2rem 0', textAlign: 'center' }}>
+                          No verified organizations active yet.
+                        </p>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          {platformAnalytics.activeCompanies.slice(0, 5).map(co => (
+                            <div key={co.companyId} className="flex-between" style={{ padding: '0.5rem 0', borderBottom: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}>
+                              <span className="font-medium" style={{ color: 'var(--ink)' }}>{co.companyName}</span>
+                              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                <span className="badge badge-status" style={{ fontSize: '0.725rem' }}>
+                                  {co.activeJobsCount} jobs
+                                </span>
+                                <span className="badge badge-purple" style={{ fontSize: '0.725rem' }}>
+                                  {co.totalApplicationsCount} applicants
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
+                </div>
+              ) : (
+                <div className="card" style={{ padding: '2rem', display: 'grid', placeItems: 'center', textAlign: 'center' }}>
+                  <Activity size={32} className="text-muted" style={{ marginBottom: '0.75rem' }} />
+                  <p className="text-muted" style={{ margin: 0 }}>Loading live inflow analytics telemetry...</p>
                 </div>
               )}
+            </div>
 
-              {/* Recent Platform Administrative Activity */}
-              <div className="card-table-wrapper">
-                <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 600 }}>Recent Administrative Activity</h3>
-                  <Link to="/admin/audit" className="link-subtle" style={{ fontSize: '0.85rem' }}>
-                    View all &rarr;
-                  </Link>
+            {/* Recent Platform Administrative Activity — Full Width Layout */}
+            <div className="admin-full-table-card">
+              <div className="admin-full-table-header">
+                <div>
+                  <h3>Recent Administrative Activity</h3>
+                  <p className="text-muted" style={{ fontSize: '13px', margin: '2px 0 0' }}>Real-time audit trail of governance, approvals, and security events</p>
                 </div>
+                <Link to="/admin/audit" className="link-subtle" style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+                  View full audit log &rarr;
+                </Link>
+              </div>
 
-                {stats.recentActivity.length === 0 ? (
-                  <div className="empty-state" style={{ padding: '2.5rem' }}>
-                    <Activity size={32} className="text-muted" />
-                    <p style={{ marginTop: '0.5rem' }}>No recent administrative actions recorded yet.</p>
-                  </div>
-                ) : (
-                  <table className="data-table">
+              {stats.recentActivity.length === 0 ? (
+                <div className="empty-state" style={{ padding: '3rem' }}>
+                  <Activity size={36} className="text-muted" />
+                  <p style={{ marginTop: '0.75rem', color: 'var(--muted)' }}>No recent administrative actions recorded yet.</p>
+                </div>
+              ) : (
+                <div className="admin-table-responsive">
+                  <table>
                     <thead>
                       <tr>
                         <th>Action</th>
-                        <th>Resource</th>
-                        <th>Administrator</th>
-                        <th>Timestamp</th>
+                        <th>Target Resource</th>
+                        <th>Administrator / System</th>
+                        <th>Timestamp (UTC)</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -400,24 +414,24 @@ export const AdminDashboard: React.FC = () => {
                             </span>
                           </td>
                           <td>
-                            <div className="font-medium text-sm">{act.targetResource}</div>
+                            <div className="font-medium">{act.targetResource}</div>
                             {act.companyName && (
                               <div className="text-muted text-xs">{act.companyName}</div>
                             )}
                           </td>
                           <td>
-                            <div className="text-sm">{act.actorName || 'System'}</div>
+                            <div style={{ fontWeight: 600 }}>{act.actorName || 'System'}</div>
                             <div className="text-muted text-xs">{act.actorEmail}</div>
                           </td>
-                          <td className="text-xs text-muted">
+                          <td className="text-muted" style={{ whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                             {new Date(act.timestampUtc).toLocaleString()}
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </>
         ) : null}

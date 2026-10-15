@@ -127,13 +127,15 @@ export const RegisterCompany: React.FC = () => {
         {/* Right Open page form */}
         <section className="r">
           <div className="box wrap company-box">
-            <div className="t2" role="tablist">
-              <button type="button" role="tab" aria-selected="true">Create account</button>
+            <div className="t2">
+              <span style={{ color: 'var(--ink)', fontWeight: 700, borderBottom: '2px solid var(--accent)', paddingBottom: '4px' }}>Employer registration</span>
+              <span style={{ color: 'var(--muted)', opacity: 0.4 }}>•</span>
+              <Link to="/login" style={{ color: 'var(--muted)', textDecoration: 'none', fontWeight: 500 }}>Sign in instead</Link>
             </div>
 
             <div className="hd">
               <h2>Create your company account</h2>
-              <p>Post your first job in minutes.</p>
+              <p>Hire top, pre-vetted talent with practical skills challenges.</p>
             </div>
 
             {/* Role switcher pill buttons */}

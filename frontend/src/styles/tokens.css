@@ -28,11 +28,46 @@
   --amber-border: #FCD34D;
   --amber-text: #92400E;
 
-  /* shape */
-  --r: 12px;
+  /* shape & elevation */
+  --r-xs: 6px;
   --r-sm: 10px;
+  --r: 12px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+  --sh-sm: 0 1px 3px rgba(27, 36, 51, 0.05);
   --sh: 0 1px 2px rgba(27, 36, 51, 0.06);
-  --sh-lg: 0 16px 40px -16px rgba(27, 36, 51, 0.28);
+  --sh-md: 0 8px 24px -8px rgba(27, 36, 51, 0.12);
+  --sh-lg: 0 16px 40px -16px rgba(27, 36, 51, 0.22);
+  --sh-glow: 0 0 24px -4px rgba(31, 94, 255, 0.25);
+
+  /* slow & smooth animation curves */
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.3, 0.64, 1);
+  --trans-fast: 220ms var(--ease-smooth);
+  --trans-med: 400ms var(--ease-smooth);
+  --trans-slow: 700ms var(--ease-smooth);
+
+  /* portal-specific identities */
+  /* Candidate Portal (Growth & verified opportunities) */
+  --cand-primary: #0F7A55;
+  --cand-primary-d: #0B5C40;
+  --cand-soft: #E8F8F0;
+  --cand-border: #C6EDD8;
+
+  /* Employer Portal (Productivity & hiring pipeline) */
+  --emp-primary: #1F5EFF;
+  --emp-primary-d: #1747C9;
+  --emp-warm: #D97706;
+  --emp-warm-soft: #FEF3C7;
+  --emp-soft: #EEF3FF;
+  --emp-border: #D1DEFF;
+
+  /* Admin Operations Portal (Governance, technical control) */
+  --admin-navy: #0B132B;
+  --admin-surface: #1C2541;
+  --admin-accent: #6366F1;
+  --admin-accent-soft: #EEF2FF;
+  --admin-border: #CBD5E1;
 
   /* type */
   --head: "Schibsted Grotesk", system-ui, sans-serif;

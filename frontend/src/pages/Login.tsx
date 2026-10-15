@@ -104,13 +104,15 @@ export const Login: React.FC = () => {
         {/* Right Open page form */}
         <section className="r">
           <div className="box wrap">
-            <div className="t2" role="tablist">
-              <button type="button" role="tab" aria-selected="true">Sign in</button>
+            <div className="t2">
+              <span style={{ color: 'var(--ink)', fontWeight: 700, borderBottom: '2px solid var(--accent)', paddingBottom: '4px' }}>Sign in</span>
+              <span style={{ color: 'var(--muted)', opacity: 0.4 }}>•</span>
+              <Link to="/register-candidate" style={{ color: 'var(--muted)', textDecoration: 'none', fontWeight: 500 }}>Create account</Link>
             </div>
 
             <div className="hd">
-              <h2>Sign in to your account</h2>
-              <p>Good to see you again.</p>
+              <h2>Welcome back</h2>
+              <p>Sign in to manage your career applications and interviews.</p>
             </div>
 
             {showRegistrationSuccess && !error && (
