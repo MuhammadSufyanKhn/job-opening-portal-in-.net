@@ -302,7 +302,7 @@ public class WorkSimScoringService : IWorkSimScoringService
                 CriterionName = c.CriterionName,
                 Score = c.Score,
                 MaxScore = c.MaxScore,
-                Feedback = c.Feedback,
+                Feedback = c.Feedback ?? string.Empty,
                 SupportingEvidence = evidence
             };
         }).ToList();

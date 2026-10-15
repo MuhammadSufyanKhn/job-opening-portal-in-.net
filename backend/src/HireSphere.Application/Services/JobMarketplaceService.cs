@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using HireSphere.Application.Common.Interfaces;
 using HireSphere.Application.DTOs.Job;
+using HireSphere.Domain.Entities;
 using HireSphere.Domain.Enums;
 using HireSphere.Domain.Exceptions;
 
