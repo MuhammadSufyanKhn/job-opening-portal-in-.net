@@ -449,9 +449,10 @@ button:disabled {
 .box {
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 12px 14px;
+  padding: 32px 36px;
   background: #F7F9FC;
   font-size: 14.5px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
 
 /* --- Forms & Inputs --- */
@@ -2961,8 +2962,18 @@ section.s {
 /* --- Auth Pages: Open Page Design (Style 2 from hiresphere-auth-box-styles.html) --- */
 .v {
   display: grid;
-  grid-template-columns: 1.05fr 1fr;
+  grid-template-columns: 1fr 1fr;
   min-height: calc(100vh - 68px);
+  animation: slowFadeIn 2s ease-in-out;
+}
+
+@keyframes slowFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+* {
+  transition: all 0.8s ease-in-out;
 }
 
 .l {
@@ -2981,7 +2992,7 @@ section.s {
   font-size: clamp(32px, 3.6vw, 50px);
   letter-spacing: -0.04em;
   line-height: 1.05;
-  max-width: 14ch;
+  max-width: none;
   margin-bottom: 14px;
   color: #fff;
 }
@@ -3005,18 +3016,20 @@ section.s {
   display: grid;
   gap: 12px;
   max-width: 420px;
+  margin: 0 auto;
 }
 
 .mc {
   background: #fff;
   color: var(--ink);
   border-radius: 14px;
-  padding: 14px 16px;
+  padding: 24px;
   display: flex;
   gap: 12px;
   align-items: center;
   box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.5);
-  animation: fl 6s ease-in-out infinite alternate;
+  animation: fl 15s ease-in-out infinite alternate;
+  width: 100%;
 }
 .mc > div {
   flex: 1;
@@ -3033,13 +3046,13 @@ section.s {
   font-size: 13px;
 }
 .mc:nth-child(2) {
-  margin-left: 28px;
-  margin-right: -28px;
-  animation-delay: -2s;
+  margin-left: 0px;
+  margin-right: 0px;
+  animation-delay: -5s;
 }
 .mc:nth-child(3) {
   margin-left: 0;
-  animation-delay: -4s;
+  animation-delay: -10s;
 }
 
 @keyframes fl {
@@ -3055,6 +3068,7 @@ section.s {
   color: #D4DDF0;
   font-weight: 600;
   font-size: 14.5px;
+  margin: 0 auto;
 }
 .pts span {
   display: flex;
@@ -3149,10 +3163,14 @@ section.s {
 
 /* Open Page box wrap (Style 2) */
 .s2 .box {
-  width: min(440px, 100%);
+  width: min(540px, 100%);
   max-height: calc(100vh - 120px);
   overflow-y: auto;
-  padding: 0 4px;
+  padding: 48px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
 .s2 .box.company-box {
   width: min(500px, 100%);
@@ -3176,6 +3194,9 @@ section.s {
   font-weight: 600;
   color: #9AA6B8;
   margin-bottom: 8px;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 4px;
+  width: fit-content;
 }
 .t2 a, .t2 button {
   border: 0;
@@ -3193,16 +3214,13 @@ section.s {
 }
 .t2 a.active, .t2 button[aria-selected="true"], .t2 a[aria-selected="true"] {
   color: var(--ink);
-  text-decoration: underline;
-  text-decoration-color: var(--accent);
-  text-decoration-thickness: 3px;
-  text-underline-offset: 8px;
+  text-decoration: none;
 }
 
 /* Underline inputs for Open Page */
 .s2 .inp input {
   border: 0;
-  border-bottom: 2px solid #C3CCD9;
+  border-bottom: 1px solid #C3CCD9;
   border-radius: 0;
   padding: 0;
   height: 46px;
@@ -3211,7 +3229,7 @@ section.s {
   width: 100%;
   font-size: 16px;
   outline: none;
-  transition: border-bottom-color 0.15s ease;
+  transition: all 0.3s ease-in-out;
 }
 .s2 .inp input:focus {
   border-bottom-color: var(--accent);
@@ -3356,7 +3374,7 @@ section.s {
     gap: 20px;
   }
   .l .stack {
-    display: none;
+    display: grid;
   }
   .l h1 {
     max-width: none;
