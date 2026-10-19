@@ -209,111 +209,205 @@ export const AdminUsers: React.FC = () => {
             <p>No account records matched the specified search and filter criteria.</p>
           </div>
         ) : (
-          <div className="card-table-wrapper">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>User Identity</th>
-                  <th>Roles</th>
-                  <th>Affiliations</th>
-                  <th>Status</th>
-                  <th>Registered</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((u) => (
-                  <tr key={u.id}>
-                    <td>
-                      <div><b>{u.fullName}</b></div>
-                      <small className="muted">{u.email}</small>
-                      {u.phoneNumber && (
-                        <small className="muted" style={{ display: 'block' }}>{u.phoneNumber}</small>
-                      )}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                        {u.roles.map((r) => (
-                          <span
-                            key={r}
-                            className={`badge ${
-                              r === 'SuperAdmin' || r === 'Admin'
-                                ? 'b-pur'
-                                : r === 'CompanyMember'
-                                ? 'b-blue'
-                                : 'b-ok'
-                            }`}
-                          >
-                            {r}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td>
-                      {u.isCandidate && (
-                        <span className="badge nodot" style={{ marginRight: '4px' }}>
-                          Candidate
-                        </span>
-                      )}
-                      {u.companyNames.length > 0 && (
-                        <small className="muted">
-                          {u.companyNames.join(', ')}
-                        </small>
-                      )}
-                      {!u.isCandidate && u.companyNames.length === 0 && (
-                        <span className="muted">—</span>
-                      )}
-                    </td>
-                    <td>
-                      <span
-                        className={`status-badge ${
-                          u.accountStatus === 'Active'
-                            ? 'status-approved'
-                            : u.accountStatus === 'Disabled'
-                            ? 'status-rejected'
-                            : 'status-pendingapproval'
-                        }`}
-                      >
-                        {u.accountStatus}
-                      </span>
-                    </td>
-                    <td className="muted">{new Date(u.createdAtUtc).toLocaleDateString()}</td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div className="action-button-group" style={{ justifyContent: 'flex-end' }}>
-                        <button
-                          onClick={() => openUserDetails(u.id)}
-                          className="btn btn-sm btn-outline"
-                          title="View account overview"
-                        >
-                          <Eye size={14} /> Details
-                        </button>
-
-                        {u.accountStatus === 'Active' ? (
-                          <button
-                            onClick={() => {
-                              setSuspendingUser(u);
-                              setSuspensionReason('');
-                            }}
-                            className="btn btn-sm btn-warning"
-                            title="Suspend user account"
-                          >
-                            <Ban size={14} /> Suspend
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleReactivateUser(u)}
-                            className="btn btn-sm btn-outline"
-                            title="Reactivate user account"
-                          >
-                            <RefreshCw size={14} /> Reactivate
-                          </button>
-                        )}
-                      </div>
-                    </td>
+          <>
+            {/* Desktop Table View */}
+            <div className="card-table-wrapper table-desktop-view">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>User Identity</th>
+                    <th>Roles</th>
+                    <th>Affiliations</th>
+                    <th>Status</th>
+                    <th>Registered</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {users.map((u) => (
+                    <tr key={u.id}>
+                      <td>
+                        <div><b>{u.fullName}</b></div>
+                        <small className="muted">{u.email}</small>
+                        {u.phoneNumber && (
+                          <small className="muted" style={{ display: 'block' }}>{u.phoneNumber}</small>
+                        )}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {u.roles.map((r) => (
+                            <span
+                              key={r}
+                              className={`badge ${
+                                r === 'SuperAdmin' || r === 'Admin'
+                                  ? 'b-pur'
+                                  : r === 'CompanyMember'
+                                  ? 'b-blue'
+                                  : 'b-ok'
+                              }`}
+                            >
+                              {r}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td>
+                        {u.isCandidate && (
+                          <span className="badge nodot" style={{ marginRight: '4px' }}>
+                            Candidate
+                          </span>
+                        )}
+                        {u.companyNames.length > 0 && (
+                          <small className="muted">
+                            {u.companyNames.join(', ')}
+                          </small>
+                        )}
+                        {!u.isCandidate && u.companyNames.length === 0 && (
+                          <span className="muted">—</span>
+                        )}
+                      </td>
+                      <td>
+                        <span
+                          className={`status-badge ${
+                            u.accountStatus === 'Active'
+                              ? 'status-approved'
+                              : u.accountStatus === 'Disabled'
+                              ? 'status-rejected'
+                              : 'status-pendingapproval'
+                          }`}
+                        >
+                          {u.accountStatus}
+                        </span>
+                      </td>
+                      <td className="muted">{new Date(u.createdAtUtc).toLocaleDateString()}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="action-button-group" style={{ justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={() => openUserDetails(u.id)}
+                            className="btn btn-sm btn-outline"
+                            title="View account overview"
+                          >
+                            <Eye size={14} /> Details
+                          </button>
+
+                          {u.accountStatus === 'Active' ? (
+                            <button
+                              onClick={() => {
+                                setSuspendingUser(u);
+                                setSuspensionReason('');
+                              }}
+                              className="btn btn-sm btn-warning"
+                              title="Suspend user account"
+                            >
+                              <Ban size={14} /> Suspend
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleReactivateUser(u)}
+                              className="btn btn-sm btn-outline"
+                              title="Reactivate user account"
+                            >
+                              <RefreshCw size={14} /> Reactivate
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards View */}
+            <div className="table-mobile-cards">
+              {users.map((u) => (
+                <div key={u.id} className="table-mobile-card">
+                  <div className="table-mobile-card-header">
+                    <div>
+                      <b style={{ fontSize: '16px' }}>{u.fullName}</b>
+                      <small className="muted" style={{ display: 'block', fontSize: '13px' }}>{u.email}</small>
+                    </div>
+                    <span
+                      className={`status-badge ${
+                        u.accountStatus === 'Active'
+                          ? 'status-approved'
+                          : u.accountStatus === 'Disabled'
+                          ? 'status-rejected'
+                          : 'status-pendingapproval'
+                      }`}
+                    >
+                      {u.accountStatus}
+                    </span>
+                  </div>
+
+                  <div className="table-mobile-card-row">
+                    <span className="muted">Roles</span>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                      {u.roles.map((r) => (
+                        <span
+                          key={r}
+                          className={`badge ${
+                            r === 'SuperAdmin' || r === 'Admin'
+                              ? 'b-pur'
+                              : r === 'CompanyMember'
+                              ? 'b-blue'
+                              : 'b-ok'
+                          }`}
+                        >
+                          {r}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {(u.isCandidate || u.companyNames.length > 0) && (
+                    <div className="table-mobile-card-row">
+                      <span className="muted">Affiliations</span>
+                      <span>
+                        {u.isCandidate && 'Candidate '}
+                        {u.companyNames.length > 0 && `(${u.companyNames.join(', ')})`}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="table-mobile-card-row">
+                    <span className="muted">Registered</span>
+                    <span>{new Date(u.createdAtUtc).toLocaleDateString()}</span>
+                  </div>
+
+                  <div className="table-mobile-card-actions">
+                    <button
+                      onClick={() => openUserDetails(u.id)}
+                      className="btn btn-sm btn-outline"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <Eye size={14} /> Details
+                    </button>
+
+                    {u.accountStatus === 'Active' ? (
+                      <button
+                        onClick={() => {
+                          setSuspendingUser(u);
+                          setSuspensionReason('');
+                        }}
+                        className="btn btn-sm btn-warning"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <Ban size={14} /> Suspend
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleReactivateUser(u)}
+                        className="btn btn-sm btn-outline"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <RefreshCw size={14} /> Reactivate
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
 
             {/* Pagination */}
             <Pagination
@@ -323,7 +417,7 @@ export const AdminUsers: React.FC = () => {
               pageSize={10}
               onPageChange={setPage}
             />
-          </div>
+          </>
         )}
 
         {/* User Account Details Modal */}

@@ -154,7 +154,7 @@ export const CompanyJobs: React.FC = () => {
           </Link>
           <Link 
             to="/company/jobs/new" 
-            className="btn primary"
+            className="btn lime"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             <Plus size={16} /> Post a vacancy
@@ -238,7 +238,7 @@ export const CompanyJobs: React.FC = () => {
               ? 'There are no vacancies matching the selected status filter.' 
               : 'You haven\'t created any job openings yet. Start by defining your first role and structured qualification criteria.'}
           </p>
-          <Link to="/company/jobs/new" className="btn primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Link to="/company/jobs/new" className="btn lime" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
             <Plus size={16} /> Post a vacancy
           </Link>
         </div>
@@ -269,8 +269,8 @@ export const CompanyJobs: React.FC = () => {
             )}
           </div>
 
-          {/* Table matching Picture 4 */}
-          <div className="card tw">
+          {/* Desktop Table View */}
+          <div className="card tw table-desktop-view">
             <table>
               <thead>
                 <tr>
@@ -327,7 +327,7 @@ export const CompanyJobs: React.FC = () => {
                                 title: 'Publish Vacancy to Marketplace',
                                 description: 'Publishing will make this job publicly visible and allow eligible candidates to submit applications.',
                               })}
-                              className="btn sm primary"
+                              className="btn sm lime"
                               disabled={company?.approvalStatus === 'Suspended'}
                             >
                               Publish
@@ -395,6 +395,119 @@ export const CompanyJobs: React.FC = () => {
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Cards View */}
+          <div className="table-mobile-cards">
+            {jobs.map((job) => {
+              const statusStr = String(job.status);
+              const isDraft = statusStr === '0' || statusStr === 'Draft';
+              const isPublished = statusStr === '1' || statusStr === 'Published';
+              const isPaused = statusStr === '2' || statusStr === 'Paused';
+              const isClosed = statusStr === '3' || statusStr === 'Closed';
+              const isArchived = statusStr === '4' || statusStr === 'Archived';
+
+              return (
+                <div key={job.id} className="table-mobile-card">
+                  <div className="table-mobile-card-header">
+                    <div>
+                      <b style={{ fontSize: '16px' }}>{job.title}</b>
+                      <small className="muted" style={{ display: 'block', marginTop: '2px', fontSize: '13px' }}>{job.categoryName}</small>
+                    </div>
+                    {getStatusBadge(job.status)}
+                  </div>
+                  <div className="table-mobile-card-row">
+                    <span className="muted">Location</span>
+                    <span>{job.location || 'Remote'}</span>
+                  </div>
+                  <div className="table-mobile-card-row">
+                    <span className="muted">Applicants</span>
+                    <Link 
+                      to={`/company/applications?jobId=${job.id}`}
+                      style={{ fontWeight: 700, color: 'var(--navy)', textDecoration: 'underline' }}
+                    >
+                      {job.applicationCount} candidates
+                    </Link>
+                  </div>
+                  <div className="table-mobile-card-actions">
+                    {!isArchived && (
+                      <Link 
+                        to={`/company/jobs/${job.id}/edit`}
+                        className="btn sm"
+                      >
+                        Edit
+                      </Link>
+                    )}
+                    {isDraft && (
+                      <button
+                        onClick={() => setActionModal({
+                          job,
+                          action: 'publish',
+                          title: 'Publish Vacancy to Marketplace',
+                          description: 'Publishing will make this job publicly visible and allow eligible candidates to submit applications.',
+                        })}
+                        className="btn sm lime"
+                        disabled={company?.approvalStatus === 'Suspended'}
+                      >
+                        Publish
+                      </button>
+                    )}
+                    {isPublished && (
+                      <>
+                        <button
+                          onClick={() => setActionModal({
+                            job,
+                            action: 'pause',
+                            title: 'Pause Vacancy',
+                            description: 'Pausing will temporarily stop accepting new applications from candidates.',
+                          })}
+                          className="btn sm"
+                        >
+                          Pause
+                        </button>
+                        <button
+                          onClick={() => setActionModal({
+                            job,
+                            action: 'close',
+                            title: 'Close Vacancy',
+                            description: 'Closing will terminate application intake for this position.',
+                          })}
+                          className="btn sm danger"
+                        >
+                          Close
+                        </button>
+                      </>
+                    )}
+                    {isPaused && (
+                      <button
+                        onClick={() => setActionModal({
+                          job,
+                          action: 'reopen',
+                          title: 'Reopen Vacancy',
+                          description: 'Reopening will resume application intake on the public marketplace.',
+                        })}
+                        className="btn sm primary"
+                      >
+                        Reopen
+                      </button>
+                    )}
+                    {isClosed && (
+                      <button
+                        onClick={() => setActionModal({
+                          job,
+                          action: 'archive',
+                          title: 'Archive Vacancy',
+                          description: 'Archiving removes this vacancy from active management lists.',
+                        })}
+                        className="btn sm"
+                      >
+                        Archive
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </>
       )}

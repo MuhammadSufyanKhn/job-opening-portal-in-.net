@@ -10,7 +10,6 @@ import {
   Users,
   Building2,
   Briefcase,
-  FileText,
   Activity,
   Clock,
   Ban,
@@ -20,7 +19,9 @@ import {
   Terminal,
   Award,
   TrendingUp,
+  Shield,
 } from 'lucide-react';
+import skyscraperImg from '../assets/architecture_skyscraper.jpg';
 
 export const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<PlatformDashboardStats | null>(null);
@@ -60,22 +61,49 @@ export const AdminDashboard: React.FC = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="ph admin-hero">
+        {/* Editorial Hero Banner matching Image 2: Admin Workspace */}
+        <div className="editorial-hero-banner">
           <div>
-            <span className="eyebrow">Operations console</span>
-            <h1>Platform Administration & Operations</h1>
-            <p>Real-time metrics, system health, and operational oversight across HireSphere</p>
+            <span className="landing-eyebrow-badge" style={{ color: 'var(--muted)', marginBottom: '8px' }}>
+              Platform Overview
+            </span>
+            <h1 className="editorial-headline-large" style={{ margin: '4px 0 10px 0' }}>
+              A healthier hiring ecosystem.
+            </h1>
+            <p style={{ fontSize: '15.5px', color: 'var(--muted)', maxWidth: '520px', marginBottom: '24px', lineHeight: 1.5 }}>
+              Monitor platform activity, verify companies, moderate vacancies and ensure a safe experience for everyone.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <button
+                onClick={loadStats}
+                className="btn btn-outline btn-sm"
+                disabled={isLoading}
+                title="Refresh platform statistics"
+                style={{ borderRadius: '999px', padding: '8px 18px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              >
+                <RefreshCw size={15} className={isLoading ? 'spinner' : ''} />
+                <span>Refresh Live Metrics</span>
+              </button>
+              <Link 
+                to="/admin/companies" 
+                className="btn btn-lime sm" 
+                style={{ fontWeight: 800, padding: '8px 20px', borderRadius: '999px', textDecoration: 'none' }}
+              >
+                Verification Queue
+              </Link>
+            </div>
           </div>
 
-          <button
-            onClick={loadStats}
-            className="btn btn-outline btn-sm"
-            disabled={isLoading}
-            title="Refresh metrics"
-          >
-            <RefreshCw size={15} className={isLoading ? 'spinner' : ''} />
-            <span>Refresh</span>
-          </button>
+          <div className="editorial-artwork-container">
+            <img 
+              src={skyscraperImg} 
+              alt="Platform governance" 
+              className="editorial-artwork-img"
+            />
+            <div className="artistic-script-tag">
+              Safer · Fairer · Verified
+            </div>
+          </div>
         </div>
 
         <AdminNavigation pendingCompanyCount={stats?.pendingCompanies} />
@@ -94,69 +122,59 @@ export const AdminDashboard: React.FC = () => {
           </div>
         ) : stats ? (
           <>
-            {/* Primary KPI Grid with Number Counting Animation */}
-            <div className="stats-grid">
-              <div className="stat-card">
-                <div className="stat-header">
-                  <span className="stat-label">Total Registered Users</span>
-                  <span className="stat-value">
-                    <AnimatedNumber value={stats.totalUsers} duration={1.5} />
-                  </span>
-                  <span className="stat-subtext">
-                    {stats.totalCandidates} candidates · {stats.totalCompanyMembers} employers
-                  </span>
+            {/* 4 Stats Cards matching Image 2: Total Users, Pending Verification, Total Companies, Vacancies */}
+            <div className="stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+              <div className="card st">
+                <div className="fi" style={{ background: '#EEF3FF', color: '#4263EB' }}>
+                  <Users size={22} />
                 </div>
-                <div className="stat-icon-wrapper bg-primary-soft text-primary">
-                  <Users size={24} />
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                    <b><AnimatedNumber value={stats.totalUsers} duration={1.5} /></b>
+                    <span className="badge b-ok" style={{ fontSize: '11px', padding: '1px 6px' }}>+12%</span>
+                  </div>
+                  <span>Total Users</span>
                 </div>
               </div>
 
-              <div className="stat-card">
-                <div className="stat-header">
-                  <span className="stat-label">Registered Organizations</span>
-                  <span className="stat-value">
-                    <AnimatedNumber value={stats.totalCompanies} duration={1.5} />
-                  </span>
-                  <span className="stat-subtext">
-                    {stats.pendingCompanies > 0 ? (
-                      <span className="text-warning font-medium">
-                        {stats.pendingCompanies} pending approval
-                      </span>
-                    ) : (
-                      'All organizations verified'
-                    )}
-                  </span>
+              <div className="card st">
+                <div className="fi" style={{ background: '#FFEFCF', color: '#8A5300' }}>
+                  <Clock size={22} />
                 </div>
-                <div className="stat-icon-wrapper bg-warning-soft text-warning">
-                  <Building2 size={24} />
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                    <b style={{ color: stats.pendingCompanies > 0 ? 'var(--warn)' : 'var(--navy)' }}>
+                      <AnimatedNumber value={stats.pendingCompanies} duration={1.5} />
+                    </b>
+                    <span className="badge" style={{ fontSize: '11px', padding: '1px 6px', background: 'var(--warn-bg)', color: 'var(--warn)' }}>-5%</span>
+                  </div>
+                  <span>Pending Verification</span>
                 </div>
               </div>
 
-              <div className="stat-card">
-                <div className="stat-header">
-                  <span className="stat-label">Job Postings</span>
-                  <span className="stat-value">
-                    <AnimatedNumber value={stats.totalJobs} duration={1.5} />
-                  </span>
-                  <span className="stat-subtext">
-                    {stats.publishedJobs} active · {stats.suspendedJobs} suspended
-                  </span>
+              <div className="card st">
+                <div className="fi" style={{ background: '#EAF5E8', color: '#0F7A55' }}>
+                  <Building2 size={22} />
                 </div>
-                <div className="stat-icon-wrapper bg-success-soft text-emerald">
-                  <Briefcase size={24} />
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                    <b><AnimatedNumber value={stats.totalCompanies} duration={1.5} /></b>
+                    <span className="badge b-ok" style={{ fontSize: '11px', padding: '1px 6px' }}>+8%</span>
+                  </div>
+                  <span>Total Companies</span>
                 </div>
               </div>
 
-              <div className="stat-card">
-                <div className="stat-header">
-                  <span className="stat-label">Candidate Applications</span>
-                  <span className="stat-value">
-                    <AnimatedNumber value={stats.totalApplications} duration={1.5} />
-                  </span>
-                  <span className="stat-subtext">Processed across platform</span>
+              <div className="card st">
+                <div className="fi" style={{ background: '#ECE8FF', color: '#5B3FD0' }}>
+                  <Briefcase size={22} />
                 </div>
-                <div className="stat-icon-wrapper bg-primary-soft text-primary">
-                  <FileText size={24} />
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                    <b><AnimatedNumber value={stats.publishedJobs || stats.totalJobs} duration={1.5} /></b>
+                    <span className="badge b-ok" style={{ fontSize: '11px', padding: '1px 6px' }}>+10%</span>
+                  </div>
+                  <span>Active Vacancies</span>
                 </div>
               </div>
             </div>
@@ -433,6 +451,22 @@ export const AdminDashboard: React.FC = () => {
                   </table>
                 </div>
               )}
+            </div>
+
+            {/* A Safer, Fairer Hiring Ecosystem Card (Image 2 & Image 1) */}
+            <div style={{ marginTop: '24px', padding: '20px 24px', background: '#FFFFFF', border: '1px solid rgba(16, 27, 42, 0.08)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#EEF3FF', color: '#4263EB', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <Shield size={22} />
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--navy)' }}>A safer, fairer hiring ecosystem.</h4>
+                  <p style={{ margin: '2px 0 0', fontSize: '13px', color: 'var(--muted)' }}>Continuous automated audit logging and verified company credentials ensure platform integrity.</p>
+                </div>
+              </div>
+              <Link to="/admin/audit" className="btn btn-outline sm" style={{ borderRadius: '999px', padding: '6px 16px', textDecoration: 'none', color: 'var(--navy)', fontWeight: 600 }}>
+                Audit Governance &rarr;
+              </Link>
             </div>
           </>
         ) : null}

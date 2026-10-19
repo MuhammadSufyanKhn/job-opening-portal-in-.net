@@ -32,11 +32,15 @@ export const api = axios.create({
   },
 });
 
-// Attach JWT access token
+// Attach JWT access token & ensure multipart/form-data requests are not forced to application/json
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('hiresphere_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  // If request data is FormData, remove Content-Type so the browser sets multipart/form-data with boundary
+  if (config.data instanceof FormData && config.headers) {
+    delete config.headers['Content-Type'];
   }
   return config;
 });
@@ -179,16 +183,34 @@ export const companyApplicationsApi = {
 export const candidateDocumentsApi = {
   getMyDocuments: () => api.get<import('../types/document').CandidateDocumentSummary[]>('/candidate/documents').then(r => r.data),
   getDocument: (id: string) => api.get<import('../types/document').CandidateDocumentDetail>(`/candidate/documents/${id}`).then(r => r.data),
-  uploadCv: (file: File) => {
+  uploadCv: (file: File, onProgress?: (percent: number) => void) => {
     const formData = new FormData();
     formData.append('file', file);
     return api.post<import('../types/document').CandidateDocumentDetail>('/candidate/documents', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total && onProgress) {
+          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(percent);
+        }
+      },
     }).then(r => r.data);
   },
-  uploadNewVersion: (rootDocumentId: string, file: File) => {
+  uploadNewVersion: (rootDocumentId: string, file: File, onProgress?: (percent: number) => void) => {
     const formData = new FormData();
     formData.append('file', file);
     return api.post<import('../types/document').CandidateDocumentDetail>(`/candidate/documents/${rootDocumentId}/versions`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total && onProgress) {
+          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(percent);
+        }
+      },
     }).then(r => r.data);
   },
   setDefaultCv: (id: string) => api.post(`/candidate/documents/${id}/set-default`).then(r => r.data),

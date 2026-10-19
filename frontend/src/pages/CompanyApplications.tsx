@@ -60,6 +60,7 @@ export const CompanyApplications: React.FC = () => {
   const [viewMode, setViewMode] = useState<'board' | 'table'>('board');
   const [pipelineBoard, setPipelineBoard] = useState<PipelineBoard | null>(null);
   const [loadingBoard, setLoadingBoard] = useState(false);
+  const [mobileActiveStageIndex, setMobileActiveStageIndex] = useState<number>(0);
 
   // Match Report state
   const [matchReport, setMatchReport] = useState<CvMatchReport | null>(null);
@@ -357,6 +358,20 @@ export const CompanyApplications: React.FC = () => {
       setStageError(err.response?.data?.detail || 'Failed to transition application stage.');
     } finally {
       setIsUpdatingStage(false);
+    }
+  };
+
+  const handleQuickStageChange = async (appId: string, stage: number) => {
+    if (!companyId) return;
+    try {
+      await companyApplicationsApi.updateStage(companyId, appId, {
+        newStage: stage,
+        reasonNote: 'Updated from pipeline board'
+      });
+      loadPipelineBoard(companyId);
+      setActionNotice({ message: 'Candidate stage updated successfully.', type: 'success' });
+    } catch (err: any) {
+      setActionNotice({ message: err.response?.data?.detail || 'Failed to update stage.', type: 'error' });
     }
   };
 
@@ -662,41 +677,140 @@ export const CompanyApplications: React.FC = () => {
                   </Link>
                 </div>
               ) : (
-                <div className="board6" aria-label="Applicant board">
-                  {pipelineBoard.stages.map(column => (
-                    <div className="bcol" key={column.stageName}>
-                      <h4>
-                        {column.stageName} <span>{column.count}</span>
-                      </h4>
-                      {column.applications.length === 0 ? (
-                        <div className="muted" style={{ padding: '12px 6px', fontSize: '13.5px' }}>
-                          No candidates
+                <>
+                  {/* Desktop Full Kanban Board */}
+                  <div className="pipeline-desktop-view">
+                    <div className="board6" aria-label="Applicant board">
+                      {pipelineBoard.stages.map(column => (
+                        <div className="bcol" key={column.stageName}>
+                          <h4>
+                            {column.stageName} <span>{column.count}</span>
+                          </h4>
+                          {column.applications.length === 0 ? (
+                            <div className="muted" style={{ padding: '12px 6px', fontSize: '13.5px' }}>
+                              No candidates
+                            </div>
+                          ) : (
+                            column.applications.map(card => (
+                              <button
+                                key={card.id}
+                                type="button"
+                                className={`bcard ${card.matchEvidenceIndex && card.matchEvidenceIndex >= 90 ? 'hot' : ''}`}
+                                onClick={() => handleOpenDetail(card.id)}
+                              >
+                                <b>{card.candidateName}</b>
+                                <small>
+                                  CV match {card.matchEvidenceIndex != null ? Math.round(card.matchEvidenceIndex) : 88}%
+                                </small>
+                                {card.workSimScore != null && (
+                                  <span>
+                                    <span className="badge b-ok nodot">
+                                      Skills challenge {Math.round(card.workSimScore)}/100
+                                    </span>
+                                  </span>
+                                )}
+                              </button>
+                            ))
+                          )}
                         </div>
-                      ) : (
-                        column.applications.map(card => (
-                          <button
-                            key={card.id}
-                            type="button"
-                            className={`bcard ${card.matchEvidenceIndex && card.matchEvidenceIndex >= 90 ? 'hot' : ''}`}
-                            onClick={() => handleOpenDetail(card.id)}
-                          >
-                            <b>{card.candidateName}</b>
-                            <small>
-                              CV match {card.matchEvidenceIndex != null ? Math.round(card.matchEvidenceIndex) : 88}%
-                            </small>
-                            {card.workSimScore != null && (
-                              <span>
-                                <span className="badge b-ok nodot">
-                                  Skills challenge {Math.round(card.workSimScore)}/100
-                                </span>
-                              </span>
-                            )}
-                          </button>
-                        ))
-                      )}
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+
+                  {/* Mobile Deliberate Stage-Based Interface (Section 12.2) */}
+                  <div className="pipeline-mobile-view">
+                    {/* Horizontal Stage Selector with Application Counts */}
+                    <div className="stage-pill-selector" role="tablist" aria-label="Pipeline Stages">
+                      {pipelineBoard.stages.map((stageCol, idx) => (
+                        <button
+                          key={stageCol.stageName}
+                          type="button"
+                          role="tab"
+                          aria-selected={mobileActiveStageIndex === idx}
+                          onClick={() => setMobileActiveStageIndex(idx)}
+                          className={`stage-pill-btn ${mobileActiveStageIndex === idx ? 'active' : ''}`}
+                        >
+                          <span>{stageCol.stageName}</span>
+                          <span className="pill-badge">{stageCol.count}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Vertical List of Candidate Cards for Selected Stage */}
+                    {(() => {
+                      const activeStage = pipelineBoard.stages[mobileActiveStageIndex] || pipelineBoard.stages[0];
+                      if (!activeStage || activeStage.applications.length === 0) {
+                        return (
+                          <div className="card-form" style={{ textAlign: 'center', padding: '3rem 1.5rem', color: 'var(--muted)' }}>
+                            <Users size={36} style={{ margin: '0 auto 0.75rem', opacity: 0.4 }} />
+                            <p style={{ margin: 0, fontSize: '14.5px' }}>
+                              No candidates currently in <strong>{activeStage?.stageName}</strong>.
+                            </p>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          {activeStage.applications.map(card => (
+                            <div key={card.id} className={`pipeline-mobile-card ${card.matchEvidenceIndex && card.matchEvidenceIndex >= 90 ? 'hot' : ''}`}>
+                              <div className="pipeline-mobile-card-top">
+                                <div>
+                                  <b style={{ fontSize: '16px' }}>{card.candidateName}</b>
+                                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                                    {card.jobTitle}
+                                  </div>
+                                </div>
+                                <span className="badge b-blue nodot" style={{ fontSize: '12px' }}>
+                                  CV match {card.matchEvidenceIndex != null ? Math.round(card.matchEvidenceIndex) : 88}%
+                                </span>
+                              </div>
+
+                              {card.workSimScore != null && (
+                                <div>
+                                  <span className="badge b-ok nodot">
+                                    Skills challenge {Math.round(card.workSimScore)}/100
+                                  </span>
+                                </div>
+                              )}
+
+                              <div className="pipeline-mobile-card-actions">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 600 }}>Move to:</span>
+                                  <select
+                                    className="select-standard"
+                                    style={{ height: '34px', fontSize: '12.5px', padding: '0 8px' }}
+                                    value={card.currentStage}
+                                    onChange={(e) => handleQuickStageChange(card.id, Number(e.target.value))}
+                                  >
+                                    <option value="0">Submitted</option>
+                                    <option value="1">Under Review</option>
+                                    <option value="2">Shortlisted</option>
+                                    <option value="3">Assessment Pending</option>
+                                    <option value="4">Assessment Completed</option>
+                                    <option value="5">Interview Scheduled</option>
+                                    <option value="6">Offered</option>
+                                    <option value="7">Hired</option>
+                                    <option value="8">Rejected</option>
+                                  </select>
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenDetail(card.id)}
+                                  className="btn sm"
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                >
+                                  Review Candidate →
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </>
               )}
             </div>
           )}
@@ -721,7 +835,8 @@ export const CompanyApplications: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  <div className="card-table-wrapper">
+                  {/* Desktop Table View */}
+                  <div className="card-table-wrapper table-desktop-view">
                     <table className="data-table">
                       <thead>
                         <tr>
@@ -787,6 +902,50 @@ export const CompanyApplications: React.FC = () => {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* Mobile Cards View */}
+                  <div className="table-mobile-cards">
+                    {applications.map((app) => (
+                      <div key={app.id} className="table-mobile-card">
+                        <div className="table-mobile-card-header">
+                          <div>
+                            <b style={{ fontSize: '16px' }}>{app.candidateName}</b>
+                            <small className="muted" style={{ display: 'block', marginTop: '2px', fontSize: '13px' }}>
+                              {app.candidateEmail}
+                            </small>
+                          </div>
+                          {getStageBadge(app.currentStage)}
+                        </div>
+
+                        <div className="table-mobile-card-row">
+                          <span className="muted">Vacancy</span>
+                          <span style={{ fontWeight: 600 }}>{app.jobTitle}</span>
+                        </div>
+
+                        {app.candidateHeadline && (
+                          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                            "{app.candidateHeadline}"
+                          </div>
+                        )}
+
+                        <div className="table-mobile-card-row">
+                          <span className="muted">Applied</span>
+                          <span>{new Date(app.submittedAtUtc).toLocaleDateString()}</span>
+                        </div>
+
+                        <div className="table-mobile-card-actions">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenDetail(app.id)}
+                            className="btn sm"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', width: '100%', justifyContent: 'center' }}
+                          >
+                            <Eye size={14} /> Review Candidate Workspace →
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
                   {/* Pagination */}

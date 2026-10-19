@@ -215,93 +215,164 @@ export const AdminJobs: React.FC = () => {
             <p>No vacancy records matched the selected status or query criteria.</p>
           </div>
         ) : (
-          <div className="card-table-wrapper">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Job Title & Organization</th>
-                  <th>Category & Details</th>
-                  <th>Applications</th>
-                  <th>Status</th>
-                  <th>Published Date</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {jobs.map((j) => (
-                  <tr key={j.id}>
-                    <td>
-                      <div className="font-medium">{j.title}</div>
-                      <div className="text-muted text-sm" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <Building2 size={13} /> {j.companyName}
-                      </div>
-                      <div className="text-muted text-xs" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <MapPin size={12} /> {j.location} · {j.employmentType}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="font-medium text-sm">{j.categoryName}</div>
-                      <span className="badge badge-outline text-xs">{j.workplaceType}</span>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <Users size={14} className="text-muted" />
-                        <span className="font-medium">{j.applicationsCount}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <span className={`status-badge ${getStatusBadgeClass(j.status)}`}>
-                        {j.status}
-                      </span>
-                      {j.moderationReason && (
-                        <div className="text-danger text-xs mt-1" title={j.moderationReason}>
-                          Reason: {j.moderationReason}
-                        </div>
-                      )}
-                    </td>
-                    <td className="text-xs text-muted">
-                      {j.publishedAtUtc
-                        ? new Date(j.publishedAtUtc).toLocaleDateString()
-                        : 'Unpublished'}
-                    </td>
-                    <td>
-                      <div className="action-button-group">
-                        <button
-                          onClick={() => openJobDetails(j.id)}
-                          className="btn btn-sm btn-outline"
-                          title="Inspect job description and requirements"
-                        >
-                          <Eye size={14} /> Review
-                        </button>
-
-                        {j.status === 'Published' && (
-                          <button
-                            onClick={() => {
-                              setSuspendingJob(j);
-                              setSuspensionReason('');
-                            }}
-                            className="btn btn-sm btn-warning"
-                            title="Suspend violating job posting"
-                          >
-                            <Ban size={14} /> Moderate
-                          </button>
-                        )}
-
-                        {j.status === 'Suspended' && (
-                          <button
-                            onClick={() => handleRestoreJob(j)}
-                            className="btn btn-sm btn-outline"
-                            title="Restore job to marketplace"
-                          >
-                            <RefreshCw size={14} /> Restore
-                          </button>
-                        )}
-                      </div>
-                    </td>
+          <>
+            {/* Desktop Table View */}
+            <div className="card-table-wrapper table-desktop-view">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Job Title & Organization</th>
+                    <th>Category & Details</th>
+                    <th>Applications</th>
+                    <th>Status</th>
+                    <th>Published Date</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {jobs.map((j) => (
+                    <tr key={j.id}>
+                      <td>
+                        <div className="font-medium">{j.title}</div>
+                        <div className="text-muted text-sm" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <Building2 size={13} /> {j.companyName}
+                        </div>
+                        <div className="text-muted text-xs" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <MapPin size={12} /> {j.location} · {j.employmentType}
+                        </div>
+                      </td>
+                      <td>
+                        <div className="font-medium text-sm">{j.categoryName}</div>
+                        <span className="badge badge-outline text-xs">{j.workplaceType}</span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <Users size={14} className="text-muted" />
+                          <span className="font-medium">{j.applicationsCount}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`status-badge ${getStatusBadgeClass(j.status)}`}>
+                          {j.status}
+                        </span>
+                        {j.moderationReason && (
+                          <div className="text-danger text-xs mt-1" title={j.moderationReason}>
+                            Reason: {j.moderationReason}
+                          </div>
+                        )}
+                      </td>
+                      <td className="text-xs text-muted">
+                        {j.publishedAtUtc
+                          ? new Date(j.publishedAtUtc).toLocaleDateString()
+                          : 'Unpublished'}
+                      </td>
+                      <td>
+                        <div className="action-button-group" style={{ justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={() => openJobDetails(j.id)}
+                            className="btn btn-sm btn-outline"
+                            title="Inspect job description and requirements"
+                          >
+                            <Eye size={14} /> Review
+                          </button>
+
+                          {j.status === 'Published' && (
+                            <button
+                              onClick={() => {
+                                setSuspendingJob(j);
+                                setSuspensionReason('');
+                              }}
+                              className="btn btn-sm btn-warning"
+                              title="Suspend violating job posting"
+                            >
+                              <Ban size={14} /> Moderate
+                            </button>
+                          )}
+
+                          {j.status === 'Suspended' && (
+                            <button
+                              onClick={() => handleRestoreJob(j)}
+                              className="btn btn-sm btn-outline"
+                              title="Restore job to marketplace"
+                            >
+                              <RefreshCw size={14} /> Restore
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards View */}
+            <div className="table-mobile-cards">
+              {jobs.map((j) => (
+                <div key={j.id} className="table-mobile-card">
+                  <div className="table-mobile-card-header">
+                    <div>
+                      <b style={{ fontSize: '16px' }}>{j.title}</b>
+                      <small className="muted" style={{ display: 'block', fontSize: '13px', marginTop: '2px' }}>
+                        {j.companyName}
+                      </small>
+                    </div>
+                    <span className={`status-badge ${getStatusBadgeClass(j.status)}`}>
+                      {j.status}
+                    </span>
+                  </div>
+
+                  <div className="table-mobile-card-row">
+                    <span className="muted">Category / Mode</span>
+                    <span>{j.categoryName} · {j.workplaceType}</span>
+                  </div>
+
+                  <div className="table-mobile-card-row">
+                    <span className="muted">Applications</span>
+                    <span style={{ fontWeight: 600 }}>{j.applicationsCount} candidates</span>
+                  </div>
+
+                  {j.moderationReason && (
+                    <div style={{ fontSize: '12px', color: 'var(--bad)', background: 'var(--bad-bg)', padding: '6px 10px', borderRadius: '6px' }}>
+                      <strong>Moderation notice:</strong> {j.moderationReason}
+                    </div>
+                  )}
+
+                  <div className="table-mobile-card-actions">
+                    <button
+                      onClick={() => openJobDetails(j.id)}
+                      className="btn btn-sm btn-outline"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <Eye size={14} /> Review
+                    </button>
+
+                    {j.status === 'Published' && (
+                      <button
+                        onClick={() => {
+                          setSuspendingJob(j);
+                          setSuspensionReason('');
+                        }}
+                        className="btn btn-sm btn-warning"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <Ban size={14} /> Moderate
+                      </button>
+                    )}
+
+                    {j.status === 'Suspended' && (
+                      <button
+                        onClick={() => handleRestoreJob(j)}
+                        className="btn btn-sm btn-outline"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <RefreshCw size={14} /> Restore
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
 
             {/* Pagination */}
             <Pagination
@@ -311,7 +382,7 @@ export const AdminJobs: React.FC = () => {
               pageSize={10}
               onPageChange={setPage}
             />
-          </div>
+          </>
         )}
 
         {/* Job Detail Review Modal */}

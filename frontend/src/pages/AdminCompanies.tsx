@@ -206,115 +206,208 @@ export const AdminCompanies: React.FC = () => {
             <p>There are no company records matching the selected status and search criteria.</p>
           </div>
         ) : (
-          <div className="card-table-wrapper">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Organization</th>
-                  <th>Industry</th>
-                  <th>Owner Contact</th>
-                  <th>Status</th>
-                  <th>Registration Date</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {companies.map((comp, idx) => (
-                  <tr key={comp.id}>
-                    <td>
-                      <div className="cell">
-                        <span className={`mark m${(idx % 5) + 1}`}>
-                          {comp.name[0]?.toUpperCase()}
+          <>
+            {/* Desktop Table View */}
+            <div className="card-table-wrapper table-desktop-view">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Organization</th>
+                    <th>Industry</th>
+                    <th>Owner Contact</th>
+                    <th>Status</th>
+                    <th>Registration Date</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {companies.map((comp, idx) => (
+                    <tr key={comp.id}>
+                      <td>
+                        <div className="cell">
+                          <span className={`mark m${(idx % 5) + 1}`}>
+                            {comp.name[0]?.toUpperCase()}
+                          </span>
+                          <div>
+                            <b>{comp.name}</b>
+                            <small className="muted">{comp.contactEmail}</small>
+                            {comp.websiteUrl && (
+                              <a
+                                href={comp.websiteUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{ fontSize: '12px', color: 'var(--accent)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}
+                              >
+                                Website <ExternalLink size={10} />
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td>{comp.industry || '—'}</td>
+                      <td>
+                        <div><b>{comp.ownerName}</b></div>
+                        <small className="muted">{comp.ownerEmail}</small>
+                      </td>
+                      <td>
+                        <span className={`status-badge status-${comp.approvalStatus.toLowerCase()}`}>
+                          {comp.approvalStatus}
                         </span>
-                        <div>
-                          <b>{comp.name}</b>
-                          <small className="muted">{comp.contactEmail}</small>
-                          {comp.websiteUrl && (
-                            <a
-                              href={comp.websiteUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              style={{ fontSize: '12px', color: 'var(--accent)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}
+                        {comp.rejectionReason && (
+                          <div className="text-danger" style={{ fontSize: '11.5px', marginTop: '3px' }} title={comp.rejectionReason}>
+                            Reason: {comp.rejectionReason}
+                          </div>
+                        )}
+                      </td>
+                      <td className="muted">{new Date(comp.createdAtUtc).toLocaleDateString()}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="action-button-group" style={{ justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={() => setInspectingCompany(comp)}
+                            className="btn btn-sm btn-outline"
+                            title="Inspect company details"
+                          >
+                            <Eye size={14} /> Details
+                          </button>
+
+                          {comp.approvalStatus === 'PendingApproval' && (
+                            <>
+                              <button
+                                onClick={() => handleApprove(comp.id)}
+                                className="btn btn-sm btn-success"
+                                title="Approve organization"
+                              >
+                                <Check size={14} /> Approve
+                              </button>
+                              <button
+                                onClick={() => setRejectingCompanyId(comp.id)}
+                                className="btn btn-sm btn-danger"
+                                title="Reject registration"
+                              >
+                                <X size={14} /> Reject
+                              </button>
+                            </>
+                          )}
+
+                          {comp.approvalStatus === 'Approved' && (
+                            <button
+                              onClick={() => {
+                                setSuspendingCompanyId(comp.id);
+                                setSuspensionReason('');
+                              }}
+                              className="btn btn-sm btn-warning"
+                              title="Suspend organization"
                             >
-                              Website <ExternalLink size={10} />
-                            </a>
+                              <Ban size={14} /> Suspend
+                            </button>
+                          )}
+
+                          {(comp.approvalStatus === 'Suspended' || comp.approvalStatus === 'Rejected') && (
+                            <button
+                              onClick={() => handleRestore(comp.id)}
+                              className="btn btn-sm btn-outline"
+                              title="Restore to approved"
+                            >
+                              <RefreshCw size={14} /> Restore
+                            </button>
                           )}
                         </div>
-                      </div>
-                    </td>
-                    <td>{comp.industry || '—'}</td>
-                    <td>
-                      <div><b>{comp.ownerName}</b></div>
-                      <small className="muted">{comp.ownerEmail}</small>
-                    </td>
-                    <td>
-                      <span className={`status-badge status-${comp.approvalStatus.toLowerCase()}`}>
-                        {comp.approvalStatus}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards View */}
+            <div className="table-mobile-cards">
+              {companies.map((comp, idx) => (
+                <div key={comp.id} className="table-mobile-card">
+                  <div className="table-mobile-card-header">
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <span className={`mark m${(idx % 5) + 1}`} style={{ width: '38px', height: '38px', fontSize: '16px' }}>
+                        {comp.name[0]?.toUpperCase()}
                       </span>
-                      {comp.rejectionReason && (
-                        <div className="text-danger" style={{ fontSize: '11.5px', marginTop: '3px' }} title={comp.rejectionReason}>
-                          Reason: {comp.rejectionReason}
-                        </div>
-                      )}
-                    </td>
-                    <td className="muted">{new Date(comp.createdAtUtc).toLocaleDateString()}</td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div className="action-button-group" style={{ justifyContent: 'flex-end' }}>
-                        <button
-                          onClick={() => setInspectingCompany(comp)}
-                          className="btn btn-sm btn-outline"
-                          title="Inspect company details"
-                        >
-                          <Eye size={14} /> Details
-                        </button>
-
-                        {comp.approvalStatus === 'PendingApproval' && (
-                          <>
-                            <button
-                              onClick={() => handleApprove(comp.id)}
-                              className="btn btn-sm btn-success"
-                              title="Approve organization"
-                            >
-                              <Check size={14} /> Approve
-                            </button>
-                            <button
-                              onClick={() => setRejectingCompanyId(comp.id)}
-                              className="btn btn-sm btn-danger"
-                              title="Reject registration"
-                            >
-                              <X size={14} /> Reject
-                            </button>
-                          </>
-                        )}
-
-                        {comp.approvalStatus === 'Approved' && (
-                          <button
-                            onClick={() => {
-                              setSuspendingCompanyId(comp.id);
-                              setSuspensionReason('');
-                            }}
-                            className="btn btn-sm btn-warning"
-                            title="Suspend organization"
-                          >
-                            <Ban size={14} /> Suspend
-                          </button>
-                        )}
-
-                        {(comp.approvalStatus === 'Suspended' || comp.approvalStatus === 'Rejected') && (
-                          <button
-                            onClick={() => handleRestore(comp.id)}
-                            className="btn btn-sm btn-outline"
-                            title="Restore to approved"
-                          >
-                            <RefreshCw size={14} /> Restore
-                          </button>
-                        )}
+                      <div>
+                        <b style={{ fontSize: '16px' }}>{comp.name}</b>
+                        <small className="muted" style={{ display: 'block', fontSize: '12.5px' }}>{comp.contactEmail}</small>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                    <span className={`status-badge status-${comp.approvalStatus.toLowerCase()}`}>
+                      {comp.approvalStatus}
+                    </span>
+                  </div>
+
+                  <div className="table-mobile-card-row">
+                    <span className="muted">Industry</span>
+                    <span style={{ fontWeight: 600 }}>{comp.industry || '—'}</span>
+                  </div>
+
+                  <div className="table-mobile-card-row">
+                    <span className="muted">Owner</span>
+                    <span>{comp.ownerName} ({comp.ownerEmail})</span>
+                  </div>
+
+                  {comp.rejectionReason && (
+                    <div style={{ fontSize: '12px', color: 'var(--bad)', background: 'var(--bad-bg)', padding: '6px 10px', borderRadius: '6px' }}>
+                      <strong>Rejection reason:</strong> {comp.rejectionReason}
+                    </div>
+                  )}
+
+                  <div className="table-mobile-card-actions">
+                    <button
+                      onClick={() => setInspectingCompany(comp)}
+                      className="btn btn-sm btn-outline"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <Eye size={14} /> Details
+                    </button>
+
+                    {comp.approvalStatus === 'PendingApproval' && (
+                      <>
+                        <button
+                          onClick={() => handleApprove(comp.id)}
+                          className="btn btn-sm btn-success"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          <Check size={14} /> Approve
+                        </button>
+                        <button
+                          onClick={() => setRejectingCompanyId(comp.id)}
+                          className="btn btn-sm btn-danger"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          <X size={14} /> Reject
+                        </button>
+                      </>
+                    )}
+
+                    {comp.approvalStatus === 'Approved' && (
+                      <button
+                        onClick={() => {
+                          setSuspendingCompanyId(comp.id);
+                          setSuspensionReason('');
+                        }}
+                        className="btn btn-sm btn-warning"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <Ban size={14} /> Suspend
+                      </button>
+                    )}
+
+                    {(comp.approvalStatus === 'Suspended' || comp.approvalStatus === 'Rejected') && (
+                      <button
+                        onClick={() => handleRestore(comp.id)}
+                        className="btn btn-sm btn-outline"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <RefreshCw size={14} /> Restore
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
 
             {/* Pagination Controls */}
             <Pagination
@@ -324,7 +417,7 @@ export const AdminCompanies: React.FC = () => {
               pageSize={10}
               onPageChange={setPage}
             />
-          </div>
+          </>
         )}
 
         {/* Company Details Inspection Modal */}

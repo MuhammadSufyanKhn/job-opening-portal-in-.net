@@ -174,62 +174,103 @@ export const AdminAudit: React.FC = () => {
             <p>No operational actions matched your specified filter criteria.</p>
           </div>
         ) : (
-          <div className="card-table-wrapper">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Timestamp</th>
-                  <th>Action</th>
-                  <th>Target Resource</th>
-                  <th>Administrator</th>
-                  <th>Details & Metadata</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.map((log) => (
-                  <tr key={log.id}>
-                    <td className="text-xs text-muted" style={{ whiteSpace: 'nowrap' }}>
-                      <div className="font-medium text-primary">
-                        {new Date(log.timestampUtc).toLocaleDateString()}
-                      </div>
-                      <div>{new Date(log.timestampUtc).toLocaleTimeString()}</div>
-                    </td>
-                    <td>
+          <>
+            {/* Desktop Table View */}
+            <div className="card-table-wrapper table-desktop-view">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Action</th>
+                    <th>Target Resource</th>
+                    <th>Administrator</th>
+                    <th>Details & Metadata</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {logs.map((log) => (
+                    <tr key={log.id}>
+                      <td className="text-xs text-muted" style={{ whiteSpace: 'nowrap' }}>
+                        <div className="font-medium text-primary">
+                          {new Date(log.timestampUtc).toLocaleDateString()}
+                        </div>
+                        <div>{new Date(log.timestampUtc).toLocaleTimeString()}</div>
+                      </td>
+                      <td>
+                        <span className={`badge ${getActionBadgeColor(log.actionType)} font-medium`}>
+                          {formatActionName(log.actionType)}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="font-medium text-sm">{log.targetResource}</div>
+                        <div className="text-muted text-xs" style={{ fontFamily: 'monospace' }}>
+                          ID: {log.targetResourceId}
+                        </div>
+                        {log.companyName && (
+                          <div className="text-xs text-muted">{log.companyName}</div>
+                        )}
+                      </td>
+                      <td>
+                        <div className="text-sm font-medium">{log.actorName || 'System'}</div>
+                        <div className="text-muted text-xs">{log.actorEmail}</div>
+                        {log.ipAddress && (
+                          <div className="text-muted text-xs" style={{ fontFamily: 'monospace' }}>
+                            IP: {log.ipAddress}
+                          </div>
+                        )}
+                      </td>
+                      <td>
+                        <button
+                          onClick={() => setSelectedLog(log)}
+                          className="btn btn-sm btn-outline"
+                          title="Inspect full audit record"
+                        >
+                          <Eye size={13} /> Inspect
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards View */}
+            <div className="table-mobile-cards">
+              {logs.map((log) => (
+                <div key={log.id} className="table-mobile-card">
+                  <div className="table-mobile-card-header">
+                    <div>
                       <span className={`badge ${getActionBadgeColor(log.actionType)} font-medium`}>
                         {formatActionName(log.actionType)}
                       </span>
-                    </td>
-                    <td>
-                      <div className="font-medium text-sm">{log.targetResource}</div>
-                      <div className="text-muted text-xs" style={{ fontFamily: 'monospace' }}>
-                        ID: {log.targetResourceId}
-                      </div>
-                      {log.companyName && (
-                        <div className="text-xs text-muted">{log.companyName}</div>
-                      )}
-                    </td>
-                    <td>
-                      <div className="text-sm font-medium">{log.actorName || 'System'}</div>
-                      <div className="text-muted text-xs">{log.actorEmail}</div>
-                      {log.ipAddress && (
-                        <div className="text-muted text-xs" style={{ fontFamily: 'monospace' }}>
-                          IP: {log.ipAddress}
-                        </div>
-                      )}
-                    </td>
-                    <td>
-                      <button
-                        onClick={() => setSelectedLog(log)}
-                        className="btn btn-sm btn-outline"
-                        title="Inspect full audit record"
-                      >
-                        <Eye size={13} /> Inspect
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <small className="muted" style={{ display: 'block', marginTop: '4px', fontSize: '12px' }}>
+                        {new Date(log.timestampUtc).toLocaleString()}
+                      </small>
+                    </div>
+                  </div>
+
+                  <div className="table-mobile-card-row">
+                    <span className="muted">Resource</span>
+                    <span style={{ fontWeight: 600 }}>{log.targetResource}</span>
+                  </div>
+
+                  <div className="table-mobile-card-row">
+                    <span className="muted">Actor</span>
+                    <span>{log.actorName || 'System'} ({log.actorEmail})</span>
+                  </div>
+
+                  <div className="table-mobile-card-actions">
+                    <button
+                      onClick={() => setSelectedLog(log)}
+                      className="btn btn-sm btn-outline"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', width: '100%', justifyContent: 'center' }}
+                    >
+                      <Eye size={14} /> Inspect Full Record →
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
 
             {/* Pagination */}
             {totalPages > 1 && (
@@ -258,7 +299,7 @@ export const AdminAudit: React.FC = () => {
                 </div>
               </div>
             )}
-          </div>
+          </>
         )}
 
         {/* Audit Record Inspection Modal */}

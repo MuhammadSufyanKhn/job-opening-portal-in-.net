@@ -310,8 +310,7 @@ export const JobDetail: React.FC = () => {
                 ) : (
                   <button 
                     onClick={handleOpenApplyModal} 
-                    className="btn btn-primary btn-lg"
-                    style={{ boxShadow: '0 4px 14px rgba(99, 102, 241, 0.4)' }}
+                    className="btn lime btn-lg"
                   >
                     <Send size={18} /> Apply for this Role
                   </button>
@@ -593,7 +592,7 @@ export const JobDetail: React.FC = () => {
                   </button>
                   <button 
                     type="submit" 
-                    className="btn btn-primary" 
+                    className="btn lime" 
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (

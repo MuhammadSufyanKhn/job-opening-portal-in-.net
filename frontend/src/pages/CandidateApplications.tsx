@@ -163,8 +163,8 @@ export const CandidateApplications: React.FC = () => {
           </div>
         ) : (
           <div className="two">
-            {/* Left: Applications Table */}
-            <div className="card tw">
+            {/* Left Desktop: Applications Table */}
+            <div className="card tw table-desktop-view">
               <table>
                 <thead>
                   <tr>
@@ -210,6 +210,59 @@ export const CandidateApplications: React.FC = () => {
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* Left Mobile: Responsive Application Cards */}
+            <div className="table-mobile-cards">
+              {filteredApps.map((a, idx) => {
+                const isSelected = a.id === selectedAppId;
+                const colorClass = colorClasses[idx % colorClasses.length];
+                const initials = a.companyName ? a.companyName.charAt(0) : 'H';
+
+                return (
+                  <div 
+                    key={a.id} 
+                    className={`table-mobile-card ${isSelected ? 'selected' : ''}`}
+                    style={{ border: isSelected ? '1.5px solid var(--navy)' : undefined }}
+                  >
+                    <div className="table-mobile-card-header">
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <span className={`mark ${colorClass}`} style={{ width: '36px', height: '36px', fontSize: '15px' }}>
+                          {initials}
+                        </span>
+                        <div>
+                          <b style={{ fontSize: '15.5px' }}>{a.jobTitle}</b>
+                          <small className="muted" style={{ display: 'block' }}>{a.companyName}</small>
+                        </div>
+                      </div>
+                      <StageBadge stage={a.currentStage} />
+                    </div>
+
+                    <div className="table-mobile-card-row">
+                      <span className="muted">Applied Date</span>
+                      <span>{new Date(a.submittedAtUtc).toLocaleDateString()}</span>
+                    </div>
+
+                    {(a as any).matchScore != null && (
+                      <div className="table-mobile-card-row">
+                        <span className="muted">Match Assessment</span>
+                        <span className="badge b-ok nodot">{(a as any).matchScore}% Fit</span>
+                      </div>
+                    )}
+
+                    <div className="table-mobile-card-actions">
+                      <button
+                        type="button"
+                        onClick={() => handleSelectApp(a.id)}
+                        className={`btn sm ${isSelected ? 'lime' : ''}`}
+                        style={{ width: '100%', justifyContent: 'center' }}
+                      >
+                        {isSelected ? '✓ Showing Timeline Below' : 'Inspect Timeline & Progress →'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Right: Selected Application Timeline Detail */}

@@ -14,11 +14,12 @@ import {
   AlertCircle,
   Trash2,
   Briefcase,
-  Clock,
-  Terminal,
-  PlusCircle
+  PlusCircle,
+  Calendar,
+  Award
 } from 'lucide-react';
 import { LoadingState } from '../components/common';
+import heroWomanImg from '../assets/hero_woman.jpg';
 
 export const CompanyDashboard: React.FC = () => {
   const { user, activeCompanyId } = useAuth();
@@ -142,22 +143,45 @@ export const CompanyDashboard: React.FC = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
       >
-        {/* Header matching Picture 1 */}
-        <div className="ph employer-hero">
+        {/* Editorial Hero Banner matching Image 2: Employer Workspace */}
+        <div className="editorial-hero-banner">
           <div>
-            <span className="eyebrow">Employer workspace</span>
-            <h1>{company.name}</h1>
-            <p className="muted">
-              {isApproved ? 'Verified organisation' : 'Pending verification'} · {members.length} team {members.length === 1 ? 'member' : 'members'}
+            <span className="landing-eyebrow-badge" style={{ color: 'var(--muted)', marginBottom: '8px' }}>
+              Good morning, {user?.fullName ? user.fullName.split(' ')[0] : 'Alex'}
+            </span>
+            <h1 className="editorial-headline-large" style={{ margin: '4px 0 10px 0' }}>
+              Build your winning team.
+            </h1>
+            <p style={{ fontSize: '15.5px', color: 'var(--muted)', maxWidth: '480px', marginBottom: '24px', lineHeight: 1.5 }}>
+              Manage your job postings, review applicants and find the right talent, faster.
             </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+              <Link 
+                to="/company/jobs/new" 
+                className="btn btn-lime sm" 
+                style={{ fontWeight: 800, padding: '10px 22px', borderRadius: '999px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              >
+                <PlusCircle size={16} />
+                <span>Post a new vacancy</span>
+              </Link>
+              <Link 
+                to="/company/jobs" 
+                style={{ color: 'var(--navy)', fontWeight: 600, fontSize: '14.5px', textDecoration: 'none' }}
+              >
+                View all vacancies
+              </Link>
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <Link to="/company/applications" className="btn">
-              View applicants
-            </Link>
-            <Link to="/company/jobs/new" className="btn primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              <PlusCircle size={16} /> Post a vacancy
-            </Link>
+
+          <div className="editorial-artwork-container">
+            <img 
+              src={heroWomanImg} 
+              alt="Build your team" 
+              className="editorial-artwork-img"
+            />
+            <div className="artistic-script-tag">
+              Great People Build Great Companies
+            </div>
           </div>
         </div>
 
@@ -197,50 +221,62 @@ export const CompanyDashboard: React.FC = () => {
 
         {activeTab === 'workspace' && (
           <>
-            {/* 4 Stats Cards matching Picture 1 */}
-            <div className="stats">
+            {/* 4 Stats Cards (Image 2: Active Vacancies, Total Applicants, Interviews Scheduled, Hires) */}
+            <div className="stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '28px' }}>
               <div className="card st">
-                <div className="fi">
+                <div className="fi" style={{ background: '#EAF5E8', color: '#0F7A55' }}>
                   <Briefcase size={22} />
                 </div>
                 <div>
-                  <b>{dashboard?.activeJobsCount ?? 0}</b>
-                  <span>Open vacancies</span>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                    <b>{dashboard?.activeJobsCount ?? 0}</b>
+                    <span className="badge b-ok" style={{ fontSize: '11px', padding: '1px 6px' }}>+2 this week</span>
+                  </div>
+                  <span>Active Vacancies</span>
                 </div>
               </div>
 
               <div className="card st">
-                <div className="fi">
+                <div className="fi" style={{ background: '#EEF3FF', color: '#4263EB' }}>
                   <Users size={22} />
                 </div>
                 <div>
-                  <b>{dashboard ? (dashboard.pendingReviewCount + dashboard.shortlistedCount + dashboard.activeJobListings.reduce((acc, j) => acc + (j.applicationCount || 0), 0)) : 0}</b>
-                  <span>Total applicants</span>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                    <b>{dashboard ? (dashboard.pendingReviewCount + dashboard.shortlistedCount) : 0}</b>
+                    <span className="badge b-ok" style={{ fontSize: '11px', padding: '1px 6px' }}>+12%</span>
+                  </div>
+                  <span>Total Applicants</span>
                 </div>
               </div>
 
               <div className="card st">
-                <div className="fi">
-                  <Clock size={22} />
+                <div className="fi" style={{ background: '#FFEFCF', color: '#8A5300' }}>
+                  <Calendar size={22} />
                 </div>
                 <div>
-                  <b>18</b>
-                  <span>Avg days to hire</span>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                    <b>{dashboard?.upcomingInterviewsCount ?? 0}</b>
+                    <span className="badge b-ok" style={{ fontSize: '11px', padding: '1px 6px' }}>+20%</span>
+                  </div>
+                  <span>Interviews Scheduled</span>
                 </div>
               </div>
 
               <div className="card st">
-                <div className="fi">
-                  <Terminal size={22} />
+                <div className="fi" style={{ background: '#ECE8FF', color: '#5B3FD0' }}>
+                  <Award size={22} />
                 </div>
                 <div>
-                  <b>{dashboard?.pendingAssessmentsCount ?? 0}</b>
-                  <span>Skills challenges to review</span>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                    <b>{dashboard?.pendingAssessmentsCount ?? 0}</b>
+                    <span className="badge b-ok" style={{ fontSize: '11px', padding: '1px 6px' }}>+50%</span>
+                  </div>
+                  <span>Offers & Hires</span>
                 </div>
               </div>
             </div>
 
-            {/* Two-Column Layout matching Picture 1 */}
+            {/* Two-Column Layout */}
             <div className="two employer-dashboard-grid">
               {/* Left Column: Active Vacancies Panel */}
               <div className="card panel">
@@ -253,7 +289,7 @@ export const CompanyDashboard: React.FC = () => {
                   <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--muted)' }}>
                     <Briefcase size={36} style={{ margin: '0 auto 0.75rem auto', opacity: 0.4 }} />
                     <p style={{ margin: 0, fontSize: '14.5px' }}>No active vacancies published.</p>
-                    <Link to="/company/jobs/new" className="btn sm primary" style={{ marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <Link to="/company/jobs/new" className="btn sm lime" style={{ marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                       <PlusCircle size={14} /> Post a vacancy
                     </Link>
                   </div>
@@ -344,7 +380,8 @@ export const CompanyDashboard: React.FC = () => {
               Collaborate securely across your recruitment pipeline. <strong>Recruiters</strong> can update stages, schedule interviews, and evaluate WorkSim results. <strong>Hiring Managers</strong> can view candidates and add internal review comments.
             </p>
 
-            <div className="card-table-wrapper">
+            {/* Desktop Table View */}
+            <div className="card-table-wrapper table-desktop-view">
               <table className="data-table">
                 <thead>
                   <tr>
@@ -383,6 +420,40 @@ export const CompanyDashboard: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Cards View */}
+            <div className="table-mobile-cards">
+              {members.map(member => (
+                <div key={member.id} className="table-mobile-card">
+                  <div className="table-mobile-card-header">
+                    <div>
+                      <b style={{ fontSize: '15px' }}>{member.fullName}</b>
+                      <small className="muted" style={{ display: 'block', marginTop: '2px' }}>{member.email}</small>
+                    </div>
+                    <span className="badge badge-role">{member.companyRole}</span>
+                  </div>
+                  <div className="table-mobile-card-row">
+                    <span className="muted">Status</span>
+                    <span className="badge badge-status">{member.membershipStatus}</span>
+                  </div>
+                  <div className="table-mobile-card-row">
+                    <span className="muted">Joined</span>
+                    <span>{new Date(member.joinedAtUtc).toLocaleDateString()}</span>
+                  </div>
+                  {member.companyRole !== 'Owner' && (
+                    <div className="table-mobile-card-actions">
+                      <button
+                        onClick={() => handleRemoveMember(member.id)}
+                        className="btn sm danger"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <Trash2 size={14} /> Remove Member
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
 
             {/* Member Invitation Form */}

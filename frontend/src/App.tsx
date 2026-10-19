@@ -4,8 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import { Home } from './pages/Home';
 import { Login } from './pages/Login';
-import { RegisterCandidate } from './pages/RegisterCandidate';
-import { RegisterCompany } from './pages/RegisterCompany';
+import { Register } from './pages/Register';
 import { CandidateDashboard } from './pages/CandidateDashboard';
 import { CandidateProfile } from './pages/CandidateProfile';
 import { CompanyDashboard } from './pages/CompanyDashboard';
@@ -79,8 +78,9 @@ export const App: React.FC = () => {
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/register-candidate" element={<RegisterCandidate />} />
-              <Route path="/register-company" element={<RegisterCompany />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/register-candidate" element={<Register defaultRole="candidate" />} />
+              <Route path="/register-company" element={<Register defaultRole="employer" />} />
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/jobs/:id" element={<JobDetail />} />
               <Route path="/companies" element={<CompanyDirectory />} />

@@ -7,13 +7,18 @@ import {
   ChevronLeft, 
   ChevronRight,
   Terminal,
-  ArrowRight
+  ArrowRight,
+  Briefcase,
+  Building2,
+  TrendingUp,
+  HeartHandshake
 } from 'lucide-react';
 import { jobsApi, candidateSavedJobsApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import type { PublicJobPostingSummary, JobCategory } from '../types/recruitment';
 import { Footer } from '../components/Footer';
 import { PageTransition } from '../components/common/PageTransition';
+import backpackImg from '../assets/young_man_backpack.jpg';
 
 export const Jobs: React.FC = () => {
   const navigate = useNavigate();
@@ -226,42 +231,75 @@ export const Jobs: React.FC = () => {
     <PageTransition>
       <div>
         {/* Header Band */}
-        <div className="jhead">
-        <div className="container">
-          <h1>Find your next role</h1>
-          <p className="muted">
-            {totalCount > 0 ? `${totalCount} open roles from verified companies.` : 'Browse verified roles from checked companies.'}
-          </p>
+        {/* Editorial Hero Banner matching Image 2: Candidate Workspace */}
+        <div className="container" style={{ paddingTop: '20px' }}>
+          <div className="editorial-hero-banner">
+            <div>
+              <span className="landing-eyebrow-badge" style={{ color: 'var(--muted)', marginBottom: '8px' }}>
+                Find your next opportunity
+              </span>
+              <h1 className="editorial-headline-large" style={{ margin: '4px 0 10px 0' }}>
+                Your skills. Your future.
+              </h1>
+              <p style={{ fontSize: '15.5px', color: 'var(--muted)', maxWidth: '480px', marginBottom: '24px', lineHeight: 1.5 }}>
+                Explore top companies, exciting roles and build the career you've always wanted.
+              </p>
 
-          <form onSubmit={handleSearchSubmit} className="search" role="search">
-            <div className="f">
-              <span className="ic"><Search size={18} /></span>
-              <input
-                type="search"
-                aria-label="Job title, skill or company"
-                placeholder="Job title, skill or company"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+              <form onSubmit={handleSearchSubmit} className="unified-search-bar" role="search" style={{ background: '#F7F5EF', padding: '6px' }}>
+                <div className="search-field-inner" style={{ height: '44px' }}>
+                  <Search size={18} style={{ color: 'var(--muted)', flexShrink: 0 }} />
+                  <input
+                    type="search"
+                    aria-label="Job title, skill or company"
+                    placeholder="Search jobs, skills, or companies..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+
+                <div className="search-field-inner" style={{ height: '44px' }}>
+                  <MapPin size={18} style={{ color: 'var(--muted)', flexShrink: 0 }} />
+                  <input
+                    type="text"
+                    aria-label="Location"
+                    placeholder="Location"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                  />
+                </div>
+
+                <div className="search-field-inner" style={{ height: '44px' }}>
+                  <select
+                    value={workplaceType}
+                    onChange={(e) => { setWorkplaceType(e.target.value); setPage(1); }}
+                    aria-label="Work style"
+                  >
+                    <option value="">Job Type</option>
+                    <option value="Remote">Remote</option>
+                    <option value="Hybrid">Hybrid</option>
+                    <option value="On-site">On-site</option>
+                  </select>
+                </div>
+
+                <button type="submit" className="btn-search-navy" style={{ background: 'var(--lime)', color: '#101B2A', height: '44px', padding: '0 22px' }}>
+                  <Search size={16} />
+                  <span>Search</span>
+                </button>
+              </form>
             </div>
-            <div className="sep" aria-hidden="true" />
-            <div className="f">
-              <span className="ic"><MapPin size={18} /></span>
-              <input
-                type="search"
-                aria-label="Location"
-                placeholder="City or Remote"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
+
+            <div className="editorial-artwork-container">
+              <img 
+                src={backpackImg} 
+                alt="Discover career opportunities" 
+                className="editorial-artwork-img"
               />
+              <div className="artistic-script-tag">
+                Better Opportunities Ahead
+              </div>
             </div>
-            <button type="submit" className="btn primary">
-              <span>Search</span>
-              <Search size={16} />
-            </button>
-          </form>
+          </div>
         </div>
-      </div>
 
       {feedbackMsg && (
         <div className="toast" role="status">
@@ -363,26 +401,46 @@ export const Jobs: React.FC = () => {
                         }
                       }}
                     >
-                      <span className={`mark ${colorClass}`}>
+                      <span className={`mark ${colorClass}`} style={{ width: '44px', height: '44px', fontSize: '16px', borderRadius: '12px' }}>
                         {job.companyName ? job.companyName.charAt(0) : 'H'}
                       </span>
-                      <div>
-                        <h3>{job.title}</h3>
-                        <div className="co">
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                          <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--navy)' }}>{job.title}</h3>
+                          <button
+                            type="button"
+                            onClick={(e) => handleToggleSave(job.id, e)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: savedJobIds.has(job.id) ? 'var(--navy)' : 'var(--muted)' }}
+                            title={savedJobIds.has(job.id) ? 'Remove bookmark' : 'Bookmark job'}
+                          >
+                            <Bookmark size={18} fill={savedJobIds.has(job.id) ? 'currentColor' : 'none'} />
+                          </button>
+                        </div>
+                        <div className="co" style={{ marginTop: '3px', fontSize: '13.5px', color: 'var(--muted)' }}>
                           {job.companyName} · {job.location || 'Remote'}
                         </div>
-                        <div className="tags" style={{ marginTop: '10px' }}>
-                          <span className="tag">{mode}</span>
-                          <span className="tag o">{type}</span>
-                          <span className="tag o">{pay}</span>
+                        <div className="tags" style={{ marginTop: '10px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                          <span className="tag" style={{ borderRadius: '6px', fontSize: '12px' }}>{mode}</span>
+                          <span className="tag o" style={{ borderRadius: '6px', fontSize: '12px' }}>{type}</span>
+                          <span className="tag o" style={{ borderRadius: '6px', fontSize: '12px', fontWeight: 600, color: 'var(--navy)' }}>{pay}</span>
                           {hasChallenge && (
-                            <span className="badge b-pur nodot">Skills challenge</span>
+                            <span className="badge b-pur nodot" style={{ borderRadius: '6px', fontSize: '11px' }}>Skills challenge</span>
                           )}
                         </div>
                       </div>
-                      <span className="when">
-                        {job.publishedAtUtc ? new Date(job.publishedAtUtc).toLocaleDateString() : 'Recent'}
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', gap: '8px' }}>
+                        <span className="when" style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                          {job.publishedAtUtc ? new Date(job.publishedAtUtc).toLocaleDateString() : 'Recent'}
+                        </span>
+                        <Link
+                          to={`/jobs/${job.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="btn btn-lime sm"
+                          style={{ fontWeight: 800, padding: '6px 14px', borderRadius: '999px', fontSize: '12.5px', textDecoration: 'none' }}
+                        >
+                          Apply Now
+                        </Link>
+                      </div>
                     </button>
                   );
                 })
@@ -504,6 +562,89 @@ export const Jobs: React.FC = () => {
               </div>
             </article>
           )}
+        </div>
+
+        {/* Why Join HireSphere & Testimonial Section (Image 2 & Image 1) */}
+        <div style={{ marginTop: '48px', marginBottom: '32px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '24px' }}>
+            {/* Why Join HireSphere */}
+            <div style={{ background: '#FFFFFF', border: '1px solid rgba(16, 27, 42, 0.08)', borderRadius: '24px', padding: '28px 32px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--navy)', marginBottom: '18px' }}>
+                Why join HireSphere?
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#EEF3FF', color: '#4263EB', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                    <Building2 size={20} />
+                  </div>
+                  <div>
+                    <strong style={{ fontSize: '14px', color: 'var(--navy)', display: 'block' }}>Top Companies</strong>
+                    <small style={{ color: 'var(--muted)', fontSize: '12px' }}>Verified employers only</small>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#EAF5E8', color: '#0F7A55', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                    <TrendingUp size={20} />
+                  </div>
+                  <div>
+                    <strong style={{ fontSize: '14px', color: 'var(--navy)', display: 'block' }}>Career Growth</strong>
+                    <small style={{ color: 'var(--muted)', fontSize: '12px' }}>High impact roles</small>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#FFEFCF', color: '#8A5300', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                    <Briefcase size={20} />
+                  </div>
+                  <div>
+                    <strong style={{ fontSize: '14px', color: 'var(--navy)', display: 'block' }}>Flexible Work</strong>
+                    <small style={{ color: 'var(--muted)', fontSize: '12px' }}>Remote & hybrid choices</small>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#ECE8FF', color: '#5B3FD0', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                    <HeartHandshake size={20} />
+                  </div>
+                  <div>
+                    <strong style={{ fontSize: '14px', color: 'var(--navy)', display: 'block' }}>Supportive Community</strong>
+                    <small style={{ color: 'var(--muted)', fontSize: '12px' }}>Real human feedback</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Testimonial & Get Noticed */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ background: '#FFFFFF', border: '1px solid rgba(16, 27, 42, 0.08)', borderRadius: '24px', padding: '24px 28px', position: 'relative', overflow: 'hidden' }}>
+                <p style={{ fontStyle: 'italic', fontSize: '14.5px', color: 'var(--ink)', lineHeight: 1.5, marginBottom: '14px' }}>
+                  "I found my dream job through HireSphere. The process was smooth, transparent, and the team was incredibly helpful!"
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--lime)', color: '#101B2A', fontWeight: 800, fontSize: '13px', display: 'grid', placeItems: 'center' }}>
+                    AK
+                  </div>
+                  <div>
+                    <strong style={{ fontSize: '13.5px', color: 'var(--navy)', display: 'block' }}>Ayesha Khan</strong>
+                    <small style={{ color: 'var(--muted)', fontSize: '12px' }}>Frontend Developer</small>
+                  </div>
+                </div>
+              </div>
+
+              {isCandidate && (
+                <div style={{ background: '#F7F5EF', border: '1px solid rgba(16, 27, 42, 0.08)', borderRadius: '20px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <strong style={{ fontSize: '13.5px', color: 'var(--navy)', display: 'block' }}>Get noticed</strong>
+                    <small style={{ color: 'var(--muted)', fontSize: '12px' }}>Complete your profile and increase your interview chances.</small>
+                  </div>
+                  <Link to="/candidate/profile" className="btn btn-lime sm" style={{ fontWeight: 800, padding: '6px 14px', borderRadius: '999px', fontSize: '12px', textDecoration: 'none' }}>
+                    Profile: 70%
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
