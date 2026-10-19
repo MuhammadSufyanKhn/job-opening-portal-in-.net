@@ -7341,6 +7341,12 @@ body {
   }
 }
 
+@media (max-width: 850px) {
+  .how-it-works-step-nav {
+    display: none !important;
+  }
+}
+
 @media (max-width: 768px) {
   /* =====================================================================
      US-1 & US-2: Full-width mobile layout, reduced vertical spacing

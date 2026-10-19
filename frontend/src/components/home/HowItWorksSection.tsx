@@ -12,9 +12,10 @@ export const HowItWorksSection: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isInViewport, setIsInViewport] = useState(false);
   const [isPageVisible, setIsPageVisible] = useState(true);
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches
-  );
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth <= 850 || window.matchMedia('(max-width: 850px)').matches;
+  });
 
   const steps = HOW_IT_WORKS_STEPS[audience];
 
@@ -34,11 +35,25 @@ export const HowItWorksSection: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 768px)');
-    const updateIsMobile = () => setIsMobile(mediaQuery.matches);
-    updateIsMobile();
-    mediaQuery.addEventListener('change', updateIsMobile);
-    return () => mediaQuery.removeEventListener('change', updateIsMobile);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 850 || window.matchMedia('(max-width: 850px)').matches);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    const mediaQuery = window.matchMedia('(max-width: 850px)');
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', checkMobile);
+    } else if ((mediaQuery as any).addListener) {
+      (mediaQuery as any).addListener(checkMobile);
+    }
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', checkMobile);
+      } else if ((mediaQuery as any).removeListener) {
+        (mediaQuery as any).removeListener(checkMobile);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -166,7 +181,7 @@ export const HowItWorksSection: React.FC = () => {
             background: 'var(--surface)', 
             borderRadius: 'var(--r)', 
             border: '1px solid var(--line)', 
-            padding: '32px',
+            padding: isMobile ? '20px 16px' : '32px',
             boxShadow: 'var(--sh)'
           }}
         >
@@ -240,21 +255,23 @@ export const HowItWorksSection: React.FC = () => {
                 aria-atomic="true"
               >
                 <div>
-                  {/* Mobile-only step indicator (CSS hides this on desktop, shows on ≤768px) */}
-                  <div
-                    className="mobile-step-indicator"
-                    style={{ display: 'none' }}
-                    aria-label={`Step ${steps[activeStep].stepNumber} of ${steps.length}`}
+                  {/* Step indicator */}
+                  <div 
+                    style={{ 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      gap: '8px', 
+                      marginBottom: '10px', 
+                      color: 'var(--accent)', 
+                      fontWeight: 700, 
+                      fontSize: '13px', 
+                      textTransform: 'uppercase', 
+                      letterSpacing: '0.04em' 
+                    }}
+                    aria-label={`Stage ${steps[activeStep].stepNumber} of ${steps.length}`}
                   >
-                    <CheckCircle2 size={14} />
-                    <span>STEP {steps[activeStep].stepNumber} OF {steps.length}</span>
-                  </div>
-
-                  {/* Desktop step indicator (always visible, mobile-step-indicator replaces it on mobile) */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--accent)', fontWeight: 600, fontSize: '13px' }}
-                    aria-hidden={isMobile}>
                     <CheckCircle2 size={16} />
-                    <span>Stage {steps[activeStep].stepNumber} of 3</span>
+                    <span>Stage {steps[activeStep].stepNumber} of {steps.length}</span>
                   </div>
 
                   <h3 style={{ fontSize: '24px', marginBottom: '12px', color: 'var(--ink)' }}>
@@ -264,8 +281,16 @@ export const HowItWorksSection: React.FC = () => {
                     {steps[activeStep].description}
                   </p>
 
-                  {/* Mobile-only progress dots (CSS controls display) */}
-                  <div className="mobile-step-dots" style={{ display: 'none' }} aria-hidden="true">
+                  {/* Mobile progress dots */}
+                  <div 
+                    className="mobile-step-dots" 
+                    style={{ 
+                      display: isMobile ? 'flex' : 'none', 
+                      gap: '6px', 
+                      marginTop: '16px' 
+                    }} 
+                    aria-hidden="true"
+                  >
                     {steps.map((_, idx) => (
                       <span
                         key={idx}
