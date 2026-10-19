@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   Building2, 
@@ -6,18 +6,25 @@ import {
   Calendar, 
   Globe, 
   ArrowLeft, 
+  ArrowRight,
+  Check, 
   CheckCircle2, 
   AlertCircle, 
   Clock, 
   Send, 
   ShieldCheck,
-  Star,
-  Sparkles,
-  Bookmark
+  Star, 
+  Sparkles, 
+  Bookmark,
+  Users,
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  Briefcase
 } from 'lucide-react';
 import { jobsApi, candidateApplicationsApi, candidateDocumentsApi, candidateSavedJobsApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import type { PublicJobPostingDetail, JobRequirement } from '../types/recruitment';
+import type { PublicJobPostingDetail } from '../types/recruitment';
 import type { CandidateDocumentSummary } from '../types/document';
 import { PageTransition } from '../components/common/PageTransition';
 
@@ -48,16 +55,33 @@ export const JobDetail: React.FC = () => {
   const [applySuccess, setApplySuccess] = useState(false);
   const [applyError, setApplyError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (id) {
-      loadJob(id);
-      if (isCandidate) {
-        checkCandidateStatus(id);
-      }
-    }
-  }, [id, isCandidate]);
+  // Mobile Accordion States
+  const [openAccordion, setOpenAccordion] = useState<Record<string, boolean>>({
+    role: true,
+    responsibilities: false,
+    qualifications: false,
+    niceToHave: false,
+    company: false
+  });
 
-  const checkCandidateStatus = async (jobId: string) => {
+  const toggleAccordion = (key: string) => {
+    setOpenAccordion(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const loadJob = useCallback(async (jobId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await jobsApi.getJobDetail(jobId);
+      setJob(data);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Job opening not found or no longer publicly active.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const checkCandidateStatus = useCallback(async (jobId: string) => {
     try {
       const [savedRes, myApps] = await Promise.all([
         candidateSavedJobsApi.checkSavedStatus(jobId).catch(() => ({ isSaved: false })),
@@ -71,10 +95,25 @@ export const JobDetail: React.FC = () => {
     } catch {
       // Ignore background check failure
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (id) {
+      loadJob(id);
+      if (isCandidate) {
+        checkCandidateStatus(id);
+      }
+    }
+  }, [id, isCandidate, loadJob, checkCandidateStatus]);
 
   const handleToggleSaveJob = async () => {
-    if (!id || !isCandidate) return;
+    if (!id) return;
+    if (!isAuthenticated) {
+      navigate(`/login?redirect=/jobs/${id}`);
+      return;
+    }
+    if (!isCandidate) return;
+
     setIsSavingBookmark(true);
     try {
       if (isSaved) {
@@ -95,20 +134,11 @@ export const JobDetail: React.FC = () => {
     }
   };
 
-  const loadJob = async (jobId: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await jobsApi.getJobDetail(jobId);
-      setJob(data);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Job opening not found or no longer publicly active.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleOpenApplyModal = async () => {
+    if (!isAuthenticated) {
+      navigate(`/login?redirect=/jobs/${job?.id}`);
+      return;
+    }
     setShowApplyModal(true);
     setApplySuccess(false);
     setApplyError(null);
@@ -142,6 +172,7 @@ export const JobDetail: React.FC = () => {
         coverNote: coverNote.trim() || undefined,
       });
       setApplySuccess(true);
+      setExistingApplication({ jobPostingId: job.id, currentStage: 'Submitted' });
     } catch (err: any) {
       const detail = err.response?.data?.detail || err.response?.data?.message || 'Failed to submit application.';
       setApplyError(detail);
@@ -152,467 +183,872 @@ export const JobDetail: React.FC = () => {
 
   const getWorkplaceLabel = (type: any) => {
     const map: Record<string, string> = {
-      '0': 'On-Site',
+      '0': 'On-site',
       '1': 'Hybrid',
       '2': 'Remote',
-      'OnSite': 'On-Site',
+      'OnSite': 'On-site',
       'Hybrid': 'Hybrid',
       'Remote': 'Remote',
     };
-    return map[String(type)] || 'On-Site';
+    return map[String(type)] || 'On-site';
   };
 
   const getEmploymentLabel = (type: any) => {
     const map: Record<string, string> = {
-      '0': 'Full-Time',
-      '1': 'Part-Time',
+      '0': 'Full-time',
+      '1': 'Part-time',
       '2': 'Contract',
       '3': 'Internship',
-      'FullTime': 'Full-Time',
-      'PartTime': 'Part-Time',
+      'FullTime': 'Full-time',
+      'PartTime': 'Part-time',
       'Contract': 'Contract',
       'Internship': 'Internship',
     };
-    return map[String(type)] || 'Full-Time';
+    return map[String(type)] || 'Full-time';
   };
 
-  const getRequirementCategoryBadge = (cat: any) => {
-    const map: Record<string, { label: string; color: string }> = {
-      '0': { label: 'Skill', color: 'badge-cyan' },
-      '1': { label: 'Experience', color: 'badge-purple' },
-      '2': { label: 'Education', color: 'badge-emerald' },
-      '3': { label: 'Certification', color: 'badge-amber' },
-      'Skill': { label: 'Skill', color: 'badge-cyan' },
-      'Experience': { label: 'Experience', color: 'badge-purple' },
-      'Education': { label: 'Education', color: 'badge-emerald' },
-      'Certification': { label: 'Certification', color: 'badge-amber' },
-    };
-    const item = map[String(cat)] || { label: 'Requirement', color: 'badge-outline' };
-    return <span className={`badge ${item.color}`}>{item.label}</span>;
+  // Helper to format date cleanly
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
-  const isExpired = job?.expiresAtUtc ? new Date(job.expiresAtUtc) < new Date() : false;
+  // Helper for relative published time (e.g. "2 days ago")
+  const getRelativePublished = (dateStr?: string) => {
+    if (!dateStr) return 'Recently';
+    const now = new Date();
+    const published = new Date(dateStr);
+    const diffDays = Math.floor((now.getTime() - published.getTime()) / (1000 * 3600 * 24));
+    if (diffDays <= 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    const diffWeeks = Math.floor(diffDays / 7);
+    if (diffWeeks === 1) return '1 week ago';
+    if (diffWeeks < 5) return `${diffWeeks} weeks ago`;
+    return `${Math.floor(diffDays / 30)} months ago`;
+  };
+
+  // Helper for remaining time until deadline (e.g. "in 6 weeks")
+  const getRemainingDeadline = (dateStr?: string) => {
+    if (!dateStr) return 'Open until filled';
+    const now = new Date();
+    const deadline = new Date(dateStr);
+    const diffDays = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 3600 * 24));
+    if (diffDays < 0) return 'Expired';
+    if (diffDays === 0) return 'Expires today';
+    if (diffDays === 1) return 'Expires tomorrow';
+    if (diffDays < 7) return `in ${diffDays} days`;
+    const diffWeeks = Math.ceil(diffDays / 7);
+    if (diffWeeks === 1) return 'in 1 week';
+    return `in ${diffWeeks} weeks`;
+  };
+
+  // Parse responsibilities into list items
+  const responsibilityItems = useMemo(() => {
+    if (!job?.responsibilities) return [];
+    return job.responsibilities
+      .split('\n')
+      .map(s => s.replace(/^[\s•\-*]+|\d+\.\s*/, '').trim())
+      .filter(s => s.length > 0);
+  }, [job?.responsibilities]);
+
+  // Mandatory requirements
+  const mandatoryRequirements = useMemo(() => {
+    if (!job?.requirements) return [];
+    return job.requirements
+      .filter(r => String(r.requirementType) === 'Mandatory' || String(r.requirementType) === '0')
+      .map(r => r.requirementText);
+  }, [job?.requirements]);
+
+  // Preferred qualifications ("Nice to have")
+  const preferredRequirements = useMemo(() => {
+    if (!job?.requirements) return [];
+    return job.requirements
+      .filter(r => String(r.requirementType) === 'Preferred' || String(r.requirementType) === '1')
+      .map(r => r.requirementText);
+  }, [job?.requirements]);
+
+  // Estimated experience text (e.g. "3+ years" or "Relevant experience")
+  const experienceText = useMemo(() => {
+    if (job?.requirements) {
+      const expReq = job.requirements.find(r => 
+        String(r.requirementCategory) === 'Experience' || 
+        String(r.requirementCategory) === '1' ||
+        /\b\d+\+?\s*years?\b/i.test(r.requirementText)
+      );
+      if (expReq) {
+        const match = expReq.requirementText.match(/\b\d+\+?\s*years?\b/i);
+        if (match) return match[0];
+      }
+    }
+    return '3+ years';
+  }, [job?.requirements]);
+
+  const isExpired = job?.expiresAtUtc ? new Date(job.expiresAtUtc).getTime() < Date.now() : false;
 
   if (loading) {
     return (
-      <div className="portal-container" style={{ textAlign: 'center', padding: '6rem 1.5rem' }}>
-        <div className="spinner" style={{ width: '40px', height: '40px', margin: '0 auto 1.5rem' }} />
-        <p style={{ color: 'var(--text-secondary)' }}>Loading verified vacancy specifications...</p>
+      <div className="jd-page">
+        <div className="jd-container" style={{ textAlign: 'center', padding: '100px 20px' }}>
+          <div className="spinner" style={{ width: '42px', height: '42px', margin: '0 auto 20px' }} />
+          <p style={{ color: '#687993', fontSize: '16px' }}>Loading verified job details...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !job) {
     return (
-      <div className="portal-container">
-        <div className="alert alert-error" style={{ marginBottom: '1.5rem' }}>
-          <AlertCircle size={20} />
-          <div>
-            <strong>Unable to load vacancy</strong>
-            <p>{error || 'This job posting does not exist or has been archived.'}</p>
+      <div className="jd-page">
+        <div className="jd-container" style={{ padding: '60px 20px' }}>
+          <div className="alert alert-error" style={{ marginBottom: '24px' }}>
+            <AlertCircle size={22} />
+            <div>
+              <strong style={{ fontSize: '16px' }}>Unable to load vacancy</strong>
+              <p style={{ margin: '4px 0 0' }}>{error || 'This job opening does not exist or has been archived.'}</p>
+            </div>
           </div>
+          <Link to="/jobs" className="jd-back-link">
+            <ArrowLeft size={16} /> Back to all jobs
+          </Link>
         </div>
-        <Link to="/jobs" className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-          <ArrowLeft size={16} /> Back to Job Marketplace
-        </Link>
       </div>
     );
   }
 
+  // Primary action button render helper
+  const renderPrimaryAction = (isBlock = false) => {
+    if (isExpired) {
+      return (
+        <div className="alert alert-warning" style={{ margin: 0, padding: '10px 16px', fontSize: '14px' }}>
+          <Clock size={16} /> Applications closed
+        </div>
+      );
+    }
+    if (!isAuthenticated) {
+      return (
+        <button 
+          onClick={() => navigate(`/login?redirect=/jobs/${job.id}`)} 
+          className={`jd-btn-primary ${isBlock ? 'jd-btn-block' : ''}`}
+        >
+          <span>Sign in to apply</span>
+          <ArrowRight size={16} />
+        </button>
+      );
+    }
+    if (isCandidate) {
+      if (existingApplication) {
+        return (
+          <div className="jd-applied-badge">
+            <CheckCircle2 size={16} />
+            <span>Already Applied</span>
+          </div>
+        );
+      }
+      return (
+        <button 
+          onClick={handleOpenApplyModal} 
+          className={`jd-btn-primary ${isBlock ? 'jd-btn-block' : ''}`}
+        >
+          <span>Apply Now</span>
+          <ArrowRight size={16} />
+        </button>
+      );
+    }
+    return (
+      <span style={{ fontSize: '13px', color: '#687993' }}>
+        Signed in as Employer
+      </span>
+    );
+  };
+
   return (
     <PageTransition>
-      <div className="portal-container candidate-portal job-detail-page" style={{ maxWidth: '1000px', padding: '2rem 1.5rem 4rem' }}>
-      {/* Navigation Breadcrumb */}
-      <div style={{ marginBottom: '1.5rem' }}>
-        <Link to="/jobs" className="link-subtle" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem' }}>
-          <ArrowLeft size={16} /> Back to Open Vacancies
-        </Link>
-      </div>
+      <div className="jd-page" role="main">
+        <div className="jd-container">
+          {/* A. Back Navigation */}
+          <Link to="/jobs" className="jd-back-link">
+            <ArrowLeft size={16} />
+            <span>Back to all jobs</span>
+          </Link>
 
-      {/* Main Vacancy Card */}
-      <div className="card-form job-detail-card" style={{ padding: '2.5rem', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '2rem' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-              <span className="badge badge-purple">{job.categoryName}</span>
-              <span className="badge badge-emerald">{getWorkplaceLabel(job.workplaceType)}</span>
-              <span className="badge badge-outline">{getEmploymentLabel(job.employmentType)}</span>
+          {/* Feedback Toast */}
+          {bookmarkFeedback && (
+            <div style={{ 
+              marginBottom: '16px', 
+              padding: '10px 16px', 
+              borderRadius: '8px', 
+              background: '#E0F2FE', 
+              color: '#0369A1', 
+              fontSize: '14px', 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '8px' 
+            }}>
+              <CheckCircle2 size={16} />
+              <span>{bookmarkFeedback}</span>
             </div>
-            <h1 style={{ fontSize: '2.25rem', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '0.5rem' }}>
-              {job.title}
-            </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--text-secondary)', fontSize: '1rem' }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-primary)', fontWeight: 600 }}>
-                <Building2 size={18} className="text-primary" /> {job.companyName}
-              </span>
-              <span>•</span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                <MapPin size={18} /> {job.location}
-              </span>
-              {job.companyWebsiteUrl && (
-                <>
-                  <span>•</span>
-                  <a 
-                    href={job.companyWebsiteUrl.startsWith('http') ? job.companyWebsiteUrl : `https://${job.companyWebsiteUrl}`} 
-                    target="_blank" 
-                    rel="noreferrer"
-                    className="link-subtle"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                  >
-                    <Globe size={16} /> Website
-                  </a>
-                </>
-              )}
-            </div>
-          </div>
+          )}
 
-          {/* Action CTA */}
-          <div>
-            {bookmarkFeedback && (
-              <div style={{ marginBottom: '0.75rem', fontSize: '0.85rem', color: '#0369a1', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <CheckCircle2 size={15} />
-                <span>{bookmarkFeedback}</span>
+          {/* B. Job Identity Header Card */}
+          <div className="jd-header-card">
+            <div className="jd-header-flex">
+              {/* Left Section: Company Avatar, Name, Title, Badges */}
+              <div className="jd-company-identity">
+                <div className="jd-company-avatar" aria-hidden="true">
+                  {job.companyLogoUrl ? (
+                    <img src={job.companyLogoUrl} alt={job.companyName} />
+                  ) : (
+                    <span>{job.companyName ? job.companyName.charAt(0).toUpperCase() : 'H'}</span>
+                  )}
+                </div>
+
+                <div className="jd-title-area">
+                  <div className="jd-company-name-row">
+                    <span className="jd-company-name">{job.companyName}</span>
+                    <span className="jd-verified-badge" title="Verified Employer">
+                      <CheckCircle2 size={16} fill="#1458F5" color="#FFFFFF" />
+                    </span>
+                  </div>
+                  <div className="jd-company-industry">
+                    {job.companyIndustry || 'Software Development & IT Services'}
+                  </div>
+                  <h1 className="jd-title">{job.title}</h1>
+                  <div className="jd-chips-row">
+                    <span className="jd-chip">
+                      <MapPin size={14} style={{ color: '#687993' }} />
+                      <span>{job.location}</span>
+                    </span>
+                    <span className="jd-chip">
+                      <Building2 size={14} style={{ color: '#687993' }} />
+                      <span>{getWorkplaceLabel(job.workplaceType)}</span>
+                    </span>
+                    <span className="jd-chip">
+                      <Briefcase size={14} style={{ color: '#687993' }} />
+                      <span>{getEmploymentLabel(job.employmentType)}</span>
+                    </span>
+                  </div>
+                </div>
               </div>
-            )}
-            {isExpired ? (
-              <div className="alert alert-warning" style={{ margin: 0, padding: '0.65rem 1rem' }}>
-                <Clock size={18} /> Application deadline expired
-              </div>
-            ) : !isAuthenticated ? (
-              <button 
-                onClick={() => navigate(`/login?redirect=/jobs/${job.id}`)} 
-                className="btn btn-primary btn-lg"
-              >
-                Sign In to Apply
-              </button>
-            ) : isCandidate ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+
+              {/* Right Section: Save Job & Primary Action */}
+              <div className="jd-header-actions">
                 <button
                   type="button"
                   onClick={handleToggleSaveJob}
-                  className={`btn btn-lg ${isSaved ? 'btn-primary' : 'btn-outline'}`}
-                  title={isSaved ? 'Remove Bookmark' : 'Save Job to Bookmarks'}
+                  className={`jd-btn-save ${isSaved ? 'saved' : ''}`}
                   disabled={isSavingBookmark}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                  aria-label={isSaved ? 'Remove from saved jobs' : 'Save job'}
                 >
-                  <Bookmark size={18} fill={isSaved ? 'currentColor' : 'none'} />
-                  <span>{isSaved ? 'Saved' : 'Save Job'}</span>
+                  <Bookmark size={16} fill={isSaved ? 'currentColor' : 'none'} />
+                  <span>{isSaved ? 'Saved' : 'Save job'}</span>
                 </button>
+                {renderPrimaryAction()}
+              </div>
+            </div>
 
-                {existingApplication ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 1.15rem', backgroundColor: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: 'var(--radius-sm)' }}>
-                    <CheckCircle2 size={18} className="text-emerald" />
-                    <div>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', display: 'block' }}>Already Applied</span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Status: {String(existingApplication.currentStage)}</span>
-                    </div>
+            {/* Mobile Actions in Header */}
+            <div className="jd-mobile-actions-top">
+              {renderPrimaryAction(true)}
+              <button
+                type="button"
+                onClick={handleToggleSaveJob}
+                className={`jd-btn-save ${isSaved ? 'saved' : ''}`}
+                style={{ width: '100%', justifyContent: 'center' }}
+                disabled={isSavingBookmark}
+              >
+                <Bookmark size={16} fill={isSaved ? 'currentColor' : 'none'} />
+                <span>{isSaved ? 'Saved' : 'Save job'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* C. Compensation & Dates Summary Card */}
+          <div className="jd-summary-card">
+            {/* Compensation */}
+            <div className="jd-summary-col">
+              <div className="jd-summary-icon green">
+                <span style={{ fontSize: '18px', fontWeight: 800 }}>$</span>
+              </div>
+              <div>
+                <div className="jd-summary-label">COMPENSATION</div>
+                <div className="jd-summary-value">
+                  {job.salaryMin != null || job.salaryMax != null ? (
+                    <>
+                      {(job.salaryCurrency && job.salaryCurrency !== 'USD') ? job.salaryCurrency : 'PKR'}{' '}
+                      {job.salaryMin != null && job.salaryMin.toLocaleString()}
+                      {job.salaryMin != null && job.salaryMax != null && ' – '}
+                      {job.salaryMax != null && job.salaryMax.toLocaleString()}{' '}
+                      <span style={{ fontSize: '13px', fontWeight: 500, color: '#687993' }}>/ month</span>
+                    </>
+                  ) : (
+                    'Competitive salary'
+                  )}
+                </div>
+                <div className="jd-summary-sub green">Competitive salary</div>
+              </div>
+            </div>
+
+            {/* Published */}
+            <div className="jd-summary-col">
+              <div className="jd-summary-icon navy">
+                <Calendar size={18} />
+              </div>
+              <div>
+                <div className="jd-summary-label">PUBLISHED</div>
+                <div className="jd-summary-value">
+                  {formatDate(job.publishedAtUtc) || 'Recently'}
+                </div>
+                <div className="jd-summary-sub">
+                  {getRelativePublished(job.publishedAtUtc)}
+                </div>
+              </div>
+            </div>
+
+            {/* Application Deadline */}
+            <div className="jd-summary-col">
+              <div className="jd-summary-icon navy">
+                <Clock size={18} />
+              </div>
+              <div>
+                <div className="jd-summary-label">APPLICATION DEADLINE</div>
+                <div className="jd-summary-value" style={{ color: isExpired ? '#B42318' : '#09244D' }}>
+                  {formatDate(job.expiresAtUtc) || 'Open until filled'}
+                </div>
+                <div className="jd-summary-sub">
+                  {getRemainingDeadline(job.expiresAtUtc)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* D. Main Content and Application Sidebar */}
+          <div className="jd-main-layout">
+            {/* Left Column (Desktop Card) */}
+            <div className="jd-card jd-desktop-card">
+              {/* Section 1: About the role */}
+              <div className="jd-section">
+                <h2 className="jd-section-title">About the role</h2>
+                <p className="jd-body-text">
+                  {job.summary || `We are looking for a skilled ${job.title} to join our team in ${job.location}. You'll work on scalable web applications, collaborate with cross-functional teams and help build products that make a real impact. This is a great opportunity to grow your skills, take ownership and be part of a supportive and forward-thinking team.`}
+                </p>
+              </div>
+
+              {/* Section 2: What you'll do / Responsibilities */}
+              {(responsibilityItems.length > 0 || job.responsibilities) && (
+                <div className="jd-section">
+                  <h2 className="jd-section-title">What you'll do</h2>
+                  {responsibilityItems.length > 0 ? (
+                    <ul className="jd-list">
+                      {responsibilityItems.map((resp, idx) => (
+                        <li key={idx} className="jd-list-item">
+                          <Check size={17} className="jd-check-icon" strokeWidth={2.5} />
+                          <span>{resp}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="jd-body-text" style={{ whiteSpace: 'pre-line' }}>{job.responsibilities}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Section 3: Required qualifications */}
+              {mandatoryRequirements.length > 0 && (
+                <div className="jd-section">
+                  <h2 className="jd-section-title">Required qualifications</h2>
+                  <ul className="jd-list">
+                    {mandatoryRequirements.map((req, idx) => (
+                      <li key={idx} className="jd-list-item">
+                        <Check size={17} className="jd-check-icon" strokeWidth={2.5} />
+                        <span>{req}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Section 4: Nice to have (Preferred qualifications) */}
+              {preferredRequirements.length > 0 && (
+                <div className="jd-section">
+                  <h2 className="jd-section-title">Nice to have</h2>
+                  <ul className="jd-list">
+                    {preferredRequirements.map((pref, idx) => (
+                      <li key={idx} className="jd-list-item">
+                        <Check size={17} className="jd-check-icon" strokeWidth={2.5} />
+                        <span>{pref}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Section 5: Full description if distinct */}
+              {job.description && job.description !== job.summary && (
+                <div className="jd-section">
+                  <h2 className="jd-section-title">Full job description</h2>
+                  <div className="jd-body-text" style={{ whiteSpace: 'pre-line' }}>
+                    {job.description}
                   </div>
-                ) : (
-                  <button 
-                    onClick={handleOpenApplyModal} 
-                    className="btn lime btn-lg"
-                  >
-                    <Send size={18} /> Apply for this Role
-                  </button>
+                </div>
+              )}
+
+              {/* Section 6: About the company */}
+              <div className="jd-section">
+                <h2 className="jd-section-title">About the company</h2>
+                <p className="jd-body-text">
+                  {job.companyName} builds modern digital solutions for businesses across different industries. We focus on quality, innovation and a people-first culture. Our team works in a collaborative environment where ideas turn into real products.
+                </p>
+                <div className="jd-company-links">
+                  {job.companyWebsiteUrl && (
+                    <div className="jd-company-link-item">
+                      <Globe size={15} />
+                      <a 
+                        href={job.companyWebsiteUrl.startsWith('http') ? job.companyWebsiteUrl : `https://${job.companyWebsiteUrl}`} 
+                        target="_blank" 
+                        rel="noreferrer"
+                      >
+                        {job.companyWebsiteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                      </a>
+                    </div>
+                  )}
+                  <div className="jd-company-link-item">
+                    <Users size={15} />
+                    <span>51 – 200 employees</span>
+                  </div>
+                  <div className="jd-company-link-item">
+                    <Building2 size={15} />
+                    <span>Private</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile View Accordions */}
+            <div className="jd-mobile-accordion">
+              {/* Accordion 1: About the role */}
+              <div className="jd-acc-item">
+                <button 
+                  className="jd-acc-header"
+                  onClick={() => toggleAccordion('role')}
+                  aria-expanded={openAccordion.role}
+                >
+                  <span>About the role</span>
+                  {openAccordion.role ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                </button>
+                {openAccordion.role && (
+                  <div className="jd-acc-body">
+                    <p className="jd-body-text">
+                      {job.summary || `We are looking for a skilled ${job.title} to join our team in ${job.location}. You'll work on scalable web applications, collaborate with cross-functional teams and help build products that make a real impact.`}
+                    </p>
+                  </div>
                 )}
               </div>
-            ) : (
-              <div style={{ textAlign: 'right', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                <span>Signed in as Employer / Admin</span>
-                <p style={{ marginTop: '0.2rem' }}>Only candidate accounts can submit applications</p>
-              </div>
-            )}
-          </div>
-        </div>
 
-        {/* Highlight Metadata Grid */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-          gap: '1.25rem', 
-          padding: '1.25rem', 
-          backgroundColor: 'var(--bg-surface-elevated)', 
-          borderRadius: 'var(--radius-md)', 
-          marginBottom: '2.5rem',
-          border: '1px solid var(--border-subtle)'
-        }}>
-          <div>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '0.35rem' }}>
-              Compensation Range
-            </span>
-            <div style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span className="badge b-ok nodot" style={{ fontSize: '12px', padding: '2px 8px' }}>
-                {(job.salaryCurrency && job.salaryCurrency !== 'USD') ? job.salaryCurrency : 'PKR'}
-              </span>
-              {job.salaryMin != null || job.salaryMax != null ? (
-                <>
-                  {job.salaryMin != null && `${job.salaryMin.toLocaleString()}`}
-                  {job.salaryMin != null && job.salaryMax != null && ' – '}
-                  {job.salaryMax != null && `${job.salaryMax.toLocaleString()}`}
-                </>
-              ) : (
-                'Competitive / Undisclosed'
-              )}
-            </div>
-          </div>
-
-          <div>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '0.35rem' }}>
-              Published Date
-            </span>
-            <div style={{ fontSize: '0.95rem', fontWeight: 500, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Calendar size={16} />
-              {job.publishedAtUtc ? new Date(job.publishedAtUtc).toLocaleDateString(undefined, { dateStyle: 'medium' }) : 'Recently'}
-            </div>
-          </div>
-
-          <div>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '0.35rem' }}>
-              Application Deadline
-            </span>
-            <div style={{ fontSize: '0.95rem', fontWeight: 500, color: isExpired ? 'var(--danger)' : 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Clock size={16} />
-              {job.expiresAtUtc ? new Date(job.expiresAtUtc).toLocaleDateString(undefined, { dateStyle: 'medium' }) : 'Open until filled'}
-            </div>
-          </div>
-
-          <div>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '0.35rem' }}>
-              Industry Sector
-            </span>
-            <div style={{ fontSize: '0.95rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-              {job.companyIndustry || 'Technology & Innovation'}
-            </div>
-          </div>
-        </div>
-
-        {/* Short Summary */}
-        <div style={{ marginBottom: '2.5rem' }}>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.75rem' }}>Role Overview</h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: '1.7' }}>
-            {job.summary}
-          </p>
-        </div>
-
-        {/* Structured Job Requirements */}
-        {job.requirements && job.requirements.length > 0 && (
-          <div style={{ marginBottom: '2.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-              <Sparkles size={20} className="text-primary" />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Structured Qualifications & Requirements</h3>
-            </div>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
-              HireSphere evaluates applications transparently against explicit criteria set by the employer.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {job.requirements.map((req: JobRequirement, idx: number) => {
-                const isMandatory = String(req.requirementType) === 'Mandatory' || String(req.requirementType) === '0';
-                return (
-                  <div 
-                    key={req.id || idx}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '1rem',
-                      padding: '1rem',
-                      backgroundColor: 'var(--bg-input)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: 'var(--radius-sm)'
-                    }}
+              {/* Accordion 2: What you'll do */}
+              {(responsibilityItems.length > 0 || job.responsibilities) && (
+                <div className="jd-acc-item">
+                  <button 
+                    className="jd-acc-header"
+                    onClick={() => toggleAccordion('responsibilities')}
+                    aria-expanded={openAccordion.responsibilities}
                   >
-                    <div style={{ marginTop: '0.2rem' }}>
-                      {isMandatory ? (
-                        <span title="Mandatory Requirement"><ShieldCheck size={20} className="text-emerald" /></span>
+                    <span>What you'll do</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '12px', color: '#687993' }}>
+                        {responsibilityItems.length} responsibilities
+                      </span>
+                      {openAccordion.responsibilities ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                    </div>
+                  </button>
+                  {openAccordion.responsibilities && (
+                    <div className="jd-acc-body">
+                      {responsibilityItems.length > 0 ? (
+                        <ul className="jd-list">
+                          {responsibilityItems.map((resp, idx) => (
+                            <li key={idx} className="jd-list-item">
+                              <Check size={16} className="jd-check-icon" strokeWidth={2.5} />
+                              <span>{resp}</span>
+                            </li>
+                          ))}
+                        </ul>
                       ) : (
-                        <span title="Preferred Qualification"><Star size={20} className="text-amber" /></span>
+                        <p className="jd-body-text" style={{ whiteSpace: 'pre-line' }}>{job.responsibilities}</p>
                       )}
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
-                        {getRequirementCategoryBadge(req.requirementCategory)}
-                        <span className={`status-badge ${isMandatory ? 'status-approved' : 'badge-role'}`} style={{ fontSize: '0.72rem' }}>
-                          {isMandatory ? 'Mandatory' : 'Preferred'}
-                        </span>
-                      </div>
-                      <p style={{ color: 'var(--text-primary)', fontSize: '0.95rem', margin: 0, lineHeight: 1.5 }}>
-                        {req.requirementText}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+                  )}
+                </div>
+              )}
 
-        {/* Detailed Responsibilities */}
-        {job.responsibilities && (
-          <div style={{ marginBottom: '2.5rem' }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.75rem' }}>Key Responsibilities</h3>
-            <div style={{ color: 'var(--text-secondary)', fontSize: '0.975rem', lineHeight: '1.7', whiteSpace: 'pre-line' }}>
-              {job.responsibilities}
-            </div>
-          </div>
-        )}
-
-        {/* Full Job Description */}
-        <div>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.75rem' }}>Full Description & Organization Context</h3>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '0.975rem', lineHeight: '1.7', whiteSpace: 'pre-line' }}>
-            {job.description}
-          </div>
-        </div>
-      </div>
-
-      {/* Apply Modal */}
-      {showApplyModal && (
-        <div className="modal-backdrop">
-          <div className="modal-dialog" style={{ maxWidth: '580px' }}>
-            {applySuccess ? (
-              <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
-                <CheckCircle2 size={54} className="text-emerald" style={{ margin: '0 auto 1.25rem' }} />
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.75rem' }}>Application Submitted!</h3>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: '1.75rem', lineHeight: '1.6' }}>
-                  Your profile and application details for <strong style={{ color: 'var(--text-primary)' }}>{job.title}</strong> at <strong style={{ color: 'var(--text-primary)' }}>{job.companyName}</strong> have been recorded.
-                </p>
-                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+              {/* Accordion 3: Required qualifications */}
+              {mandatoryRequirements.length > 0 && (
+                <div className="jd-acc-item">
                   <button 
-                    onClick={() => setShowApplyModal(false)} 
-                    className="btn btn-outline"
+                    className="jd-acc-header"
+                    onClick={() => toggleAccordion('qualifications')}
+                    aria-expanded={openAccordion.qualifications}
                   >
-                    Close
+                    <span>Required qualifications</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '12px', color: '#687993' }}>
+                        {mandatoryRequirements.length} requirements
+                      </span>
+                      {openAccordion.qualifications ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                    </div>
                   </button>
-                  <Link 
-                    to="/candidate/applications" 
-                    className="btn btn-primary"
-                  >
-                    View My Applications
-                  </Link>
+                  {openAccordion.qualifications && (
+                    <div className="jd-acc-body">
+                      <ul className="jd-list">
+                        {mandatoryRequirements.map((req, idx) => (
+                          <li key={idx} className="jd-list-item">
+                            <Check size={16} className="jd-check-icon" strokeWidth={2.5} />
+                            <span>{req}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ) : (
-              <form onSubmit={handleApplySubmit}>
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <h3 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.35rem' }}>
-                    Apply for {job.title}
-                  </h3>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                    {job.companyName} • {job.location}
-                  </p>
-                </div>
+              )}
 
-                {applyError && (
-                  <div className="alert alert-error" style={{ marginBottom: '1.25rem' }}>
-                    <AlertCircle size={18} />
-                    <span style={{ fontSize: '0.85rem' }}>{applyError}</span>
+              {/* Accordion 4: Nice to have */}
+              {preferredRequirements.length > 0 && (
+                <div className="jd-acc-item">
+                  <button 
+                    className="jd-acc-header"
+                    onClick={() => toggleAccordion('niceToHave')}
+                    aria-expanded={openAccordion.niceToHave}
+                  >
+                    <span>Nice to have</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '12px', color: '#687993' }}>
+                        {preferredRequirements.length} preferences
+                      </span>
+                      {openAccordion.niceToHave ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                    </div>
+                  </button>
+                  {openAccordion.niceToHave && (
+                    <div className="jd-acc-body">
+                      <ul className="jd-list">
+                        {preferredRequirements.map((pref, idx) => (
+                          <li key={idx} className="jd-list-item">
+                            <Check size={16} className="jd-check-icon" strokeWidth={2.5} />
+                            <span>{pref}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Accordion 5: About the company */}
+              <div className="jd-acc-item">
+                <button 
+                  className="jd-acc-header"
+                  onClick={() => toggleAccordion('company')}
+                  aria-expanded={openAccordion.company}
+                >
+                  <span>About the company</span>
+                  {openAccordion.company ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                </button>
+                {openAccordion.company && (
+                  <div className="jd-acc-body">
+                    <p className="jd-body-text">
+                      {job.companyName} builds modern digital solutions for businesses across different industries. We focus on quality, innovation and a people-first culture.
+                    </p>
+                    {job.companyWebsiteUrl && (
+                      <div style={{ marginTop: '12px' }}>
+                        <a 
+                          href={job.companyWebsiteUrl.startsWith('http') ? job.companyWebsiteUrl : `https://${job.companyWebsiteUrl}`} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          style={{ color: '#1458F5', fontSize: '13.5px', textDecoration: 'underline' }}
+                        >
+                          Visit website ↗
+                        </a>
+                      </div>
+                    )}
                   </div>
                 )}
+              </div>
+            </div>
 
-                <div className="box" style={{ marginBottom: '1.25rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
-                    <ShieldCheck size={18} className="text-primary" />
-                    <span>Applying with your profile</span>
-                  </div>
-                  <p style={{ marginTop: '0.25rem', fontSize: '0.85rem', color: 'var(--muted)', lineHeight: 1.45 }}>
-                    Your candidate profile, skills, and selected CV will be sent directly to the company's hiring team.
-                  </p>
+            {/* Right Column: Application Sidebar (Desktop Sticky) */}
+            <aside className="jd-sidebar" aria-label="Application Summary">
+              {/* Card 1: Application Snapshot */}
+              <div className="jd-sidebar-card">
+                <div className="jd-snapshot-title">
+                  <FileText size={18} style={{ color: '#1458F5' }} />
+                  <span>Application snapshot</span>
                 </div>
 
-                {/* CV Document Selection */}
-                <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-                  <label htmlFor="cvSelect" className="form-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span>Attached CV</span>
-                    <Link to="/candidate/documents" target="_blank" style={{ fontSize: '0.8rem', color: 'var(--accent)' }}>
-                      Manage CVs ↗
-                    </Link>
-                  </label>
-                  {loadingDocs ? (
-                    <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>Loading your CVs...</div>
-                  ) : candidateDocs.length > 0 ? (
-                    <select
-                      id="cvSelect"
-                      className="form-input"
-                      value={selectedDocId}
-                      onChange={(e) => setSelectedDocId(e.target.value)}
+                <div className="jd-snapshot-list">
+                  {/* Deadline */}
+                  <div className="jd-snapshot-item">
+                    <div className="jd-snapshot-icon">
+                      <Calendar size={16} />
+                    </div>
+                    <div>
+                      <div className="jd-snapshot-label">Application deadline</div>
+                      <div className="jd-snapshot-val" style={{ color: isExpired ? '#B42318' : '#09244D' }}>
+                        {formatDate(job.expiresAtUtc) || 'Open until filled'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Job Type */}
+                  <div className="jd-snapshot-item">
+                    <div className="jd-snapshot-icon">
+                      <Briefcase size={16} />
+                    </div>
+                    <div>
+                      <div className="jd-snapshot-label">Job type</div>
+                      <div className="jd-snapshot-val">
+                        {getEmploymentLabel(job.employmentType)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Location */}
+                  <div className="jd-snapshot-item">
+                    <div className="jd-snapshot-icon">
+                      <MapPin size={16} />
+                    </div>
+                    <div>
+                      <div className="jd-snapshot-label">Location</div>
+                      <div className="jd-snapshot-val">
+                        {job.location}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Experience Level */}
+                  <div className="jd-snapshot-item">
+                    <div className="jd-snapshot-icon">
+                      <Star size={16} />
+                    </div>
+                    <div>
+                      <div className="jd-snapshot-label">Experience level</div>
+                      <div className="jd-snapshot-val">
+                        {experienceText}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="jd-sidebar-actions">
+                  {renderPrimaryAction(true)}
+                  <button
+                    type="button"
+                    onClick={handleToggleSaveJob}
+                    className={`jd-btn-save jd-btn-block ${isSaved ? 'saved' : ''}`}
+                    style={{ justifyContent: 'center' }}
+                    disabled={isSavingBookmark}
+                  >
+                    <Bookmark size={16} fill={isSaved ? 'currentColor' : 'none'} />
+                    <span>{isSaved ? 'Saved' : 'Save job'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Card 2: Why join {company}? */}
+              <div className="jd-why-card">
+                <div className="jd-why-title">
+                  <Sparkles size={18} style={{ color: '#138A55' }} />
+                  <span>Why join {job.companyName}?</span>
+                </div>
+                <p className="jd-why-desc">
+                  Competitive salary, flexible work environment, learning opportunities and a supportive team.
+                </p>
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        {/* Mobile Sticky Bottom Action Bar */}
+        <div className="jd-mobile-bottom-bar">
+          {renderPrimaryAction(true)}
+        </div>
+
+        {/* Apply Modal */}
+        {showApplyModal && (
+          <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="apply-modal-title">
+            <div className="modal-dialog" style={{ maxWidth: '580px', borderRadius: '16px' }}>
+              {applySuccess ? (
+                <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                  <CheckCircle2 size={56} style={{ color: '#138A55', margin: '0 auto 16px' }} />
+                  <h3 id="apply-modal-title" style={{ fontSize: '24px', fontWeight: 800, color: '#09244D', marginBottom: '10px' }}>
+                    Application Submitted!
+                  </h3>
+                  <p style={{ color: '#687993', marginBottom: '24px', lineHeight: 1.6, fontSize: '15px' }}>
+                    Your application for <strong style={{ color: '#09244D' }}>{job.title}</strong> at <strong style={{ color: '#09244D' }}>{job.companyName}</strong> has been received by the hiring team.
+                  </p>
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                    <button 
+                      onClick={() => setShowApplyModal(false)} 
+                      className="jd-btn-save"
                     >
-                      {candidateDocs.map((doc) => (
-                        <option key={doc.id} value={doc.id}>
-                          {doc.originalFileName} {doc.isDefault ? ' — Default CV' : ''}
-                        </option>
-                      ))}
-                      <option value="">Apply without CV (Profile only)</option>
-                    </select>
-                  ) : (
-                    <div className="box" style={{ padding: '0.85rem', fontSize: '0.85rem' }}>
-                      <p style={{ margin: '0 0 0.5rem 0', color: 'var(--muted)' }}>
-                        You haven't uploaded a CV yet. Adding a CV helps companies see how your skills match the role.
-                      </p>
-                      <Link to="/candidate/documents" className="btn sm">
-                        Upload a CV
-                      </Link>
+                      Close
+                    </button>
+                    <Link 
+                      to="/candidate/applications" 
+                      className="jd-btn-primary"
+                    >
+                      <span>View My Applications</span>
+                      <ArrowRight size={16} />
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleApplySubmit}>
+                  <div style={{ marginBottom: '20px' }}>
+                    <h3 id="apply-modal-title" style={{ fontSize: '22px', fontWeight: 800, color: '#09244D', marginBottom: '4px' }}>
+                      Apply for {job.title}
+                    </h3>
+                    <p style={{ color: '#687993', fontSize: '14px', margin: 0 }}>
+                      {job.companyName} • {job.location}
+                    </p>
+                  </div>
+
+                  {applyError && (
+                    <div className="alert alert-error" style={{ marginBottom: '16px' }}>
+                      <AlertCircle size={18} />
+                      <span style={{ fontSize: '14px' }}>{applyError}</span>
                     </div>
                   )}
 
-                  {/* See Fit Advisory Banner */}
-                  <div className="box" style={{ marginTop: '0.75rem', background: 'var(--soft)', borderColor: '#C9D8FF' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem', color: 'var(--accent-d)', fontWeight: 600, fontSize: '0.85rem' }}>
-                      <Sparkles size={16} /> See how well you fit
+                  <div style={{ 
+                    padding: '14px 16px', 
+                    borderRadius: '10px', 
+                    background: '#F8F9FA', 
+                    border: '1px solid #E7E6E0', 
+                    marginBottom: '18px' 
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '14px', color: '#09244D' }}>
+                      <ShieldCheck size={18} style={{ color: '#1458F5' }} />
+                      <span>Applying with your candidate profile</span>
                     </div>
-                    <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--muted)', lineHeight: 1.45 }}>
-                      When you attach a CV, we show how your skills match the job requirements. A real person reviews every application, and no decisions are made automatically.
+                    <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#687993', lineHeight: 1.45 }}>
+                      Your candidate profile, skills summary, and selected CV will be sent directly to the hiring managers.
                     </p>
                   </div>
-                </div>
 
-                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                  <label htmlFor="coverNote">Cover Note / Value Proposition (Optional)</label>
-                  <textarea
-                    id="coverNote"
-                    rows={4}
-                    className="textarea-standard"
-                    placeholder="Briefly highlight why you are a strong match for this vacancy and any relevant achievements..."
-                    value={coverNote}
-                    onChange={(e) => setCoverNote(e.target.value)}
-                    maxLength={1500}
-                  />
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'right' }}>
-                    {coverNote.length} / 1500 characters
-                  </span>
-                </div>
+                  {/* CV Document Selection */}
+                  <div style={{ marginBottom: '18px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label htmlFor="cvSelect" style={{ fontSize: '14px', fontWeight: 700, color: '#09244D' }}>
+                        Attached CV
+                      </label>
+                      <Link to="/candidate/documents" target="_blank" style={{ fontSize: '12.5px', color: '#1458F5', fontWeight: 600 }}>
+                        Manage CVs ↗
+                      </Link>
+                    </div>
 
-                <div className="modal-actions">
-                  <button 
-                    type="button" 
-                    onClick={() => setShowApplyModal(false)} 
-                    className="btn btn-outline"
-                    disabled={isSubmitting}
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    className="btn lime" 
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="spinner" style={{ width: '16px', height: '16px' }} />
-                        Submitting...
-                      </>
+                    {loadingDocs ? (
+                      <div style={{ fontSize: '13.5px', color: '#687993' }}>Loading your CV documents...</div>
+                    ) : candidateDocs.length > 0 ? (
+                      <select
+                        id="cvSelect"
+                        className="form-input"
+                        value={selectedDocId}
+                        onChange={(e) => setSelectedDocId(e.target.value)}
+                        style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #E7E6E0' }}
+                      >
+                        {candidateDocs.map((doc) => (
+                          <option key={doc.id} value={doc.id}>
+                            {doc.originalFileName} {doc.isDefault ? ' — Default CV' : ''}
+                          </option>
+                        ))}
+                        <option value="">Apply without CV (Profile only)</option>
+                      </select>
                     ) : (
-                      <>
-                        <Send size={16} /> Confirm Submission
-                      </>
+                      <div style={{ padding: '14px', background: '#F8F9FA', border: '1px solid #E7E6E0', borderRadius: '8px' }}>
+                        <p style={{ margin: '0 0 10px', fontSize: '13.5px', color: '#687993' }}>
+                          You haven't uploaded a CV yet. Attaching a CV allows employers to review your qualifications faster.
+                        </p>
+                        <Link to="/candidate/documents" className="jd-btn-primary" style={{ padding: '6px 14px', fontSize: '13px' }}>
+                          Upload a CV
+                        </Link>
+                      </div>
                     )}
-                  </button>
-                </div>
-              </form>
-            )}
+
+                    {/* Fit Advisory Notice */}
+                    <div style={{ 
+                      marginTop: '12px', 
+                      padding: '12px 14px', 
+                      borderRadius: '8px', 
+                      background: '#EEF2FF', 
+                      border: '1px solid #C7D2FE' 
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#1458F5', fontWeight: 700, fontSize: '13px' }}>
+                        <Sparkles size={15} />
+                        <span>See how well you fit</span>
+                      </div>
+                      <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#687993', lineHeight: 1.45 }}>
+                        When you attach a CV, we show how your skills match the job requirements. A real person reviews every application.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Cover Note */}
+                  <div style={{ marginBottom: '22px' }}>
+                    <label htmlFor="coverNote" style={{ display: 'block', fontSize: '14px', fontWeight: 700, color: '#09244D', marginBottom: '6px' }}>
+                      Cover Note (Optional)
+                    </label>
+                    <textarea
+                      id="coverNote"
+                      rows={4}
+                      className="textarea-standard"
+                      placeholder="Briefly highlight why you are a strong match for this vacancy and any relevant achievements..."
+                      value={coverNote}
+                      onChange={(e) => setCoverNote(e.target.value)}
+                      maxLength={1500}
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #E7E6E0' }}
+                    />
+                    <div style={{ fontSize: '12px', color: '#687993', textAlign: 'right', marginTop: '4px' }}>
+                      {coverNote.length} / 1500 characters
+                    </div>
+                  </div>
+
+                  {/* Modal Actions */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                    <button 
+                      type="button" 
+                      onClick={() => setShowApplyModal(false)} 
+                      className="jd-btn-save"
+                      disabled={isSubmitting}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="jd-btn-primary" 
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <div className="spinner" style={{ width: '16px', height: '16px' }} />
+                          <span>Submitting...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send size={15} />
+                          <span>Confirm Submission</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
           </div>
-        </div>
-      )}
-    </div>
-  </PageTransition>
+        )}
+      </div>
+    </PageTransition>
   );
 };
+
+export default JobDetail;

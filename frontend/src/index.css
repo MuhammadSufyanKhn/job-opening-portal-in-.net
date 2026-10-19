@@ -6765,3 +6765,564 @@ body {
   }
 }
 
+/* =============================================================================
+   HireSphere Job Details Page — Production UI Redesign
+   ============================================================================= */
+.jd-page {
+  background-color: #F8F6F0;
+  min-height: 100vh;
+  padding: 32px 0 80px 0;
+  color: #132746;
+  font-family: inherit;
+}
+
+.jd-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Back Link */
+.jd-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #687993;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  margin-bottom: 24px;
+  transition: color 0.15s ease;
+}
+
+.jd-back-link:hover {
+  color: #09244D;
+}
+
+/* Job Identity Header Card */
+.jd-header-card {
+  background: #FFFFFF;
+  border: 1px solid #E7E6E0;
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(9, 36, 77, 0.04);
+}
+
+.jd-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.jd-company-identity {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.jd-company-avatar {
+  width: 58px;
+  height: 58px;
+  background-color: #09244D;
+  color: #FFFFFF;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.jd-company-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.jd-title-area {
+  flex: 1;
+}
+
+.jd-company-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.jd-company-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #09244D;
+}
+
+.jd-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  color: #1458F5;
+}
+
+.jd-company-industry {
+  font-size: 13.5px;
+  color: #687993;
+  margin-bottom: 8px;
+}
+
+.jd-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #09244D;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  margin: 0 0 14px 0;
+}
+
+.jd-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.jd-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #F8F9FA;
+  border: 1px solid #E7E6E0;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #132746;
+}
+
+/* Header Action Buttons */
+.jd-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.jd-btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1px solid #E7E6E0;
+  color: #09244D;
+  padding: 10px 18px;
+  border-radius: 100px;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.jd-btn-save:hover {
+  background: #F8F9FA;
+  border-color: #D5D4CD;
+}
+
+.jd-btn-save.saved {
+  background: #EEF2FF;
+  border-color: #C7D2FE;
+  color: #1458F5;
+}
+
+.jd-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #1458F5;
+  color: #FFFFFF;
+  border: none;
+  padding: 11px 24px;
+  border-radius: 100px;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.jd-btn-primary:hover {
+  background-color: #0D46D8;
+}
+
+.jd-applied-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #EEF7EB;
+  border: 1px solid #C4E5B8;
+  color: #138A55;
+  padding: 10px 18px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Compensation & Dates Summary Card */
+.jd-summary-card {
+  background: #FFFFFF;
+  border: 1px solid #E7E6E0;
+  border-radius: 16px;
+  padding: 24px 32px;
+  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  box-shadow: 0 2px 8px rgba(9, 36, 77, 0.04);
+}
+
+.jd-summary-col {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.jd-summary-col:not(:last-child) {
+  border-right: 1px solid #E7E6E0;
+  padding-right: 24px;
+}
+
+.jd-summary-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.jd-summary-icon.green {
+  background: #EEF7EB;
+  color: #138A55;
+}
+
+.jd-summary-icon.navy {
+  background: #F2F1EC;
+  color: #09244D;
+}
+
+.jd-summary-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #687993;
+  margin-bottom: 4px;
+}
+
+.jd-summary-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #09244D;
+  margin-bottom: 2px;
+  line-height: 1.35;
+}
+
+.jd-summary-sub {
+  font-size: 13px;
+  color: #687993;
+}
+
+.jd-summary-sub.green {
+  color: #138A55;
+  font-weight: 600;
+}
+
+/* Two Column Main Layout */
+.jd-main-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Left Main Content Card */
+.jd-card {
+  background: #FFFFFF;
+  border: 1px solid #E7E6E0;
+  border-radius: 16px;
+  padding: 36px;
+  box-shadow: 0 2px 8px rgba(9, 36, 77, 0.04);
+}
+
+.jd-section {
+  margin-bottom: 36px;
+}
+
+.jd-section:last-child {
+  margin-bottom: 0;
+}
+
+.jd-section-title {
+  font-size: 21px;
+  font-weight: 800;
+  color: #09244D;
+  margin: 0 0 16px 0;
+  letter-spacing: -0.01em;
+}
+
+.jd-body-text {
+  font-size: 15px;
+  line-height: 1.68;
+  color: #132746;
+  margin: 0;
+}
+
+.jd-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.jd-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #132746;
+}
+
+.jd-check-icon {
+  color: #1458F5;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.jd-company-links {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid #E7E6E0;
+}
+
+.jd-company-link-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  color: #687993;
+}
+
+.jd-company-link-item a {
+  color: #1458F5;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Sidebar Cards */
+.jd-sidebar {
+  position: sticky;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.jd-sidebar-card {
+  background: #FFFFFF;
+  border: 1px solid #E7E6E0;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 2px 8px rgba(9, 36, 77, 0.04);
+}
+
+.jd-snapshot-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #09244D;
+  margin: 0 0 20px 0;
+}
+
+.jd-snapshot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.jd-snapshot-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.jd-snapshot-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #F2F1EC;
+  color: #09244D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.jd-snapshot-label {
+  font-size: 12px;
+  color: #687993;
+  margin-bottom: 2px;
+}
+
+.jd-snapshot-val {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #09244D;
+}
+
+.jd-sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.jd-btn-block {
+  width: 100%;
+}
+
+/* Why Join Card */
+.jd-why-card {
+  background: #EEF7EB;
+  border: 1px solid #C4E5B8;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.jd-why-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #09244D;
+  margin: 0 0 8px 0;
+}
+
+.jd-why-desc {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #132746;
+  margin: 0;
+}
+
+/* Mobile Accordions */
+.jd-mobile-accordion {
+  display: none;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 992px) {
+  .jd-main-layout {
+    grid-template-columns: 1fr;
+  }
+  .jd-sidebar {
+    position: static;
+  }
+  .jd-summary-card {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .jd-summary-col:not(:last-child) {
+    border-right: none;
+    border-bottom: 1px solid #E7E6E0;
+    padding-right: 0;
+    padding-bottom: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .jd-page {
+    padding: 20px 0 100px 0;
+  }
+  .jd-header-card {
+    padding: 20px;
+  }
+  .jd-company-identity {
+    flex-direction: column;
+  }
+  .jd-title {
+    font-size: 26px;
+  }
+  .jd-header-actions {
+    display: none;
+  }
+  .jd-mobile-actions-top {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    margin-top: 16px;
+  }
+  .jd-desktop-card {
+    display: none;
+  }
+  .jd-mobile-accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .jd-acc-item {
+    background: #FFFFFF;
+    border: 1px solid #E7E6E0;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .jd-acc-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: #FFFFFF;
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    color: #09244D;
+    cursor: pointer;
+    text-align: left;
+  }
+  .jd-acc-header:focus-visible {
+    outline: 2px solid #1458F5;
+  }
+  .jd-acc-body {
+    padding: 0 20px 20px 20px;
+    color: #132746;
+  }
+  .jd-mobile-bottom-bar {
+    display: block;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid #E7E6E0;
+    padding: 12px 20px;
+    z-index: 60;
+    box-shadow: 0 -4px 16px rgba(9, 36, 77, 0.08);
+  }
+}
+
+
