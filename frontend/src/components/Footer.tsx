@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
@@ -9,10 +9,12 @@ export const Footer: React.FC = () => {
         <div className="fg" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '36px', marginBottom: '44px' }}>
           {/* Brand Column */}
           <div style={{ maxWidth: '300px' }}>
-            <Link to="/" className="brand" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '20px', fontWeight: 800, color: 'var(--ink)', textDecoration: 'none', marginBottom: '14px' }}>
-              <i aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '8px', background: 'var(--accent)', color: '#fff' }}>
-                <Briefcase size={18} />
-              </i>
+            <Link to="/" className="brand" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', fontSize: '20px', fontWeight: 800, color: 'var(--ink)', textDecoration: 'none', marginBottom: '14px' }}>
+              <span className="brand-logo-emblem" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" fill="#101B2A" />
+                </svg>
+              </span>
               <span>HireSphere</span>
             </Link>
             <p className="muted" style={{ fontSize: '14px', lineHeight: 1.6, marginBottom: '16px' }}>

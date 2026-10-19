@@ -1,12 +1,11 @@
 import React from 'react';
 import { HeroSection } from '../components/home/HeroSection';
-import { StatsStrip } from '../components/home/StatsStrip';
-import { CategoriesSection } from '../components/home/CategoriesSection';
-import { EmployerSection } from '../components/home/EmployerSection';
+import { FeaturedJobsSection } from '../components/home/FeaturedJobsSection';
+import { WhyJoinSection } from '../components/home/WhyJoinSection';
+import { EmployerSuiteShowcase } from '../components/home/EmployerSuiteShowcase';
+import { CandidateJourneyShowcase } from '../components/home/CandidateJourneyShowcase';
 import { HowItWorksSection } from '../components/home/HowItWorksSection';
-import { CompaniesHiringSection } from '../components/home/CompaniesHiringSection';
-import { WorkSimIntroSection } from '../components/home/WorkSimIntroSection';
-import { FaqSection } from '../components/home/FaqSection';
+import { FinalCtaSection } from '../components/home/FinalCtaSection';
 import { Footer } from '../components/Footer';
 import { PageTransition } from '../components/common/PageTransition';
 
@@ -14,31 +13,28 @@ export const Home: React.FC = () => {
   return (
     <PageTransition>
       <div className="home-page" role="main">
-        {/* 1. Hero Section with Exact Boxes (Pic 1) */}
+        {/* 1. Hero Section with Value Proposition, 10K+ stats, and Explore Opportunities Search */}
         <HeroSection />
 
-        {/* 2. Stats Strip with Incremental Counts (Pic 2) */}
-        <StatsStrip />
+        {/* 2. Featured Jobs Grid from Live Marketplace API */}
+        <FeaturedJobsSection />
 
-        {/* 3. Browse Jobs by Category with Real Published Counts */}
-        <CategoriesSection />
+        {/* 3. Why Join HireSphere Credibility Pillars & Testimonial */}
+        <WhyJoinSection />
 
-        {/* 4. For Employers Section (Pic 3 with Suite Showcase) */}
-        <EmployerSection />
+        {/* 4. Employer Workspace Showcase with Pipeline Funnel */}
+        <EmployerSuiteShowcase />
 
-        {/* 5. How It Works with 3 Interactive Stages & Opening Animation */}
+        {/* 5. Candidate Skills Certification & Career Progression */}
+        <CandidateJourneyShowcase />
+
+        {/* 6. How HireSphere Works with Interactive Dual-Track Progression */}
         <HowItWorksSection />
 
-        {/* 6. Companies Hiring Now */}
-        <CompaniesHiringSection />
+        {/* 7. Final Call to Action with Dual Pathways */}
+        <FinalCtaSection />
 
-        {/* 7. WorkSim Practical Challenges Feature Spotlight */}
-        <WorkSimIntroSection />
-
-        {/* 8. Help & FAQ Section */}
-        <FaqSection />
-
-        {/* 9. Complete Footer with Verified Platform Links */}
+        {/* 8. Comprehensive Platform Footer */}
         <Footer />
       </div>
     </PageTransition>

@@ -6,19 +6,27 @@
   --bg: #F7F5EF;
   --surface: #FFFFFF;
   --ink: #101B2A;
-  --muted: #5C6675;
-  --line: #DCE0D8;
   --navy: #101B2A;
+  --muted: #5C6675;
+  --slate: #5C6675;
+  --line: #DCE0D8;
+  --border-neutral: rgba(16, 27, 42, 0.12);
+  --border-subtle: rgba(16, 27, 42, 0.08);
 
-  /* brand */
+  /* brand colors matching visual identity */
   --accent: #4263EB;
   --accent-d: #304BC0;
+  --cobalt: #4263EB;
   --soft: #E9EDFF;
   --lime: #D7FF55;
   --lime-hover: #C6F53B;
   --lime-ink: #101B2A;
   --lavender: #B8A5FF;
   --ivory: #F7F5EF;
+
+  /* layout metrics */
+  --nav-height: 72px;
+  --mobile-bottom-height: 64px;
 
   /* status (text on tinted background) */
   --ok: #0F7A55;   --ok-bg: #DDF5EA;

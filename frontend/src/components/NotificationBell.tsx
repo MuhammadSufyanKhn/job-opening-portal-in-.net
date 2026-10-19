@@ -118,14 +118,17 @@ export const NotificationBell: React.FC = () => {
   return (
     <div style={{ position: 'relative', display: 'inline-block' }} ref={dropdownRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="notification-bell-btn"
+        className="circle-btn notification-bell-btn"
         title="Notifications"
-        aria-label="View notifications"
+        aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
+        aria-haspopup="true"
+        aria-expanded={isOpen}
       >
         <Bell size={18} />
         {unreadCount > 0 && (
-          <span className="notification-unread-badge">
+          <span className="notification-unread-badge" aria-hidden="true">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}

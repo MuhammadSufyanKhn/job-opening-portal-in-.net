@@ -99,7 +99,10 @@ public class ExceptionHandlingMiddleware
                 _logger.LogError(exception, "Unhandled system exception occurred: {Message}", exception.Message);
                 statusCode = HttpStatusCode.InternalServerError;
                 problemDetails.Title = "Server Error";
-                problemDetails.Detail = "An unexpected error occurred. Please contact support.";
+                var detailedMessage = exception.InnerException != null
+                    ? $"{exception.Message} --> {exception.InnerException.Message}"
+                    : exception.Message;
+                problemDetails.Detail = detailedMessage;
                 problemDetails.Status = (int)statusCode;
                 break;
         }
