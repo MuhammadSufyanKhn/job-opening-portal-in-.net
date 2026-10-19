@@ -12,7 +12,9 @@ export const HowItWorksSection: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isInViewport, setIsInViewport] = useState(false);
   const [isPageVisible, setIsPageVisible] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches
+  );
 
   const steps = HOW_IT_WORKS_STEPS[audience];
 
@@ -168,59 +170,61 @@ export const HowItWorksSection: React.FC = () => {
             boxShadow: 'var(--sh)'
           }}
         >
-          {/* Step numbers navigation bar */}
-          <div className="how-it-works-step-nav" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px', position: 'relative' }}>
-            {steps.map((_step, idx) => {
-              const isActive = activeStep === idx;
-              return (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => handleStepClick(idx)}
-                  aria-current={isActive ? 'step' : undefined}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px 16px',
-                    borderRadius: 'var(--r-sm)',
-                    border: '1px solid',
-                    borderColor: isActive ? 'var(--accent)' : 'var(--line)',
-                    background: isActive ? 'var(--soft)' : 'transparent',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <span
+          {/* Keep the three-step selector available on desktop only. Mobile uses the active card below. */}
+          {!isMobile && (
+            <div className="how-it-works-step-nav" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px', position: 'relative' }}>
+              {steps.map((_step, idx) => {
+                const isActive = activeStep === idx;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleStepClick(idx)}
+                    aria-current={isActive ? 'step' : undefined}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      background: isActive ? 'var(--accent)' : 'var(--bg)',
-                      color: isActive ? '#fff' : 'var(--muted)',
-                      fontWeight: 700,
-                      fontSize: '14px',
-                      flexShrink: 0,
+                      gap: '12px',
+                      padding: '12px 16px',
+                      borderRadius: 'var(--r-sm)',
+                      border: '1px solid',
+                      borderColor: isActive ? 'var(--accent)' : 'var(--line)',
+                      background: isActive ? 'var(--soft)' : 'transparent',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.2s ease',
                     }}
                   >
-                    {idx + 1}
-                  </span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'left', overflow: 'hidden' }}>
-                    <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', color: isActive ? 'var(--accent)' : 'var(--muted)', fontWeight: 700 }}>
-                      Stage {idx + 1}
+                    <span
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        background: isActive ? 'var(--accent)' : 'var(--bg)',
+                        color: isActive ? '#fff' : 'var(--muted)',
+                        fontWeight: 700,
+                        fontSize: '14px',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {idx + 1}
                     </span>
-                    <strong style={{ fontSize: '13px', color: isActive ? 'var(--ink)' : 'var(--muted-d, #4B5565)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {_step.title}
-                    </strong>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'left', overflow: 'hidden' }}>
+                      <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', color: isActive ? 'var(--accent)' : 'var(--muted)', fontWeight: 700 }}>
+                        Stage {idx + 1}
+                      </span>
+                      <strong style={{ fontSize: '13px', color: isActive ? 'var(--ink)' : 'var(--muted-d, #4B5565)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {_step.title}
+                      </strong>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Active Step Content Animation */}
           <div className="how-it-works-active-content" style={{ minHeight: '130px' }}>
