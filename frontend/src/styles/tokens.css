@@ -14,10 +14,10 @@
   --border-subtle: rgba(16, 27, 42, 0.08);
 
   /* brand colors matching visual identity */
-  --accent: #4263EB;
-  --accent-d: #304BC0;
-  --cobalt: #4263EB;
-  --soft: #E9EDFF;
+  --accent: #F2C94C;
+  --accent-d: #C49A18;
+  --cobalt: #F2C94C;
+  --soft: #FFF7D6;
   --lime: #D7FF55;
   --lime-hover: #C6F53B;
   --lime-ink: #101B2A;
@@ -68,12 +68,12 @@
   --cand-border: #C6EDD8;
 
   /* Employer Portal (Productivity & hiring pipeline) */
-  --emp-primary: #4263EB;
-  --emp-primary-d: #304BC0;
+  --emp-primary: #F2C94C;
+  --emp-primary-d: #C49A18;
   --emp-warm: #D97706;
   --emp-warm-soft: #FEF3C7;
-  --emp-soft: #EEF3FF;
-  --emp-border: #D1DEFF;
+  --emp-soft: #FFF7D6;
+  --emp-border: #F3D77A;
 
   /* Admin Operations Portal (Governance, technical control) */
   --admin-navy: #0B132B;

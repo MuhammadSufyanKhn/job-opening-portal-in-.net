@@ -237,7 +237,7 @@ export const CompanyDashboard: React.FC = () => {
               </div>
 
               <div className="card st">
-                <div className="fi" style={{ background: '#EEF3FF', color: '#4263EB' }}>
+                <div className="fi" style={{ background: 'var(--soft)', color: 'var(--accent-d)' }}>
                   <Users size={22} />
                 </div>
                 <div>

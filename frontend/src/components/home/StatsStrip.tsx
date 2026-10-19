@@ -39,8 +39,8 @@ export const StatsStrip: React.FC = () => {
       badge: 'Live vacancies',
       accent: 'accent-blue',
       icon: Briefcase,
-      iconBg: '#EEF4FF',
-      iconColor: '#1F5EFF'
+      iconBg: 'var(--soft)',
+      iconColor: 'var(--accent-d)'
     },
     { 
       numValue: totalCompanies, 

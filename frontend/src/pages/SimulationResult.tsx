@@ -41,7 +41,7 @@ export const SimulationResult: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col items-center justify-center space-y-4">
-        <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
+        <RefreshCw className="w-8 h-8 text-amber-500 animate-spin" />
         <p className="text-slate-600 text-sm font-medium">Evaluating skills challenge results...</p>
       </div>
     );
@@ -63,7 +63,7 @@ export const SimulationResult: React.FC = () => {
             </button>
             <Link
               to="/candidate/simulations"
-              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm"
+              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold shadow-sm"
             >
               Back to Simulations
             </Link>
@@ -83,7 +83,7 @@ export const SimulationResult: React.FC = () => {
         <div className="flex items-center justify-between">
           <Link
             to="/candidate/simulations"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-amber-500 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" /> Back to My Simulations
           </Link>
@@ -96,9 +96,9 @@ export const SimulationResult: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="rounded-3xl bg-white border border-blue-200 p-8 shadow-sm relative overflow-hidden"
+          className="rounded-3xl bg-white border border-amber-200 p-8 shadow-sm relative overflow-hidden"
         >
-          <div className="absolute top-0 right-0 w-80 h-80 bg-blue-50/60 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-80 h-80 bg-amber-50/60 rounded-full blur-3xl pointer-events-none" />
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
             <div className="space-y-2 max-w-lg">
@@ -115,17 +115,17 @@ export const SimulationResult: React.FC = () => {
             </div>
 
             {/* Score Ring / Box */}
-            <div className="rounded-2xl bg-blue-50/70 border border-blue-200 p-6 text-center shrink-0 min-w-[160px] shadow-sm">
+            <div className="rounded-2xl bg-amber-50/70 border border-amber-200 p-6 text-center shrink-0 min-w-[160px] shadow-sm">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
                 Overall Score
               </span>
-              <div className="text-4xl font-extrabold text-blue-700">
+              <div className="text-4xl font-extrabold text-amber-600">
                 {result.totalScore.toFixed(1)}
                 <span className="text-lg font-semibold text-slate-400"> / 100</span>
               </div>
               <div className="w-full bg-slate-200 rounded-full h-2 mt-3 overflow-hidden">
                 <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-1000"
+                  className="bg-amber-500 h-2 rounded-full transition-all duration-1000"
                   style={{ width: `${Math.min(100, Math.max(0, scorePercentage))}%` }}
                 />
               </div>
@@ -135,7 +135,7 @@ export const SimulationResult: React.FC = () => {
 
         {/* Ethical Decision-Support Notice */}
         <div className="rounded-2xl bg-white border border-slate-200 p-4.5 flex items-start gap-3.5 text-xs text-slate-600 shadow-sm">
-          <ShieldCheck className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+          <ShieldCheck className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <p className="font-semibold text-slate-900">HireSphere Decision-Support Policy</p>
             <p>
@@ -147,7 +147,7 @@ export const SimulationResult: React.FC = () => {
         {/* Criterion Breakdown */}
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-blue-600" />
+            <BarChart3 className="w-5 h-5 text-amber-500" />
             Criterion-Level Evaluation Breakdown
           </h2>
 
@@ -163,7 +163,7 @@ export const SimulationResult: React.FC = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
-                  className="rounded-2xl bg-white border border-slate-200 p-6 space-y-4 shadow-sm hover:border-blue-300 transition-colors"
+                  className="rounded-2xl bg-white border border-slate-200 p-6 space-y-4 shadow-sm hover:border-amber-300 transition-colors"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                     <div>
@@ -201,13 +201,13 @@ export const SimulationResult: React.FC = () => {
                   {criterion.supportingEvidence && criterion.supportingEvidence.length > 0 && (
                     <div className="rounded-xl bg-slate-50 border border-slate-200 p-3.5 space-y-2 text-xs">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                        <FileText className="w-3 h-3 text-blue-600" />
+                        <FileText className="w-3 h-3 text-amber-500" />
                         Recorded Evidence & Candidate Rationales
                       </span>
                       <ul className="space-y-1.5 text-slate-700">
                         {criterion.supportingEvidence.map((ev, i) => (
                           <li key={i} className="flex items-start gap-2 text-[11.5px] leading-relaxed">
-                            <span className="text-blue-600 mt-0.5">•</span>
+                            <span className="text-amber-500 mt-0.5">•</span>
                             <span>{ev}</span>
                           </li>
                         ))}
@@ -225,7 +225,7 @@ export const SimulationResult: React.FC = () => {
           <span>Simulation Session ID: {result.sessionId}</span>
           <Link
             to="/candidate/simulations"
-            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors shadow-sm"
+            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors shadow-sm"
           >
             Back to All Simulations
           </Link>

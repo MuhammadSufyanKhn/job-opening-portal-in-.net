@@ -125,7 +125,7 @@ export const AdminDashboard: React.FC = () => {
             {/* 4 Stats Cards matching Image 2: Total Users, Pending Verification, Total Companies, Vacancies */}
             <div className="stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '28px' }}>
               <div className="card st">
-                <div className="fi" style={{ background: '#EEF3FF', color: '#4263EB' }}>
+                <div className="fi" style={{ background: 'var(--soft)', color: 'var(--accent-d)' }}>
                   <Users size={22} />
                 </div>
                 <div>
@@ -456,7 +456,7 @@ export const AdminDashboard: React.FC = () => {
             {/* A Safer, Fairer Hiring Ecosystem Card (Image 2 & Image 1) */}
             <div style={{ marginTop: '24px', padding: '20px 24px', background: '#FFFFFF', border: '1px solid rgba(16, 27, 42, 0.08)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#EEF3FF', color: '#4263EB', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'var(--soft)', color: 'var(--accent-d)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                   <Shield size={22} />
                 </div>
                 <div>

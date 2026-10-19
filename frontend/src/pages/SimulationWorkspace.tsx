@@ -102,7 +102,7 @@ export const SimulationWorkspace: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col items-center justify-center space-y-4">
-        <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
+        <RefreshCw className="w-8 h-8 text-amber-500 animate-spin" />
         <p className="text-slate-600 text-sm font-medium">Booting WorkSim interactive environment...</p>
       </div>
     );
@@ -117,7 +117,7 @@ export const SimulationWorkspace: React.FC = () => {
           <p className="text-sm text-slate-600">{error}</p>
           <Link
             to="/candidate/simulations"
-            className="inline-block px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm"
+            className="inline-block px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold shadow-sm"
           >
             Return to Simulations
           </Link>
@@ -136,12 +136,12 @@ export const SimulationWorkspace: React.FC = () => {
       {/* Top Header / Status Bar */}
       <header className="sticky top-0 z-30 bg-white border-b border-slate-200 px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
+          <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-500">
             <Terminal className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-600">
                 {state.scenarioCategory}
               </span>
               <span className="text-slate-300">•</span>
@@ -162,7 +162,7 @@ export const SimulationWorkspace: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-700">
-            <Clock className="w-3.5 h-3.5 text-blue-600" />
+            <Clock className="w-3.5 h-3.5 text-amber-500" />
             <span>Actions: <span className="font-semibold text-slate-900">{state.totalActionsTaken}</span></span>
           </div>
 
@@ -182,9 +182,9 @@ export const SimulationWorkspace: React.FC = () => {
         <div className="lg:col-span-7 space-y-6 flex flex-col">
           
           {/* Current Task Banner */}
-          <div className="rounded-2xl bg-white border border-blue-200 p-6 space-y-3 shadow-sm">
+          <div className="rounded-2xl bg-white border border-amber-200 p-6 space-y-3 shadow-sm">
             <div className="flex items-center justify-between text-xs">
-              <span className="px-2.5 py-0.5 rounded-full font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+              <span className="px-2.5 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-700 border border-amber-200">
                 ACTIVE TASK
               </span>
               <span className="text-slate-500 font-medium">Decision Point #{state.taskIndex}</span>
@@ -192,7 +192,7 @@ export const SimulationWorkspace: React.FC = () => {
             <h2 className="text-xl font-extrabold text-slate-900">
               {state.currentTaskTitle}
             </h2>
-            <p className="text-sm text-slate-700 leading-relaxed bg-blue-50/50 rounded-xl p-4 border border-blue-100">
+            <p className="text-sm text-slate-700 leading-relaxed bg-amber-50/50 rounded-xl p-4 border border-amber-100">
               {state.currentTaskInstructions}
             </p>
           </div>
@@ -230,7 +230,7 @@ export const SimulationWorkspace: React.FC = () => {
           <div className="space-y-3 flex-1">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Send className="w-4 h-4 text-blue-600" />
+                <Send className="w-4 h-4 text-amber-500" />
                 Available Actions & Operational Decisions
               </h3>
               <span className="text-xs text-slate-500">{state.availableActions.length} choices</span>
@@ -249,8 +249,8 @@ export const SimulationWorkspace: React.FC = () => {
                     }}
                     className={`cursor-pointer rounded-2xl border p-4 transition-all ${
                       isSelected
-                        ? 'bg-blue-50/70 border-blue-500 shadow-sm'
-                        : 'bg-white border-slate-200 hover:border-blue-300 hover:bg-slate-50/60 shadow-sm'
+                        ? 'bg-amber-50/70 border-amber-400 shadow-sm'
+                        : 'bg-white border-slate-200 hover:border-amber-300 hover:bg-slate-50/60 shadow-sm'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -258,7 +258,7 @@ export const SimulationWorkspace: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                             action.actionType === 'INSPECT'
-                              ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                              ? 'bg-amber-100 text-amber-600 border border-amber-200'
                               : action.actionType === 'PRIORITIZE'
                               ? 'bg-purple-100 text-purple-700 border border-purple-200'
                               : action.actionType === 'REMEDIATE'
@@ -275,7 +275,7 @@ export const SimulationWorkspace: React.FC = () => {
                       <div className="shrink-0 mt-1">
                         <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
                           isSelected
-                            ? 'border-blue-600 bg-blue-600'
+                            ? 'border-amber-500 bg-amber-500'
                             : 'border-slate-300'
                         }`}>
                           {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
@@ -293,11 +293,11 @@ export const SimulationWorkspace: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl bg-white border border-blue-300 p-5 space-y-4 shadow-md"
+              className="rounded-2xl bg-white border border-amber-300 p-5 space-y-4 shadow-md"
             >
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-xs font-semibold text-blue-700">
-                  <ShieldAlert className="w-4 h-4 text-blue-600" />
+                <div className="flex items-center gap-2 text-xs font-semibold text-amber-600">
+                  <ShieldAlert className="w-4 h-4 text-amber-500" />
                   Confirm Action Decision: {selectedAction.title}
                 </div>
                 <p className="text-xs text-slate-500">
@@ -309,14 +309,14 @@ export const SimulationWorkspace: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                  Your Reasoning & Explanation {selectedAction.requiresRationale && <span className="text-blue-600">*</span>}
+                  Your Reasoning & Explanation {selectedAction.requiresRationale && <span className="text-amber-500">*</span>}
                 </label>
                 <textarea
                   rows={3}
                   value={candidateRationale}
                   onChange={(e) => setCandidateRationale(e.target.value)}
                   placeholder="Explain why you chose this action, which telemetry or log lines support it, and the expected system outcome..."
-                  className="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white text-xs text-slate-900 p-3 outline-none resize-none placeholder-slate-400"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-amber-400 focus:bg-white text-xs text-slate-900 p-3 outline-none resize-none placeholder-slate-400"
                 />
               </div>
 
@@ -333,7 +333,7 @@ export const SimulationWorkspace: React.FC = () => {
                   type="button"
                   onClick={handleExecuteAction}
                   disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-sm disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-sm disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <>
@@ -355,7 +355,7 @@ export const SimulationWorkspace: React.FC = () => {
           {state.actionHistory.length > 0 && (
             <div className="rounded-2xl bg-white border border-slate-200 p-5 space-y-3 shadow-sm">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2">
-                <Layers className="w-3.5 h-3.5 text-blue-600" />
+                <Layers className="w-3.5 h-3.5 text-amber-500" />
                 Action Audit Trail ({state.actionHistory.length})
               </h4>
               <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1">
@@ -365,7 +365,7 @@ export const SimulationWorkspace: React.FC = () => {
                     className="rounded-xl bg-slate-50 border border-slate-200 p-2.5 text-xs space-y-1"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-blue-700">
+                      <span className="font-semibold text-amber-600">
                         #{item.sequenceNumber} {item.actionTitle}
                       </span>
                       <span className="text-[10px] text-slate-400">
@@ -431,10 +431,10 @@ export const SimulationWorkspace: React.FC = () => {
           <div className="rounded-2xl bg-white border border-slate-200 p-5 space-y-4 shadow-sm flex-1 flex flex-col">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-blue-600" />
+                <FileText className="w-4 h-4 text-amber-500" />
                 Scenario Clues & Documents ({state.unlockedEvidence.length})
               </h3>
-              <span className="text-[10px] text-blue-600 font-semibold">Inspecting Artifacts</span>
+              <span className="text-[10px] text-amber-500 font-semibold">Inspecting Artifacts</span>
             </div>
 
             {/* Evidence Selector Tabs */}
@@ -449,7 +449,7 @@ export const SimulationWorkspace: React.FC = () => {
                     onClick={() => setSelectedEvidenceKey(key)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 border ${
                       isSelected
-                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                        ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
                         : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
                     }`}
                   >
@@ -465,7 +465,7 @@ export const SimulationWorkspace: React.FC = () => {
               {currentEvidence ? (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-[11px] text-slate-400 border-b border-slate-800 pb-2">
-                    <span className="text-blue-400 font-semibold">{currentEvidence.category}</span>
+                    <span className="text-amber-300 font-semibold">{currentEvidence.category}</span>
                     <span>{currentEvidence.title}</span>
                   </div>
                   <pre className="text-slate-200 whitespace-pre-wrap leading-relaxed select-text font-mono text-[11.5px]">

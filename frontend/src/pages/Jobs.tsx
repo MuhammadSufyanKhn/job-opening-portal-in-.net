@@ -574,7 +574,7 @@ export const Jobs: React.FC = () => {
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#EEF3FF', color: '#4263EB', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--soft)', color: 'var(--accent-d)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                     <Building2 size={20} />
                   </div>
                   <div>

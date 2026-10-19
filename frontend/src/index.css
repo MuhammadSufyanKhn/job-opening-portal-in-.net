@@ -172,7 +172,7 @@ a {
   flex: none;
 }
 
-.m1 { background: #1F5EFF; }
+.m1 { background: var(--accent); }
 .m2 { background: #0F7A55; }
 .m3 { background: #C2410C; }
 .m4 { background: #7C3AED; }
@@ -209,14 +209,14 @@ a {
 .btn-primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--ink);
 }
 
 .btn.primary:hover,
 .btn-primary:hover {
   background: var(--accent-d);
   border-color: var(--accent-d);
-  color: #fff;
+  color: var(--ink);
 }
 
 .btn.lime,
@@ -4281,7 +4281,7 @@ section.s {
   color: #fff;
   flex: none;
 }
-.m1 { background: #1F5EFF; }
+.m1 { background: var(--accent); }
 .m2 { background: #0F7A55; }
 .m3 { background: #C2410C; }
 .m4 { background: #7C3AED; }
@@ -5082,7 +5082,7 @@ section.s {
   height: 4px;
 }
 
-.stats-ribbon-card.accent-blue::before { background: #1F5EFF; }
+.stats-ribbon-card.accent-blue::before { background: var(--accent); }
 .stats-ribbon-card.accent-emerald::before { background: #0F7A55; }
 .stats-ribbon-card.accent-amber::before { background: #D97706; }
 .stats-ribbon-card.accent-purple::before { background: #7C3AED; }
@@ -5701,7 +5701,7 @@ body {
 }
 
 .stats .st:nth-child(2) .fi {
-  background: #E9EDFF;
+  background: var(--soft);
   color: var(--accent);
 }
 
@@ -6880,7 +6880,7 @@ body {
 .jd-verified-badge {
   display: inline-flex;
   align-items: center;
-  color: #1458F5;
+  color: var(--accent-d);
 }
 
 .jd-company-industry {
@@ -6948,7 +6948,7 @@ body {
 .jd-btn-save.saved {
   background: #EEF2FF;
   border-color: #C7D2FE;
-  color: #1458F5;
+  color: var(--accent-d);
 }
 
 .jd-btn-primary {
@@ -6956,7 +6956,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background-color: #1458F5;
+  background-color: var(--accent);
   color: #FFFFFF;
   border: none;
   padding: 11px 24px;
@@ -7115,7 +7115,7 @@ body {
 }
 
 .jd-check-icon {
-  color: #1458F5;
+  color: var(--accent-d);
   flex-shrink: 0;
   margin-top: 3px;
 }
@@ -7139,7 +7139,7 @@ body {
 }
 
 .jd-company-link-item a {
-  color: #1458F5;
+  color: var(--accent-d);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -7320,7 +7320,7 @@ body {
     text-align: left;
   }
   .jd-acc-header:focus-visible {
-    outline: 2px solid #1458F5;
+    outline: 2px solid var(--accent);
   }
   .jd-acc-body {
     padding: 0 20px 20px 20px;

@@ -409,7 +409,7 @@ export const JobDetail: React.FC = () => {
                   <div className="jd-company-name-row">
                     <span className="jd-company-name">{job.companyName}</span>
                     <span className="jd-verified-badge" title="Verified Employer">
-                      <CheckCircle2 size={16} fill="#1458F5" color="#FFFFFF" />
+                      <CheckCircle2 size={16} fill="var(--accent)" color="#FFFFFF" />
                     </span>
                   </div>
                   <div className="jd-company-industry">
@@ -765,7 +765,7 @@ export const JobDetail: React.FC = () => {
                           href={job.companyWebsiteUrl.startsWith('http') ? job.companyWebsiteUrl : `https://${job.companyWebsiteUrl}`} 
                           target="_blank" 
                           rel="noreferrer"
-                          style={{ color: '#1458F5', fontSize: '13.5px', textDecoration: 'underline' }}
+                          style={{ color: 'var(--accent-d)', fontSize: '13.5px', textDecoration: 'underline' }}
                         >
                           Visit website ↗
                         </a>
@@ -781,7 +781,7 @@ export const JobDetail: React.FC = () => {
               {/* Card 1: Application Snapshot */}
               <div className="jd-sidebar-card">
                 <div className="jd-snapshot-title">
-                  <FileText size={18} style={{ color: '#1458F5' }} />
+                  <FileText size={18} style={{ color: 'var(--accent-d)' }} />
                   <span>Application snapshot</span>
                 </div>
 
@@ -928,7 +928,7 @@ export const JobDetail: React.FC = () => {
                     marginBottom: '18px' 
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '14px', color: '#09244D' }}>
-                      <ShieldCheck size={18} style={{ color: '#1458F5' }} />
+                      <ShieldCheck size={18} style={{ color: 'var(--accent-d)' }} />
                       <span>Applying with your candidate profile</span>
                     </div>
                     <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#687993', lineHeight: 1.45 }}>
@@ -942,7 +942,7 @@ export const JobDetail: React.FC = () => {
                       <label htmlFor="cvSelect" style={{ fontSize: '14px', fontWeight: 700, color: '#09244D' }}>
                         Attached CV
                       </label>
-                      <Link to="/candidate/documents" target="_blank" style={{ fontSize: '12.5px', color: '#1458F5', fontWeight: 600 }}>
+                      <Link to="/candidate/documents" target="_blank" style={{ fontSize: '12.5px', color: 'var(--accent-d)', fontWeight: 600 }}>
                         Manage CVs ↗
                       </Link>
                     </div>
@@ -983,7 +983,7 @@ export const JobDetail: React.FC = () => {
                       background: '#EEF2FF', 
                       border: '1px solid #C7D2FE' 
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#1458F5', fontWeight: 700, fontSize: '13px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-d)', fontWeight: 700, fontSize: '13px' }}>
                         <Sparkles size={15} />
                         <span>See how well you fit</span>
                       </div>
