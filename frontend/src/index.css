@@ -1168,6 +1168,10 @@ tr.selected td {
   max-width: 1360px;
   margin: 0 auto;
   padding: 32px 24px 48px;
+  /* Prevent horizontal overflow on all viewports */
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .landing-hero-grid {
@@ -1176,6 +1180,8 @@ tr.selected td {
   gap: 40px;
   align-items: center;
   margin-bottom: 56px;
+  /* Prevent grid overflow */
+  min-width: 0;
 }
 
 .landing-eyebrow-badge {
@@ -1759,20 +1765,26 @@ tr.selected td {
     display: flex;
     align-items: center;
     justify-content: space-around;
+    /* Fixed to the viewport, never scrolls away */
     position: fixed;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(100% - 24px);
-    max-width: 440px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    /* Pill shape centered with safe-area bottom inset */
+    margin: 0 12px calc(env(safe-area-inset-bottom, 0px) + 12px);
     background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(16, 27, 42, 0.12);
     border-radius: 24px;
     box-shadow: 0 14px 36px -8px rgba(16, 27, 42, 0.28);
-    z-index: 95;
+    /* High z-index so it always renders above page content */
+    z-index: 400;
     padding: 6px 4px;
+    /* Do not extend beyond viewport */
+    width: auto;
+    max-width: calc(100vw - 24px);
+    box-sizing: border-box;
   }
 
   .mobile-bottom-item {
@@ -1791,6 +1803,12 @@ tr.selected td {
     min-height: 44px;
     transition: all 0.15s ease;
     position: relative;
+    /* Prevent text wrapping from breaking layout */
+    white-space: nowrap;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
   }
 
   .mobile-bottom-item:focus-visible {
@@ -1820,14 +1838,12 @@ tr.selected td {
     justify-content: center;
   }
 
-  /* Provide bottom clearance for floating bar including mobile safe areas */
+  /* Provide bottom clearance so content is not hidden behind the nav bar.
+     Uses a generous clearance: pill height (~68px) + bottom margin (12px) + safe area + buffer */
   .page,
   .portal-page,
-  .main-content,
-  .container,
-  .portal-container,
-  .home-container {
-    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important;
+  .main-content {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -6130,7 +6146,7 @@ body {
 
 .featured-jobs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
   gap: 24px;
 }
 
@@ -7325,4 +7341,201 @@ body {
   }
 }
 
+@media (max-width: 768px) {
+  /* =====================================================================
+     US-1 & US-2: Full-width mobile layout, reduced vertical spacing
+     ===================================================================== */
 
+  /* Ensure no horizontal overflow from any top-level container */
+  body {
+    overflow-x: hidden;
+  }
+
+  .home-page {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* Hero: collapse to single column, use full available width */
+  .landing-hero-container {
+    width: 100%;
+    padding: 20px 16px 24px;
+    box-sizing: border-box;
+  }
+
+  .landing-hero-grid {
+    /* Single column — image column hidden on mobile */
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-bottom: 24px;
+  }
+
+  /* Hide the hero image on mobile to prevent dead right-column space */
+  .landing-visual-wrap {
+    display: none;
+  }
+
+  .landing-hero-headline {
+    font-size: clamp(32px, 9vw, 40px);
+  }
+
+  .landing-hero-desc {
+    font-size: 15.5px;
+    margin-bottom: 20px;
+    max-width: 100%;
+  }
+
+  .landing-cta-row {
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .landing-cta-row > a {
+    flex: 1 1 140px;
+  }
+
+  .landing-stats-row {
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 16px;
+  }
+
+  .landing-stat-item h3 {
+    font-size: 20px;
+  }
+
+  .landing-stat-item p {
+    font-size: 12px;
+  }
+
+  /* Search / explore panel: full width, reduced padding */
+  .landing-explore-opportunities {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .unified-search-bar {
+    gap: 8px;
+    padding: 6px;
+  }
+
+  .search-field-inner {
+    min-width: 0;
+    padding: 0 12px;
+  }
+
+  .btn-search-navy {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Featured Jobs: tighten top gap so it sits naturally after search */
+  .featured-jobs-section {
+    padding: 24px 0 20px;
+  }
+
+  .featured-jobs-header {
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .featured-jobs-title {
+    font-size: 26px;
+  }
+
+  .featured-jobs-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .featured-job-card {
+    min-width: 0;
+    padding: 18px;
+  }
+
+  /* home-container & container: ensure no overflow on mobile */
+  .home-container,
+  .container {
+    padding-left: 16px;
+    padding-right: 16px;
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+
+  /* Section spacing reductions */
+  .candidate-showcase-section {
+    padding: 36px 0;
+  }
+
+  .final-cta-section {
+    padding: 24px 0 48px;
+  }
+
+  /* =====================================================================
+     US-4: How It Works — hide 3-column step nav, show single card
+     ===================================================================== */
+  .how-it-works-card {
+    padding: 20px !important;
+  }
+
+  .how-it-works-step-nav {
+    display: none !important;
+  }
+
+  .how-it-works-active-content {
+    min-height: 200px !important;
+  }
+
+  .how-it-works-active-content > div {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  .how-it-works-controls {
+    margin-top: 20px !important;
+    padding-top: 14px !important;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* Onboarding step indicator shown on mobile */
+  .mobile-step-indicator {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+  }
+
+  /* Progress dots for mobile onboarding */
+  .mobile-step-dots {
+    display: flex !important;
+    gap: 6px;
+    margin-top: 16px;
+  }
+
+  .mobile-step-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--line);
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .mobile-step-dot.active {
+    background: var(--accent);
+    transform: scale(1.25);
+  }
+
+  /* Ensure the how-it-works section header wraps gracefully */
+  .how-it-works-card .head {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 14px !important;
+  }
+}

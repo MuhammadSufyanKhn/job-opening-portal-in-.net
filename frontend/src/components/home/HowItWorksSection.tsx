@@ -11,6 +11,8 @@ export const HowItWorksSection: React.FC = () => {
   const [isPaused, setIsPaused] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isInViewport, setIsInViewport] = useState(false);
+  const [isPageVisible, setIsPageVisible] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   const steps = HOW_IT_WORKS_STEPS[audience];
 
@@ -29,16 +31,30 @@ export const HowItWorksSection: React.FC = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Automatic progression every 4 seconds when in viewport and not paused
   useEffect(() => {
-    if (shouldReduceMotion || isPaused || !isInViewport) return;
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    const updateIsMobile = () => setIsMobile(mediaQuery.matches);
+    updateIsMobile();
+    mediaQuery.addEventListener('change', updateIsMobile);
+    return () => mediaQuery.removeEventListener('change', updateIsMobile);
+  }, []);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => setIsPageVisible(document.visibilityState === 'visible');
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  // Advance faster on mobile, while avoiding work when the section is not visible.
+  useEffect(() => {
+    if (shouldReduceMotion || isPaused || !isInViewport || !isPageVisible) return;
 
     const interval = setInterval(() => {
       setActiveStep((prev) => (prev + 1) % steps.length);
-    }, 4200);
+    }, isMobile ? 2000 : 4200);
 
     return () => clearInterval(interval);
-  }, [shouldReduceMotion, isPaused, isInViewport, steps.length, audience]);
+  }, [shouldReduceMotion, isPaused, isInViewport, isPageVisible, isMobile, steps.length, audience]);
 
   const handleAudienceChange = (newAudience: 'seeker' | 'employer') => {
     setAudience(newAudience);
@@ -143,7 +159,7 @@ export const HowItWorksSection: React.FC = () => {
 
         {/* Step Indicators Card */}
         <div 
-          className="card" 
+          className="card how-it-works-card"
           style={{ 
             background: 'var(--surface)', 
             borderRadius: 'var(--r)', 
@@ -153,7 +169,7 @@ export const HowItWorksSection: React.FC = () => {
           }}
         >
           {/* Step numbers navigation bar */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px', position: 'relative' }}>
+          <div className="how-it-works-step-nav" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px', position: 'relative' }}>
             {steps.map((_step, idx) => {
               const isActive = activeStep === idx;
               return (
@@ -207,7 +223,7 @@ export const HowItWorksSection: React.FC = () => {
           </div>
 
           {/* Active Step Content Animation */}
-          <div style={{ minHeight: '130px' }}>
+          <div className="how-it-works-active-content" style={{ minHeight: '130px' }}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={`${audience}-${activeStep}`}
@@ -216,21 +232,46 @@ export const HowItWorksSection: React.FC = () => {
                 exit={{ opacity: 0, x: shouldReduceMotion ? 0 : -16 }}
                 transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
                 style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '28px', alignItems: 'center' }}
+                aria-live="polite"
+                aria-atomic="true"
               >
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--accent)', fontWeight: 600, fontSize: '13px' }}>
+                  {/* Mobile-only step indicator (CSS hides this on desktop, shows on ≤768px) */}
+                  <div
+                    className="mobile-step-indicator"
+                    style={{ display: 'none' }}
+                    aria-label={`Step ${steps[activeStep].stepNumber} of ${steps.length}`}
+                  >
+                    <CheckCircle2 size={14} />
+                    <span>STEP {steps[activeStep].stepNumber} OF {steps.length}</span>
+                  </div>
+
+                  {/* Desktop step indicator (always visible, mobile-step-indicator replaces it on mobile) */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--accent)', fontWeight: 600, fontSize: '13px' }}
+                    aria-hidden={isMobile}>
                     <CheckCircle2 size={16} />
                     <span>Stage {steps[activeStep].stepNumber} of 3</span>
                   </div>
+
                   <h3 style={{ fontSize: '24px', marginBottom: '12px', color: 'var(--ink)' }}>
                     {steps[activeStep].title}
                   </h3>
                   <p className="muted" style={{ fontSize: '16px', lineHeight: 1.6, maxWidth: '580px' }}>
                     {steps[activeStep].description}
                   </p>
+
+                  {/* Mobile-only progress dots (CSS controls display) */}
+                  <div className="mobile-step-dots" style={{ display: 'none' }} aria-hidden="true">
+                    {steps.map((_, idx) => (
+                      <span
+                        key={idx}
+                        className={`mobile-step-dot${idx === activeStep ? ' active' : ''}`}
+                      />
+                    ))}
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', mdAlignItems: 'flex-end', gap: '14px' } as any}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '14px' } as any}>
                   <Link
                     to={audience === 'seeker' ? '/register-candidate' : '/register-company'}
                     className="btn primary lg"
@@ -248,7 +289,7 @@ export const HowItWorksSection: React.FC = () => {
           </div>
 
           {/* Step Controls Footer */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '32px', paddingTop: '20px', borderTop: '1px solid var(--line)' }}>
+          <div className="how-it-works-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '32px', paddingTop: '20px', borderTop: '1px solid var(--line)' }}>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 type="button"
